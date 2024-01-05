@@ -7,6 +7,10 @@ Unofficial GTFS dataset for BMTC routes, stops and timetables in Bengaluru. Raw 
 - [Why BMTC?](https://datameet.org/2016/08/05/bmtc-intelligent-transportation-system-its-open-transport-data/)
 - [Why GTFS?](https://gtfs.org/#why-use-gtfs)
 
+## Caveat
+
+The source for the data and analysis in this repository are the routes, stops and timetables as displayed on the Namma BMTC app. However, the Namma BMTC app is not completely accurate, and is particularly unreliable for timetables and stop timings. Nonetheless, the data can be used to understand general trends in the BMTC network.
+
 ## GTFS
 
 The GTFS dataset can be found **[here](gtfs/bmtc.zip?raw=1)**
