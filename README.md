@@ -11,6 +11,8 @@ Unofficial GTFS dataset for BMTC routes, stops and timetables in Bengaluru. Raw 
 
 The source for the data and analysis in this repository are the routes, stops and timetables as displayed on the Namma BMTC app. However, the Namma BMTC app is not completely accurate, and is particularly unreliable for timetables and stop timings. Nonetheless, the data can be used to understand general trends in the BMTC network.
 
+Due to the design of the Namma BMTC app, only routes with functional live tracking are included in the GTFS. Any missing routes may be due to live tracking unavailability and not necessarily due to the route being inoperational.
+
 ## GTFS
 
 The GTFS dataset can be found **[here](gtfs/bmtc.zip?raw=1)**
@@ -46,12 +48,12 @@ GeoJSONs can be found below:
 
 Conversion into other formats can be done using free tools like [mapshaper](https://mapshaper.org/) or [QGIS](https://qgis.org/en/site/)
 
-## XLSX
+## CSV
 
-XLSX files can be found below:
-- [Routes](xlsx/routes.xlsx?raw=1) (or view on [Google Sheets](https://docs.google.com/spreadsheets/d/1wIgAePcInqs2d3c1aPO1QoDEC16fi5QqNNua9bcBTd8))
-- [Stops](xlsx/stops.xlsx?raw=1) (or view on [Google Sheets](https://docs.google.com/spreadsheets/d/1apQpX7wcaKkz2iWO9l3HOO8MXTRpdYOx60CY4hBShDc))
-- [Aggregated Stops](xlsx/aggregated.xlsx?raw=1) (or view on [Google Sheets](https://docs.google.com/spreadsheets/d/1y-Yo8IWurtlxtFvinKOuxEEEL8b2kHdxTs8eIvTJPmQ))
+CSVs can be found below:
+- [Routes](csv/routes.csv?raw=1) (or explore [here](https://flatgithub.com/Vonter/bmtc-gtfs?filename=csv/routes.csv&stickyColumnName=name&sort=trip_count%2Cdesc))
+- [Stops](csv/stops.csv?raw=1) (or explore [here](https://flatgithub.com/Vonter/bmtc-gtfs?filename=csv/stops.csv&stickyColumnName=name&sort=trip_count%2Cdesc))
+- [Aggregated Stops](csv/aggregated.csv?raw=1) (or explore [here](https://flatgithub.com/Vonter/bmtc-gtfs?filename=csv/aggregated.csv&stickyColumnName=name&sort=trip_count%2Cdesc))
 
 ## HTML
 
