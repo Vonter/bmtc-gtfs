@@ -99,5 +99,32 @@ def dump_stops():
     with open('stops.geojson', 'w') as f:
        dump(geojson, f)
 
+def aggregate_stops():
+
+    with open("stops.geojson", 'r') as f:
+       geojson_data = json.load(f)
+
+    stops = {}
+    features = []
+    for feature in geojson_data["features"]:
+        name = feature["properties"]["name"]
+        if name in stops:
+            stops[name]["trip_count"] = stops[name]["trip_count"] + feature["properties"]["trip_count"]
+            stops[name]["route_count"] = stops[name]["route_count"] + feature["properties"]["route_count"]
+            stops[name]["trip_list"] = stops[name]["trip_list"] + feature["properties"]["trip_list"]
+            stops[name]["route_list"] = stops[name]["route_list"] + feature["properties"]["route_list"]
+        else:
+            stops[name] = {"name": name, "trip_count": feature["properties"]["trip_count"], "trip_list": feature["properties"]["trip_list"], "route_count": feature["properties"]["route_count"], "route_list": feature["properties"]["route_list"]}
+            features.append(feature)
+            features[-1]["properties"] = stops[name]
+
+    aggregated = geojson_data
+    aggregated["features"] = features
+
+    with open('aggregated.geojson', 'w') as f:
+       dump(aggregated, f)
+
+
 dump_stops()
 dump_routes()
+aggregate_stops()
