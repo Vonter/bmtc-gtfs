@@ -62,7 +62,7 @@ def getRoutelines(routes):
         with open(f'{directory_path}/{route_no}.json', 'w') as f:
             f.write(response.text)
 
-        logging.info("Fetched {}.json".format(route_no))
+        logging.info("Fetched {}".format(route_no))
 
     dir_list = os.listdir(directory_path)
     logging.info("Finished fetching routelines... ({} routelines)".format(len(dir_list)))
@@ -75,6 +75,11 @@ def getTimetables(routes):
     for day in range(1, 8):
         date = datetime.now() + timedelta(days=day)
         dow = date.strftime("%A")
+
+        # Fetch only Monday
+        if dow != "Monday":
+            continue
+
         os.makedirs(f'timetables/{dow}', exist_ok=True)
 
         directory_path = f'timetables/{dow}'
@@ -92,14 +97,14 @@ def getTimetables(routes):
             tostation_id = route['tostationid']
             logging.debug("Fetching {}.json".format(route_no))
 
-            data = f'{{"routeid":{route_id},"fromStationId":{fromstation_id},"toStationId":{tostation_id},"current_date":"{date.strftime("%Y-%m-%d")}"}}'
+            data = f'{{"routeid":{route_id},"fromStationId":{fromstation_id},"toStationId":{tostation_id},"current_date":"{date.strftime("%Y-%m-%d")}T00:00:00.000Z","endtime":"{date.strftime("%Y-%m-%d")} 23:59","starttime":"{date.strftime("%Y-%m-%d")} 00:00"}}'
 
-            response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/GetTimetableByRouteid_v2', headers=headers, data=data)
+            response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/GetTimetableByRouteid_v3', headers=headers, data=data)
 
             with open(f'timetables/{dow}/{route_no}.json', 'w') as f:
                 f.write(response.text)
 
-            logging.info("Fetched {}.json".format(route_no))
+            logging.info("Fetched {}".format(route_no))
 
     dir_list = os.listdir(directory_path)
     logging.info("Finished fetching timetables... ({} timetables)".format(len(dir_list)))
@@ -188,7 +193,7 @@ def getStoplists(routes, routeParents):
                         f.write(response.text)
 
                 pendingRoutes.remove(route)
-                logging.info("Fetched {}.json with routeid {}".format(routeparentname, routeParents[routeparentname]))
+                logging.info("Fetched {} with routeid {}".format(routeparentname, routeParents[routeparentname]))
             except Exception as err:
                 logging.error("Failed {}.json".format(routeparentname))
                 logging.error(traceback.format_exc())

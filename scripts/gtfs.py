@@ -228,5 +228,5 @@ schedule.WriteGoogleTransitFeed("intermediate/bmtc.zip")
 
 # Lint
 # -T uses CAP method to convert stop_times to frequencies, but resulted in multiple trips disappearing on many occassions
-#subprocess.run(["/home/vivek/go/bin/gtfstidy", "-SCRmTcdsOeD", "intermediate/bmtc.zip", "-o", "bmtc.zip"])
-subprocess.run(["/home/vivek/go/bin/gtfstidy", "-SCRmcdsOeD", "intermediate/bmtc.zip", "-o", "bmtc.zip"])
+#subprocess.run(["~/go/bin/gtfstidy", "-SCRmTcdsOeD", "intermediate/bmtc.zip", "-o", "bmtc.zip"])
+subprocess.run(["~/go/bin/gtfstidy", "-SCRmcdsOeD", "intermediate/bmtc.zip", "-o", "bmtc.zip"])
