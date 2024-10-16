@@ -63,7 +63,7 @@ Visualize the routes, stops and timetables in the GTFS dataset, with a web brows
 
 - [gtfs-validator](validation/gtfs-validator)
 - [gtfsvtor](validation/gtfsvtor)
-- [transport-validator](validation/transport-validator)
+- [transport-validator](validation/transport-validator) (Older versions of GTFS)
 
 ## Scripts
 
