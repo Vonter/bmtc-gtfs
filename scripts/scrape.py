@@ -7,6 +7,7 @@ import time
 import traceback
 
 from datetime import datetime, timedelta
+from string import ascii_lowercase
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,19 +24,48 @@ headers = {
     'Content-Type': 'application/json',
     'lan': 'en',
     'deviceType': 'WEB',
-    'Origin': 'https://bmtcwebportal.amnex.com',
-    'Referer': 'https://bmtcwebportal.amnex.com/'
+    'Origin': 'https://nammabmtcapp.karnataka.gov.in',
+    'Referer': 'https://nammabmtcapp.karnataka.gov.in/'
 }
 
 
 def getRoutes():
 
-    response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/GetAllRouteList', headers=headers)
+    response = requests.post('https://bmtcmobileapi.karnataka.gov.in/WebAPI/GetAllRouteList', headers=headers)
 
     with open("routes.json", "w") as f:
         f.write(response.text)
 
     return response
+
+
+def getTranslations():
+
+    logging.info("Fetching translations...")
+
+    directory_path = "translations"
+    dir_list = os.listdir(directory_path)
+
+    for language in ["en", "kn"]:
+        for alphabet in ascii_lowercase:
+            if (alphabet + '_' + language + '.json') in dir_list:
+                continue
+
+            time.sleep(0.5)
+
+            data = f'{{"stationName":"{alphabet}"}}'
+            headers['lan'] = language
+            headers['deviceType'] = 'android'
+
+            response = requests.post('https://bmtcmobileapi.karnataka.gov.in/WebAPI/SearchStation', headers=headers, data=data)
+
+            with open(f'{directory_path}/{alphabet}_{language}.json', 'w') as f:
+                f.write(response.text)
+
+            logging.info("Fetched stations for {} in {}".format(alphabet, language))
+
+    dir_list = os.listdir(directory_path)
+    logging.info("Finished fetching translation... ({} translations)".format(len(dir_list)))
 
 
 def getRoutelines(routes):
@@ -57,7 +87,7 @@ def getRoutelines(routes):
 
         data = f'{{"routeid":{route_id}}}'
 
-        response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/RoutePoints', headers=headers, data=data)
+        response = requests.post('https://bmtcmobileapi.karnataka.gov.in/WebAPI/RoutePoints', headers=headers, data=data)
 
         with open(f'{directory_path}/{route_no}.json', 'w') as f:
             f.write(response.text)
@@ -99,7 +129,7 @@ def getTimetables(routes):
 
             data = f'{{"routeid":{route_id},"fromStationId":{fromstation_id},"toStationId":{tostation_id},"current_date":"{date.strftime("%Y-%m-%d")}T00:00:00.000Z","endtime":"{date.strftime("%Y-%m-%d")} 23:59","starttime":"{date.strftime("%Y-%m-%d")} 00:00"}}'
 
-            response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/GetTimetableByRouteid_v3', headers=headers, data=data)
+            response = requests.post('https://bmtcmobileapi.karnataka.gov.in/WebAPI/GetTimetableByRouteid_v3', headers=headers, data=data)
 
             with open(f'timetables/{dow}/{route_no}.json', 'w') as f:
                 f.write(response.text)
@@ -137,7 +167,7 @@ def getRouteids(routes):
 
         data = f'{{"routetext":"{route}"}}'
 
-        response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/SearchRoute_v2', headers=headers, data=data)
+        response = requests.post('https://bmtcmobileapi.karnataka.gov.in/WebAPI/SearchRoute_v2', headers=headers, data=data)
 
         with open(f'{directory_path}/{route}.json', 'w') as f:
             f.write(response.text)
@@ -180,7 +210,7 @@ def getStoplists(routes, routeParents):
 
                 data = f'{{"routeid":{routeParents[routeparentname]},"servicetypeid":0}}'
 
-                response = requests.post('https://bmtcmobileapistaging.amnex.com/WebAPI/SearchByRouteDetails_v4', headers=headers, data=data)
+                response = requests.post('https://bmtcmobileapi.karnataka.gov.in/WebAPI/SearchByRouteDetails_v4', headers=headers, data=data)
 
                 if response.json()["message"] == "Data not found":
                     continue
@@ -209,5 +239,6 @@ routes = json.load(f)
 routeParents = getRouteids(routes)
 
 getRoutelines(routes)
+getTranslations()
 getTimetables(routes)
 getStoplists(routes, routeParents)
