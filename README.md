@@ -99,6 +99,9 @@ Raw JSON data scraped from Namma BMTC can be found below:
     - [Reachability](https://github.com/geohacker/bmtc#reachability)
     - [Redundancy](https://github.com/geohacker/bmtc#redundancy)
     - [Access to amenities](https://github.com/geohacker/bmtc#school-walkability) (education, health, recreation, employment)
+- Features
+    - Add fields for platform related details in large stations
+    - Add Fares v2 support with fare product details
 
 ## Contributing
 
