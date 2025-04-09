@@ -70,7 +70,7 @@ Visualize the routes, stops and timetables in the GTFS dataset, with a web brows
 - [scrape.py](scripts/scrape.py): Scrape raw data from Namma BMTC
 - [gtfs.py](scripts/gtfs.py): Parse raw data and save as GTFS
 - [valiate.py](scripts/validate.py): Pass the GTFS through multiple GTFS validation tools
-- [geojson.py](scripts/geojson.py): Process the GTFS and output a GeoJSON representing the network
+- [analysis.py](scripts/analysis.py): Process the GTFS and output a GeoJSON representing the network
 
 ## Raw JSON
 
@@ -79,24 +79,26 @@ Raw JSON data scraped from Namma BMTC can be found below:
 - [routelines.zip](raw/routelines.zip?raw=1): Pointwise co-ordinates of each route
 - [stops.zip](raw/stops.zip?raw=1): Stops through which each route passes
 - [timetables.zip](raw/timetables.zip?raw=1): Timetables for each route
+- [fares.zip](raw/fares.zip?raw=1): Fares for each route and stop-pair
+- [translations.zip](raw/translations.zip?raw=1): Kannada names for each stop
 
 ## To-do
 
-- Refactor/optimize scripts
+- Scripts and data
     - Fix validation errors and warnings
-    - Fix missing/failed routes/stops/timetables
-    - Minimize network calls
-    - Speed up data processing
-    - GitHub Actions workflow
-    - Daily update of route/stop/timetable changes
-- PDF timetables
-- Add maps (and data analysis)
+    - Fix missing/failed routes/stops/timetables/fare information
+    - Optimize fetch scripts to minimize network call
+    - Optimize parse scripts to speed up data processing
+    - GitHub Actions workflow for automatic GTFS data updates
+    - Regularly scheduled GitHub Actions workflow for daily GTFS data updates
+- Analysis and visualizations
+    - HTML timetables
+    - PDF timetables
     - [Route series-wise maps](https://github.com/geohacker/bmtc#2-and-3-series-routes)
     - [Directionality](https://github.com/geohacker/bmtc#direction)
     - [Reachability](https://github.com/geohacker/bmtc#reachability)
     - [Redundancy](https://github.com/geohacker/bmtc#redundancy)
     - [Access to amenities](https://github.com/geohacker/bmtc#school-walkability) (education, health, recreation, employment)
-- Add fare information
 
 ## Contributing
 
