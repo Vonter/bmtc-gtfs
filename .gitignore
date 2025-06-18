@@ -1,1 +1,17 @@
 scripts/__pycache__
+scripts/gtfs_temp
+
+tools
+
+raw/fares
+raw/routeids
+raw/routelines
+raw/stops
+raw/timetables
+raw/translations
+
+gtfs/debug.log
+gtfs/missingShapes.txt
+gtfs/missingStops.txt
+gtfs/missingTimetables.txt
+gtfs/intermediate

@@ -76,21 +76,19 @@ Visualize the routes, stops and timetables in the GTFS dataset, with a web brows
 
 Raw JSON data scraped from Namma BMTC can be found below:
 
-- [routelines.zip](raw/routelines.zip?raw=1): Pointwise co-ordinates of each route
-- [stops.zip](raw/stops.zip?raw=1): Stops through which each route passes
-- [timetables.zip](raw/timetables.zip?raw=1): Timetables for each route
-- [fares.zip](raw/fares.zip?raw=1): Fares for each route and stop-pair
-- [translations.zip](raw/translations.zip?raw=1): Kannada names for each stop
+- [routelines.7z](raw/routelines.7z?raw=1): Pointwise co-ordinates of each route
+- [stops.7z](raw/stops.7z?raw=1): Stops through which each route passes
+- [timetables.7z](raw/timetables.7z?raw=1): Timetables for each route
+- [fares.7z](raw/fares.7z?raw=1): Fares for each route and stop-pair
+- [translations.7z](raw/translations.7z?raw=1): Kannada names for each stop
 
 ## To-do
 
 - Scripts and data
-    - Fix validation errors and warnings
+    - Reduce validation errors and warnings in output GTFS
     - Fix missing/failed routes/stops/timetables/fare information
-    - Optimize fetch scripts to minimize network call
-    - Optimize parse scripts to speed up data processing
-    - GitHub Actions workflow for automatic GTFS data updates
-    - Regularly scheduled GitHub Actions workflow for daily GTFS data updates
+    - Add functionality in fetch script to refetch data that may have changed
+    - GitHub Actions workflow for daily GTFS data updates
 - Analysis and visualizations
     - HTML timetables
     - PDF timetables

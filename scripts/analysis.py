@@ -1,21 +1,13 @@
 #!/usr/bin/env python3
-"""
-BMTC Transit Data Analysis
-This script processes GTFS data from Bangalore Metropolitan Transport Corporation
-and outputs GeoJSON files for routes and stops.
-"""
-
-import sys
+import gtfs_kit
 import json
-import zipfile
 import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+import pandas as pd
+import zipfile
+import os
 
 from geojson import dump
-import gtfs_kit
-import pandas as pd
-
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -42,6 +34,35 @@ class TransitDataAnalysis:
         self.stops_df = None
         self.routes_df = None
         
+        # Create output directories if they don't exist
+        os.makedirs('../geojson', exist_ok=True)
+        os.makedirs('../csv', exist_ok=True)
+
+    def save_to_csv(self, geojson_data: dict, csv_path: str) -> None:
+        """
+        Save GeoJSON features properties to CSV format.
+        
+        Args:
+            geojson_data: The GeoJSON data to convert
+            csv_path: Path where to save the CSV file
+        """
+        try:
+            # Extract properties from features
+            rows = []
+            for feature in geojson_data["features"]:
+                # Get properties and add coordinates
+                row = feature["properties"].copy()
+                rows.append(row)
+            
+            # Convert to DataFrame and save
+            df = pd.DataFrame(rows)
+            df.to_csv(csv_path, index=False)
+            logger.info(f"CSV data saved to {csv_path}")
+            
+        except Exception as err:
+            logger.error(f"Failed to save CSV: {err}")
+            raise
+
     def load_data(self) -> None:
         """Load GTFS data from the zip file into pandas DataFrames."""
         logger.info(f"Loading GTFS data from {self.path}")
@@ -131,11 +152,13 @@ class TransitDataAnalysis:
                 except Exception as err:
                     logger.error(f"Failed to process route {route_name}: {err}")
             
-            # Save to file
-            with open('routes.geojson', 'w') as f:
+            # Save to GeoJSON file
+            with open('../geojson/routes.geojson', 'w') as f:
                 dump(geojson, f)
+            logger.info("Routes data saved to ../geojson/routes.geojson")
             
-            logger.info("Routes data saved to routes.geojson")
+            # Save to CSV file
+            self.save_to_csv(geojson, '../csv/routes.csv')
             
         except Exception as err:
             logger.error(f"Failed to process routes: {err}")
@@ -193,11 +216,13 @@ class TransitDataAnalysis:
                 except Exception as err:
                     logger.error(f"Failed to process stop {stop_name}: {err}")
             
-            # Save to file
-            with open('stops.geojson', 'w') as f:
+            # Save to GeoJSON file
+            with open('../geojson/stops.geojson', 'w') as f:
                 dump(geojson, f)
+            logger.info("Stops data saved to ../geojson/stops.geojson")
             
-            logger.info("Stops data saved to stops.geojson")
+            # Save to CSV file
+            self.save_to_csv(geojson, '../csv/stops.csv')
             
         except Exception as err:
             logger.error(f"Failed to process stops: {err}")
@@ -208,7 +233,7 @@ class TransitDataAnalysis:
         logger.info("Aggregating stops data")
         
         try:
-            with open("stops.geojson", 'r') as f:
+            with open("../geojson/stops.geojson", 'r') as f:
                 geojson_data = json.load(f)
             
             stops_dict = {}
@@ -256,11 +281,13 @@ class TransitDataAnalysis:
             aggregated = geojson_data.copy()
             aggregated["features"] = features
             
-            # Save to file
-            with open('aggregated.geojson', 'w') as f:
+            # Save to GeoJSON file
+            with open('../geojson/aggregated.geojson', 'w') as f:
                 dump(aggregated, f)
+            logger.info("Aggregated stops data saved to ../geojson/aggregated.geojson")
             
-            logger.info("Aggregated stops data saved to aggregated.geojson")
+            # Save to CSV file
+            self.save_to_csv(aggregated, '../csv/aggregated.csv')
             
         except Exception as err:
             logger.error(f"Failed to aggregate stops: {err}")
@@ -282,9 +309,7 @@ class TransitDataAnalysis:
 def main() -> None:
     """Main entry point for the script."""
     # Set up paths
-    base_dir = Path('../')
-    sys.path.append(str(base_dir))
-    gtfs_path = base_dir / 'processing/bmtc.zip'
+    gtfs_path = Path('../gtfs/bmtc.zip')
     
     # Run analysis
     analyzer = TransitDataAnalysis(gtfs_path)
