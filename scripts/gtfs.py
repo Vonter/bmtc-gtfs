@@ -14,13 +14,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("debug.log"),
+        logging.FileHandler("../gtfs/debug.log"),
         logging.StreamHandler()
     ]
 )
 
 class GTFSWriter:
-    def __init__(self, output_path="intermediate/bmtc.zip"):
+    def __init__(self, output_path="../gtfs/intermediate/bmtc.zip"):
         self.output_path = output_path
         self.stops = {}
         self.routes = {}
@@ -52,8 +52,8 @@ class GTFSWriter:
             'friday': '1',
             'saturday': '1',
             'sunday': '1',
-            'start_date': '20250401',
-            'end_date': '20260331'
+            'start_date': datetime.datetime.now().strftime('%Y%m%d'),
+            'end_date': (datetime.datetime.now() + datetime.timedelta(days=365)).strftime('%Y%m%d')
         }]
 
     def add_stop(self, stop_id, lat, lon, name):
@@ -149,8 +149,8 @@ class GTFSWriter:
             'feed_publisher_name': 'Vonter',
             'feed_publisher_url': 'https://github.com/Vonter/bmtc-gtfs',
             'feed_lang': 'en',
-            'feed_start_date': '20250401',
-            'feed_end_date': '20260331',
+            'feed_start_date': datetime.datetime.now().strftime('%Y%m%d'),
+            'feed_end_date': (datetime.datetime.now() + datetime.timedelta(days=365)).strftime('%Y%m%d'),
             'feed_version': datetime.datetime.now().strftime('%Y%m%d'),
             'feed_contact_email': 'me@vonter.in',
             'feed_contact_url': 'https://github.com/Vonter/bmtc-gtfs'
@@ -230,6 +230,7 @@ class GTFSWriter:
         }
 
 # Initialize GTFS writer
+os.makedirs('../gtfs/intermediate', exist_ok=True)
 gtfs = GTFSWriter()
 
 def add_stops():
@@ -558,9 +559,9 @@ def add_trips():
 
     # Write missing files
     for filename, items in [
-        ('missingTimetables.txt', noTimetables),
-        ('missingStops.txt', noStops),
-        ('missingShapes.txt', noShapes),
+        ('../gtfs/missingTimetables.txt', noTimetables),
+        ('../gtfs/missingStops.txt', noStops),
+        ('../gtfs/missingShapes.txt', noShapes),
     ]:
         with open(filename, 'w') as f:
             for item in items:
@@ -827,15 +828,15 @@ def add_fares():
 def save_missing_files():
     # Get list of stops that still exist in the final GTFS
     existing_stops = set()
-    with zipfile.ZipFile('bmtc.zip', 'r') as zip_ref:
+    with zipfile.ZipFile('../gtfs/bmtc.zip', 'r') as zip_ref:
         with zip_ref.open('stops.txt') as stops_file:
             reader = csv.DictReader(stops_file.read().decode('utf-8').splitlines())
             for row in reader:
                 existing_stops.add(row['stop_id'])
 
     # Copy files from intermediate zip to final zip
-    with zipfile.ZipFile('bmtc.zip', 'a') as zip_ref:
-        with zipfile.ZipFile('intermediate/bmtc.zip', 'r') as intermediate_zip:
+    with zipfile.ZipFile('../gtfs/bmtc.zip', 'a') as zip_ref:
+        with zipfile.ZipFile('../gtfs/intermediate/bmtc.zip', 'r') as intermediate_zip:
             # List of files to copy from intermediate zip
             files_to_copy = [
                 'translations.txt',
@@ -883,7 +884,7 @@ logging.info("Writing GTFS to disk...")
 gtfs.write_gtfs()
 
 # Run gtfstidy
-subprocess.run(["gtfstidy", "-SCRmcsOeD", "intermediate/bmtc.zip", "-o", "bmtc.zip"])
+subprocess.run(["../tools/gtfstidy", "-SCRmcsOeD", "../gtfs/intermediate/bmtc.zip", "-o", "../gtfs/bmtc.zip"])
 
 # Save missing files
 save_missing_files()
