@@ -3,6 +3,7 @@ scripts/gtfs_temp
 
 tools
 
+raw/debug.log
 raw/fares
 raw/routeids
 raw/routelines
