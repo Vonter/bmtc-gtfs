@@ -641,16 +641,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 1726,
-      "routeno": "500 UP",
-      "routename": "BSK-BSK",
-      "fromstationid": 20623,
-      "fromstation": "Banashankari Bus Station",
-      "tostationid": 20624,
-      "tostation": "Banashankari Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 1728,
       "routeno": "362-C UP",
       "routename": "SBS-BGR",
@@ -1326,7 +1316,7 @@
       "routename": "KMT-ATB",
       "fromstationid": 22199,
       "fromstation": "KR Market",
-      "tostationid": 21670,
+      "tostationid": 21672,
       "tostation": "Attibele Bus Stand",
       "responsecode": 200
     },
@@ -1334,8 +1324,8 @@
       "routeid": 1813,
       "routeno": "327-C DOWN",
       "routename": "ATB-KMT",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
+      "fromstationid": 22075,
+      "fromstation": "Indlubele",
       "tostationid": 22199,
       "tostation": "KR Market",
       "responsecode": 200
@@ -1648,16 +1638,6 @@
       "fromstation": "Avalahalli New BDA Layout",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 1850,
-      "routeno": "501 UP",
-      "routename": "BSK-BSK",
-      "fromstationid": 20623,
-      "fromstation": "Banashankari Bus Station",
-      "tostationid": 20624,
-      "tostation": "Banashankari Bus Station",
       "responsecode": 200
     },
     {
@@ -2147,7 +2127,7 @@
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -2155,7 +2135,7 @@
       "routeno": "240-MB DOWN",
       "routename": "MGD-KBS",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
       "responsecode": 200
@@ -7984,7 +7964,7 @@
       "routeid": 2653,
       "routeno": "G-10 UP",
       "routename": "KMT-YHKOT",
-      "fromstationid": 22199,
+      "fromstationid": 20940,
       "fromstation": "KR Market",
       "tostationid": 22641,
       "tostation": "Yelahanka Old Town",
@@ -7996,7 +7976,7 @@
       "routename": "YHKOT-KMT",
       "fromstationid": 22640,
       "fromstation": "Yelahanka Old Town",
-      "tostationid": 22199,
+      "tostationid": 20940,
       "tostation": "KR Market",
       "responsecode": 200
     },
@@ -9652,7 +9632,7 @@
     },
     {
       "routeid": 2869,
-      "routeno": "258CB UP",
+      "routeno": "258-CB UP",
       "routename": "YBS-NMG",
       "fromstationid": 21288,
       "fromstation": "Yeshawanthapura Bus Station",
@@ -9672,7 +9652,7 @@
     },
     {
       "routeid": 2871,
-      "routeno": "258CB DOWN",
+      "routeno": "258-CB DOWN",
       "routename": "NMG-YBS",
       "fromstationid": 22353,
       "fromstation": "Nelamangala Bus Station",
@@ -9748,26 +9728,6 @@
       "fromstation": "Ramadevanahalli",
       "tostationid": 22199,
       "tostation": "KR Market",
-      "responsecode": 200
-    },
-    {
-      "routeid": 2879,
-      "routeno": "13-S UP",
-      "routename": "STP-JHBCSL",
-      "fromstationid": 35285,
-      "fromstation": "Sultan palya",
-      "tostationid": 26329,
-      "tostation": "JHBCS Layout",
-      "responsecode": 200
-    },
-    {
-      "routeid": 2880,
-      "routeno": "13-S DOWN",
-      "routename": "JHBCSL-STP",
-      "fromstationid": 26329,
-      "fromstation": "JHBCS Layout",
-      "tostationid": 35078,
-      "tostation": "Sultan palya",
       "responsecode": 200
     },
     {
@@ -11932,7 +11892,7 @@
     },
     {
       "routeid": 3163,
-      "routeno": "201-BB UP",
+      "routeno": "201-BB BMS-BSK UP",
       "routename": "BMS-BSK",
       "fromstationid": 20635,
       "fromstation": "Bayyappanahalli Metro Station",
@@ -11942,7 +11902,7 @@
     },
     {
       "routeid": 3164,
-      "routeno": "201-BB DOWN",
+      "routeno": "201-BB BMS-BSK DOWN",
       "routename": "BSK-BMS",
       "fromstationid": 20623,
       "fromstation": "Banashankari Bus Station",
@@ -12088,26 +12048,6 @@
       "fromstation": "Banashankari Bus Station",
       "tostationid": 20742,
       "tostation": "Depot-06 Gate",
-      "responsecode": 200
-    },
-    {
-      "routeid": 3191,
-      "routeno": "201-N UP",
-      "routename": "SNR-DBS",
-      "fromstationid": 21188,
-      "fromstation": "Srinagara Bus Station",
-      "tostationid": 21924,
-      "tostation": "Dr BR Ambedkar Bus Terminal (Domlur)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 3192,
-      "routeno": "201-N DOWN",
-      "routename": "DBS-SNR",
-      "fromstationid": 21923,
-      "fromstation": "Dr BR Ambedkar Bus Terminal (Domlur)",
-      "tostationid": 21188,
-      "tostation": "Srinagara Bus Station",
       "responsecode": 200
     },
     {
@@ -13272,7 +13212,7 @@
     },
     {
       "routeid": 3334,
-      "routeno": "211-L UP",
+      "routeno": "215-BA KBS-BCMC UP",
       "routename": "KBS-BCMCL",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
@@ -13282,7 +13222,7 @@
     },
     {
       "routeid": 3335,
-      "routeno": "211-L DOWN",
+      "routeno": "215-BA KBS-BCMC DOWN",
       "routename": "BCMCL-KBS",
       "fromstationid": 31928,
       "fromstation": "BCMC Layout Raghuvanahalli",
@@ -13477,7 +13417,7 @@
       "fromstationid": 20944,
       "fromstation": "KR Market (Kalasipalya)",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -13485,7 +13425,7 @@
       "routeno": "240-M DOWN",
       "routename": "MGD-KMT",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20945,
       "tostation": "KR Market (Kalasipalya)",
       "responsecode": 200
@@ -14748,26 +14688,6 @@
       "fromstation": "Jayanagara Bus Station",
       "tostationid": 20925,
       "tostation": "Kengeri Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 3538,
-      "routeno": "V-365J UP",
-      "routename": "KBS-JAPC",
-      "fromstationid": 20921,
-      "fromstation": "Kempegowda Bus Station",
-      "tostationid": 35167,
-      "tostation": "Jigani APC Circle",
-      "responsecode": 200
-    },
-    {
-      "routeid": 3540,
-      "routeno": "V-365J DOWN",
-      "routename": "JAPC-KBS",
-      "fromstationid": 22785,
-      "fromstation": "Jigani APC Circle",
-      "tostationid": 20922,
-      "tostation": "Kempegowda Bus Station",
       "responsecode": 200
     },
     {
@@ -16991,26 +16911,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 3901,
-      "routeno": "201-MB UP",
-      "routename": "JBN-MRBS",
-      "fromstationid": 26321,
-      "fromstation": "Jeevanbheema Nagara",
-      "tostationid": 21042,
-      "tostation": "Mysore Road Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 3902,
-      "routeno": "201-MB DOWN",
-      "routename": "MRBS-JBN",
-      "fromstationid": 21042,
-      "fromstation": "Mysore Road Bus Station",
-      "tostationid": 26321,
-      "tostation": "Jeevanbheema Nagara",
-      "responsecode": 200
-    },
-    {
       "routeid": 3909,
       "routeno": "V-BMT13-BSK-RMM UP",
       "routename": "KMK-RMM",
@@ -17117,7 +17017,7 @@
       "fromstationid": 20944,
       "fromstation": "KR Market (Kalasipalya)",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -17125,7 +17025,7 @@
       "routeno": "V-240M DOWN",
       "routename": "MGD-KMT",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20945,
       "tostation": "KR Market (Kalasipalya)",
       "responsecode": 200
@@ -18562,7 +18462,7 @@
     },
     {
       "routeid": 4199,
-      "routeno": "215-BA KBS-BCMC UP",
+      "routeno": "215-BA KBS-BCMCLO UP",
       "routename": "KBS-BCMCL",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
@@ -18572,7 +18472,7 @@
     },
     {
       "routeid": 4200,
-      "routeno": "215-BA KBS-BCMC DOWN",
+      "routeno": "215-BA KBS-BCMCLO DOWN",
       "routename": "BCMCL-KBS",
       "fromstationid": 31928,
       "fromstation": "BCMC Layout Raghuvanahalli",
@@ -19357,7 +19257,7 @@
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -19375,7 +19275,7 @@
       "routeno": "V-240M KBS-MGD DOWN",
       "routename": "MGD-KBS",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
       "responsecode": 200
@@ -20772,7 +20672,7 @@
     },
     {
       "routeid": 4475,
-      "routeno": "210-EA UP",
+      "routeno": "210-EA KBS-BSK-KGR UP",
       "routename": "KBS-BSK-KGR",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
@@ -20782,7 +20682,7 @@
     },
     {
       "routeid": 4478,
-      "routeno": "210-EA DOWN",
+      "routeno": "210-EA KBS-BSK-KGR DOWN",
       "routename": "KGR-BSK-KMT",
       "fromstationid": 20925,
       "fromstation": "Kengeri Bus Station",
@@ -20898,26 +20798,6 @@
       "fromstation": "KR Market (Kalasipalya)",
       "tostationid": 35324,
       "tostation": "Shivanahalli",
-      "responsecode": 200
-    },
-    {
-      "routeid": 4493,
-      "routeno": "210-HB UP",
-      "routename": "KBS-UTH",
-      "fromstationid": 20921,
-      "fromstation": "Kempegowda Bus Station",
-      "tostationid": 22569,
-      "tostation": "Uttarahalli Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 4494,
-      "routeno": "210-HB DOWN",
-      "routename": "UTH-KBS",
-      "fromstationid": 22570,
-      "fromstation": "Uttarahalli Bus Stand",
-      "tostationid": 20922,
-      "tostation": "Kempegowda Bus Station",
       "responsecode": 200
     },
     {
@@ -21836,8 +21716,8 @@
       "routename": "KLD-KMT",
       "fromstationid": 30662,
       "fromstation": "Kallodu",
-      "tostationid": 20945,
-      "tostation": "KR Market (Kalasipalya)",
+      "tostationid": 22199,
+      "tostation": "KR Market",
       "responsecode": 200
     },
     {
@@ -21867,7 +21747,7 @@
       "fromstationid": 20925,
       "fromstation": "Kengeri Bus Station",
       "tostationid": 37739,
-      "tostation": "Thalagattapura Metro Station",
+      "tostation": "Thalaghattapura Metro Station",
       "responsecode": 200
     },
     {
@@ -22011,26 +21891,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 4645,
-      "routeno": "401-RH UP",
-      "routename": "VTTMC-HBL",
-      "fromstationid": 35395,
-      "fromstation": "Vijayanagara Bus Station",
-      "tostationid": 25819,
-      "tostation": "Hebbala Bridge",
-      "responsecode": 200
-    },
-    {
-      "routeid": 4646,
-      "routeno": "401-RH DOWN",
-      "routename": "HBL-VTTMC",
-      "fromstationid": 21527,
-      "fromstation": "Hebbala Bridge",
-      "tostationid": 35395,
-      "tostation": "Vijayanagara Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 4647,
       "routeno": "278-E UP",
       "routename": "SBS-HBL",
@@ -22088,16 +21948,6 @@
       "fromstation": "Bommanahalli",
       "tostationid": 20870,
       "tostation": "Jalahalli Cross",
-      "responsecode": 200
-    },
-    {
-      "routeid": 4654,
-      "routeno": "410-PS UP",
-      "routename": "PSBS-BMH",
-      "fromstationid": 21085,
-      "fromstation": "Peenya Satellite Bus Station",
-      "tostationid": 20674,
-      "tostation": "Bommanahalli",
       "responsecode": 200
     },
     {
@@ -24731,16 +24581,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 5040,
-      "routeno": "301-F UP",
-      "routename": "KBS-KTR",
-      "fromstationid": 20921,
-      "fromstation": "Kempegowda Bus Station",
-      "tostationid": 31096,
-      "tostation": "Kittaganuru",
-      "responsecode": 200
-    },
-    {
       "routeid": 5041,
       "routeno": "500-A BSK-D10G DOWN",
       "routename": "D10G-BSK",
@@ -24768,16 +24608,6 @@
       "fromstation": "Hebbala Bridge",
       "tostationid": 35045,
       "tostation": "Depot-14 RT Nagara",
-      "responsecode": 200
-    },
-    {
-      "routeid": 5044,
-      "routeno": "301-F DOWN",
-      "routename": "KTR-KBS",
-      "fromstationid": 33494,
-      "fromstation": "Kittaganuru",
-      "tostationid": 20922,
-      "tostation": "Kempegowda Bus Station",
       "responsecode": 200
     },
     {
@@ -25726,8 +25556,8 @@
       "routename": "KBS-ANPS",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
-      "tostationid": 22686,
-      "tostation": "Annapoorneshwarinagara",
+      "tostationid": 39966,
+      "tostation": "Annapoorneshwarinagara (HGH)",
       "responsecode": 200
     },
     {
@@ -25764,8 +25594,8 @@
       "routeid": 5197,
       "routeno": "252-RA DOWN",
       "routename": "ANPS-KBS",
-      "fromstationid": 22687,
-      "fromstation": "Annapoorneshwarinagara",
+      "fromstationid": 39966,
+      "fromstation": "Annapoorneshwarinagara (HGH)",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
       "responsecode": 200
@@ -26691,16 +26521,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 5337,
-      "routeno": "302-F UP",
-      "routename": "KBS-BBP",
-      "fromstationid": 20921,
-      "fromstation": "Kempegowda Bus Station",
-      "tostationid": 37934,
-      "tostation": "Babusabpalya 302",
-      "responsecode": 200
-    },
-    {
       "routeid": 5338,
       "routeno": "242-ZC UP",
       "routename": "KMT-KGH",
@@ -26708,16 +26528,6 @@
       "fromstation": "KR Market (Kalasipalya)",
       "tostationid": 33578,
       "tostation": "Kothaganahalli",
-      "responsecode": 200
-    },
-    {
-      "routeid": 5339,
-      "routeno": "302-F DOWN",
-      "routename": "BBP-KBS",
-      "fromstationid": 37934,
-      "fromstation": "Babusabpalya 302",
-      "tostationid": 20922,
-      "tostation": "Kempegowda Bus Station",
       "responsecode": 200
     },
     {
@@ -27781,26 +27591,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 5498,
-      "routeno": "410-A UP",
-      "routename": "JHC-ATB",
-      "fromstationid": 20870,
-      "fromstation": "Jalahalli Cross",
-      "tostationid": 21670,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 5499,
-      "routeno": "410-A DOWN",
-      "routename": "ATB-JHC",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 20870,
-      "tostation": "Jalahalli Cross",
-      "responsecode": 200
-    },
-    {
       "routeid": 5501,
       "routeno": "305-N UP",
       "routename": "KMT-KTH",
@@ -28761,16 +28551,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 5635,
-      "routeno": "500-EB DBS-ELCW UP",
-      "routename": "DBS-ELCW",
-      "fromstationid": 21923,
-      "fromstation": "Dr BR Ambedkar Bus Terminal (Domlur)",
-      "tostationid": 20772,
-      "tostation": "Electronic City Wipro Main Gate",
-      "responsecode": 200
-    },
-    {
       "routeid": 5636,
       "routeno": "500-Y YHKOT-KDG UP",
       "routename": "YHKOT-KDG",
@@ -28848,16 +28628,6 @@
       "fromstation": "Beguru",
       "tostationid": 35100,
       "tostation": "Koramangala Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 5646,
-      "routeno": "500-EB DBS-ELCW DOWN",
-      "routename": "ELCW-DBS",
-      "fromstationid": 20772,
-      "fromstation": "Electronic City Wipro Main Gate",
-      "tostationid": 21924,
-      "tostation": "Dr BR Ambedkar Bus Terminal (Domlur)",
       "responsecode": 200
     },
     {
@@ -31877,7 +31647,7 @@
       "fromstationid": 22199,
       "fromstation": "KR Market",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -31885,7 +31655,7 @@
       "routeno": "256-MB DOWN",
       "routename": "MGDI-KMT",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 22199,
       "tostation": "KR Market",
       "responsecode": 200
@@ -32986,7 +32756,7 @@
       "routename": "KTP-HBL",
       "fromstationid": 20936,
       "fromstation": "Kottigepalya",
-      "tostationid": 20823,
+      "tostationid": 21527,
       "tostation": "Hebbala Bridge",
       "responsecode": 200
     },
@@ -37041,16 +36811,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 6800,
-      "routeno": "410-PS DOWN",
-      "routename": "BMH-PSS",
-      "fromstationid": 20675,
-      "fromstation": "Bommanahalli",
-      "tostationid": 21084,
-      "tostation": "Peenya Satellite Bus Station (Basaveshwara)",
-      "responsecode": 200
-    },
-    {
       "routeid": 6801,
       "routeno": "410-AB UP",
       "routename": "JHC-BSK",
@@ -38721,16 +38481,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 7080,
-      "routeno": "343-N UP",
-      "routename": "KMT-BGRU",
-      "fromstationid": 20944,
-      "fromstation": "KR Market (Kalasipalya)",
-      "tostationid": 35222,
-      "tostation": "Beguru",
-      "responsecode": 200
-    },
-    {
       "routeid": 7085,
       "routeno": "329-K UP",
       "routename": "KMT-MDN",
@@ -38798,16 +38548,6 @@
       "fromstation": "HAL Main Gate",
       "tostationid": 33990,
       "tostation": "Muthsandra",
-      "responsecode": 200
-    },
-    {
-      "routeid": 7092,
-      "routeno": "343-N DOWN",
-      "routename": "BGRU-KMT",
-      "fromstationid": 36307,
-      "fromstation": "Beguru",
-      "tostationid": 20945,
-      "tostation": "KR Market (Kalasipalya)",
       "responsecode": 200
     },
     {
@@ -39058,26 +38798,6 @@
       "fromstation": "Kempegowda Bus Station",
       "tostationid": 35307,
       "tostation": "Ayyappa Nagara Muneshwara Temple Sadaramangala",
-      "responsecode": 200
-    },
-    {
-      "routeid": 7149,
-      "routeno": "BMSIT-03 UP",
-      "routename": "BMSIT-03",
-      "fromstationid": 36367,
-      "fromstation": "CS-KR Puram Govt Hospital",
-      "tostationid": 35733,
-      "tostation": "CS-BMSIT College Campus Yelahanka",
-      "responsecode": 200
-    },
-    {
-      "routeid": 7150,
-      "routeno": "BMSIT-03 DOWN",
-      "routename": "BMSIT-03",
-      "fromstationid": 35733,
-      "fromstation": "CS-BMSIT College Campus Yelahanka",
-      "tostationid": 36367,
-      "tostation": "CS-KR Puram Govt Hospital",
       "responsecode": 200
     },
     {
@@ -44656,8 +44376,8 @@
       "routename": "KMT-D44G",
       "fromstationid": 20944,
       "fromstation": "KR Market (Kalasipalya)",
-      "tostationid": 21294,
-      "tostation": "Anjanapura 10th Block",
+      "tostationid": 38033,
+      "tostation": "Anjanapura 10 Block",
       "responsecode": 200
     },
     {
@@ -44894,8 +44614,8 @@
       "routeid": 8155,
       "routeno": "D35G-AVH UP",
       "routename": "D35G-AVH",
-      "fromstationid": 24860,
-      "fromstation": "Depot-35 Kannalli",
+      "fromstationid": 35809,
+      "fromstation": "Depot-35 Gate",
       "tostationid": 35650,
       "tostation": "Averahalli",
       "responsecode": 200
@@ -46362,7 +46082,7 @@
     },
     {
       "routeid": 8382,
-      "routeno": "BEL-10 UP",
+      "routeno": "BELGS-14 UP",
       "routename": "JPN15C-BELF",
       "fromstationid": 36546,
       "fromstation": "CS-JP Nagara 15th Cross",
@@ -46372,7 +46092,7 @@
     },
     {
       "routeid": 8383,
-      "routeno": "BEL-10 DOWN",
+      "routeno": "BELGS-14 DOWN",
       "routename": "BELF-JPN15C",
       "fromstationid": 35759,
       "fromstation": "CS-BEL Factory",
@@ -47241,26 +46961,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 8541,
-      "routeno": "369-Q UP",
-      "routename": "BSK-CKMH",
-      "fromstationid": 20623,
-      "fromstation": "Banashankari Bus Station",
-      "tostationid": 32275,
-      "tostation": "Chikka Kammanahalli",
-      "responsecode": 200
-    },
-    {
-      "routeid": 8542,
-      "routeno": "369-Q DOWN",
-      "routename": "CKMH-BSK",
-      "fromstationid": 24511,
-      "fromstation": "Chikka Kammanahalli",
-      "tostationid": 20624,
-      "tostation": "Banashankari Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 8545,
       "routeno": "ADITI-9 UP",
       "routename": "HPB-MADT",
@@ -47941,26 +47641,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 8705,
-      "routeno": "BMSIT-1 UP",
-      "routename": "BMSIT-1",
-      "fromstationid": 36589,
-      "fromstation": "CS-8th Mile",
-      "tostationid": 35733,
-      "tostation": "CS-BMSIT College Campus Yelahanka",
-      "responsecode": 200
-    },
-    {
-      "routeid": 8706,
-      "routeno": "BMSIT-1 DOWN",
-      "routename": "BMSIT-1",
-      "fromstationid": 35733,
-      "fromstation": "CS-BMSIT College Campus Yelahanka",
-      "tostationid": 36589,
-      "tostation": "CS-8th Mile",
-      "responsecode": 200
-    },
-    {
       "routeid": 8707,
       "routeno": "BC-7C UP",
       "routename": "8th Mile -8th Mile",
@@ -48022,7 +47702,7 @@
     },
     {
       "routeid": 8718,
-      "routeno": "VNS-014 UP",
+      "routeno": "VNS-14 UP",
       "routename": "SJNVT-VPSH",
       "fromstationid": 36592,
       "fromstation": "CS-Sanjayanagara Vybhava Talkies",
@@ -48032,7 +47712,7 @@
     },
     {
       "routeid": 8719,
-      "routeno": "VNS-014 DOWN",
+      "routeno": "VNS-14 DOWN",
       "routename": "VPSH-SJNVT",
       "fromstationid": 35815,
       "fromstation": "CS-Vidyaniketan School Hebbala",
@@ -48492,7 +48172,7 @@
     },
     {
       "routeid": 8849,
-      "routeno": "JGF-02 UP",
+      "routeno": "JGF-2 UP",
       "routename": "D14G-JGP",
       "fromstationid": 36617,
       "fromstation": "CS-Depot-14 Gate",
@@ -48502,7 +48182,7 @@
     },
     {
       "routeid": 8850,
-      "routeno": "JGF-02 DOWN",
+      "routeno": "JGF-2 DOWN",
       "routename": "JGP-D14G",
       "fromstationid": 36541,
       "fromstation": "CS-Juggat Pharma",
@@ -50096,7 +49776,7 @@
       "routename": "HSS-SJP-ATB",
       "fromstationid": 25815,
       "fromstation": "Head Start School Kommasandra",
-      "tostationid": 21670,
+      "tostationid": 21671,
       "tostation": "Attibele Bus Stand",
       "responsecode": 200
     },
@@ -50104,7 +49784,7 @@
       "routeid": 9081,
       "routeno": "328-H HSS-SJP-ATB DOWN",
       "routename": "ATB-SJP-HSS",
-      "fromstationid": 21673,
+      "fromstationid": 21672,
       "fromstation": "Attibele Bus Stand",
       "tostationid": 25815,
       "tostation": "Head Start School Kommasandra",
@@ -53534,8 +53214,8 @@
       "routeid": 9601,
       "routeno": "399-F ATB-D27G UP",
       "routename": "ATB-D27",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
+      "fromstationid": 31853,
+      "fromstation": "Attibele",
       "tostationid": 36343,
       "tostation": "Depot-27 Gate",
       "responsecode": 200
@@ -53546,8 +53226,8 @@
       "routename": "D27-ATB",
       "fromstationid": 36342,
       "fromstation": "Depot-27 Gate",
-      "tostationid": 21670,
-      "tostation": "Attibele Bus Stand",
+      "tostationid": 31853,
+      "tostation": "Attibele",
       "responsecode": 200
     },
     {
@@ -54607,7 +54287,7 @@
       "fromstationid": 20946,
       "fromstation": "KR Pura Govt Hospital",
       "tostationid": 30476,
-      "tostation": "Juggath Farma",
+      "tostation": "Juggath Pharma",
       "responsecode": 200
     },
     {
@@ -57081,26 +56761,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 10284,
-      "routeno": "365-J KBS-JGN-UAV UP",
-      "routename": "KBS-UVA",
-      "fromstationid": 20921,
-      "fromstation": "Kempegowda Bus Station",
-      "tostationid": 36754,
-      "tostation": "Ultra Violatt Automotion Jigani",
-      "responsecode": 200
-    },
-    {
-      "routeid": 10285,
-      "routeno": "365-J KBS-JGN-UAV DOWN",
-      "routename": "UVA-KBS",
-      "fromstationid": 36754,
-      "fromstation": "Ultra Violatt Automotion Jigani",
-      "tostationid": 20922,
-      "tostation": "Kempegowda Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 10286,
       "routeno": "350-D KBS-SPN UP",
       "routename": "KBS-SPN",
@@ -57722,7 +57382,7 @@
     },
     {
       "routeid": 10383,
-      "routeno": "315-J KBS-KLK-KMS UP",
+      "routeno": "313-F KBS-KLK-KMS UP",
       "routename": "KBS-KMS",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
@@ -57732,7 +57392,7 @@
     },
     {
       "routeid": 10384,
-      "routeno": "315-J KBS-KLK-KMS DOWN",
+      "routeno": "313-F KBS-KLK-KMS DOWN",
       "routename": "KMS-KBS",
       "fromstationid": 33301,
       "fromstation": "Kammasandra",
@@ -58836,16 +58496,16 @@
       "routename": "KBS-SGBS",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
-      "tostationid": 26636,
-      "tostation": "Srigandhada Kaval",
+      "tostationid": 34680,
+      "tostation": "D Group Employees Layout Srigandhada Kaval",
       "responsecode": 200
     },
     {
       "routeid": 10627,
       "routeno": "238-US DOWN",
       "routename": "SGBS-KBS",
-      "fromstationid": 26636,
-      "fromstation": "Srigandhada Kaval",
+      "fromstationid": 34680,
+      "fromstation": "D Group Employees Layout Srigandhada Kaval",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
       "responsecode": 200
@@ -59478,26 +59138,6 @@
       "fromstation": "BEL Layout Dasanapura",
       "tostationid": 27411,
       "tostation": "Nelamangala Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 10746,
-      "routeno": "KLE LAW-1 UP",
-      "routename": "KLE LAW-1",
-      "fromstationid": 37055,
-      "fromstation": "CS-KLE Hostel Goraguntepalya",
-      "tostationid": 37054,
-      "tostation": "CS-KLE Society College",
-      "responsecode": 200
-    },
-    {
-      "routeid": 10747,
-      "routeno": "KLE LAW-1 DOWN",
-      "routename": "KLE-LAW-1",
-      "fromstationid": 37054,
-      "fromstation": "CS-KLE Society College",
-      "tostationid": 37055,
-      "tostation": "CS-KLE Hostel Goraguntepalya",
       "responsecode": 200
     },
     {
@@ -60841,26 +60481,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 11008,
-      "routeno": "139-JBN-SBS-VSD UP",
-      "routename": "JBN-VSD",
-      "fromstationid": 26321,
-      "fromstation": "Jeevanbheema Nagara",
-      "tostationid": 21258,
-      "tostation": "Vidhana Soudha Karnataka High Court",
-      "responsecode": 200
-    },
-    {
-      "routeid": 11009,
-      "routeno": "139-JBN-SBS-VSD DOWN",
-      "routename": "VSD-JBN",
-      "fromstationid": 21259,
-      "fromstation": "Vidhana Soudha Karnataka High Court",
-      "tostationid": 26321,
-      "tostation": "Jeevanbheema Nagara",
-      "responsecode": 200
-    },
-    {
       "routeid": 11022,
       "routeno": "319 BTR-TNF-KDG UP",
       "routename": "BTR-TNF-KDG",
@@ -61391,26 +61011,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 11150,
-      "routeno": "BMSIT-02 UP",
-      "routename": "BMSIT-02",
-      "fromstationid": 37615,
-      "fromstation": "CS-Govt Soap Factory",
-      "tostationid": 35733,
-      "tostation": "CS-BMSIT College Campus Yelahanka",
-      "responsecode": 200
-    },
-    {
-      "routeid": 11151,
-      "routeno": "BMSIT-02 DOWN",
-      "routename": "BMSIT-02",
-      "fromstationid": 35733,
-      "fromstation": "CS-BMSIT College Campus Yelahanka",
-      "tostationid": 37615,
-      "tostation": "CS-Govt Soap Factory",
-      "responsecode": 200
-    },
-    {
       "routeid": 11160,
       "routeno": "213-FA UP",
       "routename": "KMT-KDP",
@@ -61908,26 +61508,6 @@
       "fromstation": "Govindapura",
       "tostationid": 24788,
       "tostation": "Dasanapura",
-      "responsecode": 200
-    },
-    {
-      "routeid": 11253,
-      "routeno": "BMSIT-11 UP",
-      "routename": "IPS-BMSIT",
-      "fromstationid": 37667,
-      "fromstation": "CS-Indiranagara Police Station/KFC",
-      "tostationid": 35733,
-      "tostation": "CS-BMSIT College Campus Yelahanka",
-      "responsecode": 200
-    },
-    {
-      "routeid": 11254,
-      "routeno": "BMSIT-11 DOWN",
-      "routename": "BMSIT-IPS",
-      "fromstationid": 35733,
-      "fromstation": "CS-BMSIT College Campus Yelahanka",
-      "tostationid": 37667,
-      "tostation": "CS-Indiranagara Police Station/KFC",
       "responsecode": 200
     },
     {
@@ -63664,8 +63244,8 @@
       "routeid": 11662,
       "routeno": "302 KLN-SBS UP",
       "routename": "80FRK-SBS",
-      "fromstationid": 20588,
-      "fromstation": "80 feet Road Kalyananagara",
+      "fromstationid": 36441,
+      "fromstation": "Kalyananagara Bus Stand",
       "tostationid": 21173,
       "tostation": "Shivajinagara Bus Station",
       "responsecode": 200
@@ -65881,26 +65461,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 12113,
-      "routeno": "279-H UP",
-      "routename": "KBS-BPS",
-      "fromstationid": 20921,
-      "fromstation": "Kempegowda Bus Station",
-      "tostationid": 20666,
-      "tostation": "Bhoopasandra",
-      "responsecode": 200
-    },
-    {
-      "routeid": 12114,
-      "routeno": "279-H DOWN",
-      "routename": "BPS-KBS",
-      "fromstationid": 20665,
-      "fromstation": "Bhoopasandra",
-      "tostationid": 20922,
-      "tostation": "Kempegowda Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 12115,
       "routeno": "114-C CBI-RTNPS-KBS UP",
       "routename": "CBI-KBS",
@@ -66302,7 +65862,7 @@
     },
     {
       "routeid": 12198,
-      "routeno": "360-K Fly KBS-ATB UP",
+      "routeno": "360-K Fly KBS-VSD-ATB UP",
       "routename": "KBS-ATB",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
@@ -66312,7 +65872,7 @@
     },
     {
       "routeid": 12199,
-      "routeno": "360-K Fly KBS-ATB DOWN",
+      "routeno": "360-K Fly KBS-VSD-ATB DOWN",
       "routename": "ATB-KBS",
       "fromstationid": 21673,
       "fromstation": "Attibele Bus Stand",
@@ -66488,26 +66048,6 @@
       "fromstation": "Channammanakere Achukattu",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 12237,
-      "routeno": "V-328H UP",
-      "routename": "HSK-ATB",
-      "fromstationid": 22046,
-      "fromstation": "Hosakote Bus Stand (Old)",
-      "tostationid": 21671,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 12238,
-      "routeno": "V-328H DOWN",
-      "routename": "ATB-HSK",
-      "fromstationid": 21672,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 22046,
-      "tostation": "Hosakote Bus Stand (Old)",
       "responsecode": 200
     },
     {
@@ -67967,7 +67507,7 @@
       "fromstationid": 20944,
       "fromstation": "KR Market (Kalasipalya)",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -67975,7 +67515,7 @@
       "routeno": "240-MA DOWN",
       "routename": "MGD-KMT",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20945,
       "tostation": "KR Market (Kalasipalya)",
       "responsecode": 200
@@ -69441,26 +68981,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 12881,
-      "routeno": "342-B D42G-MTN UP",
-      "routename": "D42G-MTN",
-      "fromstationid": 23509,
-      "fromstation": "Depot-42 Gate Departure",
-      "tostationid": 34004,
-      "tostation": "Muttanalluru",
-      "responsecode": 200
-    },
-    {
-      "routeid": 12882,
-      "routeno": "342-B D42G-MTN DOWN",
-      "routename": "MTN-D42G",
-      "fromstationid": 29139,
-      "fromstation": "Muttanalluru",
-      "tostationid": 23510,
-      "tostation": "Depot-42 Gate  Arrival",
-      "responsecode": 200
-    },
-    {
       "routeid": 12883,
       "routeno": "KRM-CPWD UP",
       "routename": "KRM-CPWD",
@@ -69538,26 +69058,6 @@
       "fromstation": "Kempegowda Bus Station",
       "tostationid": 38116,
       "tostation": "Anugraha Badavane (Bilekahalli)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 12949,
-      "routeno": "285 KMT-BMSIT UP",
-      "routename": "KMT-BMSIT",
-      "fromstationid": 22199,
-      "fromstation": "KR Market",
-      "tostationid": 30141,
-      "tostation": "BMSIT College Campus Yelahanka",
-      "responsecode": 200
-    },
-    {
-      "routeid": 12950,
-      "routeno": "285 KMT-BMSIT DOWN",
-      "routename": "BMSIT-KMT",
-      "fromstationid": 30141,
-      "fromstation": "BMSIT College Campus Yelahanka",
-      "tostationid": 22199,
-      "tostation": "KR Market",
       "responsecode": 200
     },
     {
@@ -70498,46 +69998,6 @@
       "fromstation": "Bande Maramma Bus Station",
       "tostationid": 20870,
       "tostation": "Jalahalli Cross",
-      "responsecode": 200
-    },
-    {
-      "routeid": 13103,
-      "routeno": "V-505 ATB-KDG UP",
-      "routename": "ATB-KDG",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 20902,
-      "tostation": "Kadugodi Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 13104,
-      "routeno": "V-505 ATB-KDG DOWN",
-      "routename": "KDG-ATB",
-      "fromstationid": 20902,
-      "fromstation": "Kadugodi Bus Station",
-      "tostationid": 21670,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 13105,
-      "routeno": "V-328H HSK-WTTMC UP",
-      "routename": "HSK-WTTMC",
-      "fromstationid": 22046,
-      "fromstation": "Hosakote Bus Stand (Old)",
-      "tostationid": 23656,
-      "tostation": "White Field Bus Station (Vydehi Hospital)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 13106,
-      "routeno": "V-328H HSK-WTTMC DOWN",
-      "routename": "WTTMC-HSK",
-      "fromstationid": 23656,
-      "fromstation": "White Field Bus Station (Vydehi Hospital)",
-      "tostationid": 22046,
-      "tostation": "Hosakote Bus Stand (Old)",
       "responsecode": 200
     },
     {
@@ -72701,26 +72161,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 13424,
-      "routeno": "V-328HK UP",
-      "routename": "KDG-ATB",
-      "fromstationid": 20902,
-      "fromstation": "Kadugodi Bus Station",
-      "tostationid": 21671,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 13425,
-      "routeno": "V-328HK DOWN",
-      "routename": "ATB-KDG",
-      "fromstationid": 21672,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 20902,
-      "tostation": "Kadugodi Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 13426,
       "routeno": "292-A UP",
       "routename": "SBS-YHKOT",
@@ -73594,7 +73034,7 @@
       "routeid": 13566,
       "routeno": "G-10 KMT-THS-PTML UP",
       "routename": "KMT-PTML",
-      "fromstationid": 22199,
+      "fromstationid": 20940,
       "fromstation": "KR Market",
       "tostationid": 34229,
       "tostation": "Patalamma Temple",
@@ -73606,7 +73046,7 @@
       "routename": "PTML-KMT",
       "fromstationid": 27633,
       "fromstation": "Patalamma Temple",
-      "tostationid": 22199,
+      "tostationid": 20940,
       "tostation": "KR Market",
       "responsecode": 200
     },
@@ -74661,26 +74101,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 13713,
-      "routeno": "600-F SGH-ATB UP",
-      "routename": "SGH-ATB",
-      "fromstationid": 38114,
-      "fromstation": "Sanjay Gandhi Hospital",
-      "tostationid": 21670,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 13714,
-      "routeno": "600-F SGH-ATB DOWN",
-      "routename": "ATB-SGH",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 38115,
-      "tostation": "Sanjay Gandhi Hospital",
-      "responsecode": 200
-    },
-    {
       "routeid": 13715,
       "routeno": "JPN6-BSK UP",
       "routename": "jPN6-BSK",
@@ -74717,7 +74137,7 @@
       "fromstationid": 20623,
       "fromstation": "Banashankari Bus Station",
       "tostationid": 30476,
-      "tostation": "Juggath Farma",
+      "tostation": "Juggath Pharma",
       "responsecode": 200
     },
     {
@@ -77131,29 +76551,9 @@
       "responsecode": 200
     },
     {
-      "routeid": 14128,
-      "routeno": "323DN-SJP-JYM-KHG UP",
-      "routename": "323DN-SJP-JYM-KHG",
-      "fromstationid": 23907,
-      "fromstation": "Sarjapura",
-      "tostationid": 33525,
-      "tostation": "Kodihalli",
-      "responsecode": 200
-    },
-    {
-      "routeid": 14130,
-      "routeno": "323DN-SJP-JYM-KHG DOWN",
-      "routename": "323DN-KHG-JYM-SJP",
-      "fromstationid": 33525,
-      "fromstation": "Kodihalli",
-      "tostationid": 23907,
-      "tostation": "Sarjapura",
-      "responsecode": 200
-    },
-    {
       "routeid": 14131,
-      "routeno": "323DN-KHG-D41 UP",
-      "routename": "323DN-KHG-D41",
+      "routeno": "323-DN-KDH-JYM-D41G UP",
+      "routename": "KDH-D41G",
       "fromstationid": 33525,
       "fromstation": "Kodihalli",
       "tostationid": 37151,
@@ -80691,26 +80091,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 14626,
-      "routeno": "D8-KSF UP",
-      "routename": "D8-KSF",
-      "fromstationid": 32424,
-      "fromstation": "Depot-08 Yeshawanthapura",
-      "tostationid": 20796,
-      "tostation": "Govt Soap Factory",
-      "responsecode": 200
-    },
-    {
-      "routeid": 14627,
-      "routeno": "D8-KSF DOWN",
-      "routename": "KSF-D8",
-      "fromstationid": 20797,
-      "fromstation": "Govt Soap Factory",
-      "tostationid": 32424,
-      "tostation": "Depot-08 Yeshawanthapura",
-      "responsecode": 200
-    },
-    {
       "routeid": 14628,
       "routeno": "345-E D34G-BGR-ANK UP",
       "routename": "D34G-BGR-ANK",
@@ -81545,7 +80925,7 @@
       "routeno": "240-MD DOWN",
       "routename": "MGD-MRTG",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20976,
       "tostation": "Magadi Road TollGate",
       "responsecode": 200
@@ -81557,7 +80937,7 @@
       "fromstationid": 28613,
       "fromstation": "Magadi Road Tollgate",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -82358,26 +81738,6 @@
       "fromstation": "CS-Featherlite Factory Hejjala",
       "tostationid": 36609,
       "tostation": "CS-Peenya 2nd Stage",
-      "responsecode": 200
-    },
-    {
-      "routeid": 14860,
-      "routeno": "BMSIT-8 DOWN",
-      "routename": "BMSIT-BELC",
-      "fromstationid": 35733,
-      "fromstation": "CS-BMSIT College Campus Yelahanka",
-      "tostationid": 36690,
-      "tostation": "CS-BEL Circle",
-      "responsecode": 200
-    },
-    {
-      "routeid": 14861,
-      "routeno": "BMSIT-8 UP",
-      "routename": "BELC-BMSIT",
-      "fromstationid": 36690,
-      "fromstation": "CS-BEL Circle",
-      "tostationid": 35733,
-      "tostation": "CS-BMSIT College Campus Yelahanka",
       "responsecode": 200
     },
     {
@@ -83211,26 +82571,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 14991,
-      "routeno": "D9G-YVRC UP",
-      "routename": "D9G-YVRC",
-      "fromstationid": 39142,
-      "fromstation": "Depot-09 Gate",
-      "tostationid": 39331,
-      "tostation": "Yogi Vernana Reddy Circle",
-      "responsecode": 200
-    },
-    {
-      "routeid": 14992,
-      "routeno": "D9G-YVRC DOWN",
-      "routename": "YVRC-D9G",
-      "fromstationid": 39331,
-      "fromstation": "Yogi Vernana Reddy Circle",
-      "tostationid": 39142,
-      "tostation": "Depot-09 Gate",
-      "responsecode": 200
-    },
-    {
       "routeid": 14995,
       "routeno": "293 KLN-LHIC UP",
       "routename": "KLN-LHIC",
@@ -83767,7 +83107,7 @@
       "fromstationid": 22353,
       "fromstation": "Nelamangala Bus Station",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -83775,7 +83115,7 @@
       "routeno": "256-MD DOWN",
       "routename": "MGD-NMG",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 27411,
       "tostation": "Nelamangala Bus Station",
       "responsecode": 200
@@ -84521,26 +83861,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 15169,
-      "routeno": "V-500F CSB-HSK DOWN",
-      "routename": "HSK-CSB",
-      "fromstationid": 22046,
-      "fromstation": "Hosakote Bus Stand (Old)",
-      "tostationid": 20707,
-      "tostation": "Central Silk Board",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15170,
-      "routeno": "V-500F CSB-HSK UP",
-      "routename": "CSB-HSK",
-      "fromstationid": 20707,
-      "fromstation": "Central Silk Board",
-      "tostationid": 22046,
-      "tostation": "Hosakote Bus Stand (Old)",
-      "responsecode": 200
-    },
-    {
       "routeid": 15173,
       "routeno": "225-A DOWN",
       "routename": "BEML5-SBS",
@@ -85232,7 +84552,7 @@
     },
     {
       "routeid": 15261,
-      "routeno": "252 KBS-D22G-PSS UP",
+      "routeno": "G-252 KBS D9 D22-PSS UP",
       "routename": "KBS-PSS",
       "fromstationid": 20921,
       "fromstation": "Kempegowda Bus Station",
@@ -85247,7 +84567,7 @@
       "fromstationid": 36458,
       "fromstation": "Rajarajeshwari nagara Metro Station",
       "tostationid": 37739,
-      "tostation": "Thalagattapura Metro Station",
+      "tostation": "Thalaghattapura Metro Station",
       "responsecode": 200
     },
     {
@@ -86368,26 +85688,6 @@
       "fromstation": "Shivajinagara Bus Station",
       "tostationid": 38034,
       "tostation": "Anjanapura 10th  Block",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15443,
-      "routeno": "BMSIT-12 UP",
-      "routename": "BMSIT-BSP",
-      "fromstationid": 35733,
-      "fromstation": "CS-BMSIT College Campus Yelahanka",
-      "tostationid": 39535,
-      "tostation": "CS-Babusabpalya",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15444,
-      "routeno": "BMSIT-12 DOWN",
-      "routename": "BSP-BMSIT",
-      "fromstationid": 39535,
-      "fromstation": "CS-Babusabpalya",
-      "tostationid": 35733,
-      "tostation": "CS-BMSIT College Campus Yelahanka",
       "responsecode": 200
     },
     {
@@ -87871,26 +87171,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 15622,
-      "routeno": "GGS-05 UP",
-      "routename": "GGS-05",
-      "fromstationid": 38932,
-      "fromstation": "CS-Kodathi Gate",
-      "tostationid": 36680,
-      "tostation": "CS-Genius Global School Kodathi",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15623,
-      "routeno": "GGS-05 DOWN",
-      "routename": "GGS-05",
-      "fromstationid": 36680,
-      "fromstation": "CS-Genius Global School Kodathi",
-      "tostationid": 38932,
-      "tostation": "CS-Kodathi Gate",
-      "responsecode": 200
-    },
-    {
       "routeid": 15624,
       "routeno": "POWA-KBS UP",
       "routename": "POWA-KBS",
@@ -87908,26 +87188,6 @@
       "fromstation": "Yeshawanthapura Bus Station",
       "tostationid": 39600,
       "tostation": "Phoenix One Bengaluru West Apartment",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15626,
-      "routeno": "342-A KMT-GGS UP",
-      "routename": "KMT-GGS",
-      "fromstationid": 20944,
-      "fromstation": "KR Market (Kalasipalya)",
-      "tostationid": 25382,
-      "tostation": "Genius Global School Kodathi",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15627,
-      "routeno": "342-A KMT-GGS DOWN",
-      "routename": "GGS-KMT",
-      "fromstationid": 25382,
-      "fromstation": "Genius Global School Kodathi",
-      "tostationid": 20945,
-      "tostation": "KR Market (Kalasipalya)",
       "responsecode": 200
     },
     {
@@ -89351,26 +88611,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 15778,
-      "routeno": "357 BDP-D38G UP",
-      "routename": "BDP-D38G",
-      "fromstationid": 31871,
-      "fromstation": "Bandapura",
-      "tostationid": 24866,
-      "tostation": "Depot-38 Gate",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15779,
-      "routeno": "357 BDP-D38G DOWN",
-      "routename": "D38G-BDP",
-      "fromstationid": 36785,
-      "fromstation": "Depot-38 Gate",
-      "tostationid": 29678,
-      "tostation": "Bandapura",
-      "responsecode": 200
-    },
-    {
       "routeid": 15780,
       "routeno": "350-D D38G-SPN DOWN",
       "routename": "SPN-D38G",
@@ -89637,7 +88877,7 @@
       "fromstationid": 20925,
       "fromstation": "Kengeri Bus Station",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -89645,7 +88885,7 @@
       "routeno": "221-KM DOWN",
       "routename": "MGD-KGR",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20925,
       "tostation": "Kengeri Bus Station",
       "responsecode": 200
@@ -89657,7 +88897,7 @@
       "fromstationid": 35721,
       "fromstation": "Depot-12 Gate",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -89665,7 +88905,7 @@
       "routeno": "221-KM D12G-KGR-MGD DOWN",
       "routename": "MGD-D12G",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 35721,
       "tostation": "Depot-12 Gate",
       "responsecode": 200
@@ -89848,26 +89088,6 @@
       "fromstation": "Shivajinagara Bus Station",
       "tostationid": 31626,
       "tostation": "Vivek Nagara",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15840,
-      "routeno": "301-T KGN-RMB UP",
-      "routename": "KGN-RMB",
-      "fromstationid": 31096,
-      "fromstation": "Kittaganuru",
-      "tostationid": 21692,
-      "tostation": "B Channasandra Bridge(Ramamurthy Nagara Ring Road)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15841,
-      "routeno": "301-T KGN-RMB DOWN",
-      "routename": "RMB-KGN",
-      "fromstationid": 21695,
-      "fromstation": "B Channasandra Bridge(Ramamurthy Nagara Ring Road)",
-      "tostationid": 31096,
-      "tostation": "Kittaganuru",
       "responsecode": 200
     },
     {
@@ -90921,26 +90141,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 15977,
-      "routeno": "334-E CVRRG-HSK UP",
-      "routename": "CVRRG-HSK",
-      "fromstationid": 36731,
-      "fromstation": "CV Raman Nagara Railway Gate",
-      "tostationid": 22046,
-      "tostation": "Hosakote Bus Stand (Old)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15978,
-      "routeno": "334-E CVRRG-HSK DOWN",
-      "routename": "HSK-CVRRG",
-      "fromstationid": 22046,
-      "fromstation": "Hosakote Bus Stand (Old)",
-      "tostationid": 36731,
-      "tostation": "CV Raman Nagara Railway Gate",
-      "responsecode": 200
-    },
-    {
       "routeid": 15979,
       "routeno": "BELGS-18 UP",
       "routename": "BEL-CVRRG",
@@ -91171,52 +90371,12 @@
       "responsecode": 200
     },
     {
-      "routeid": 16004,
-      "routeno": "UVA-01 UP",
-      "routename": "HSKG-UVA",
-      "fromstationid": 36358,
-      "fromstation": "CS-Huskur Gate Hosuru Road",
-      "tostationid": 36753,
-      "tostation": "CS-Ultra Violatt Automotion Jigani",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16005,
-      "routeno": "UVA-01 DOWN",
-      "routename": "UVA-HSKG",
-      "fromstationid": 36753,
-      "fromstation": "CS-Ultra Violatt Automotion Jigani",
-      "tostationid": 36358,
-      "tostation": "CS-Huskur Gate Hosuru Road",
-      "responsecode": 200
-    },
-    {
       "routeid": 16008,
       "routeno": "378 KGR-JSD-D44G UP",
       "routename": "KGR-D44G",
       "fromstationid": 20925,
       "fromstation": "Kengeri Bus Station",
       "tostationid": 38033,
-      "tostation": "Anjanapura 10 Block",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16009,
-      "routeno": "398-B D44G-BGT-CPR UP",
-      "routename": "D44G-CPR",
-      "fromstationid": 38032,
-      "fromstation": "Anjanapura 10 Block",
-      "tostationid": 21817,
-      "tostation": "Chandapura",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16010,
-      "routeno": "398-B D44G-BGT-CPR DOWN",
-      "routename": "CPR-D44G",
-      "fromstationid": 21818,
-      "fromstation": "Chandapura",
-      "tostationid": 38032,
       "tostation": "Anjanapura 10 Block",
       "responsecode": 200
     },
@@ -91238,16 +90398,6 @@
       "fromstation": "Bannerughatta National Park",
       "tostationid": 21817,
       "tostation": "Chandapura",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16013,
-      "routeno": "211 KGP-D44G UP",
-      "routename": "KGP-D44G",
-      "fromstationid": 22138,
-      "fromstation": "Kaggalipura",
-      "tostationid": 38033,
-      "tostation": "Anjanapura 10 Block",
       "responsecode": 200
     },
     {
@@ -91427,7 +90577,7 @@
       "fromstationid": 29871,
       "fromstation": "BEML Layout 5th stage",
       "tostationid": 37739,
-      "tostation": "Thalagattapura Metro Station",
+      "tostation": "Thalaghattapura Metro Station",
       "responsecode": 200
     },
     {
@@ -91768,26 +90918,6 @@
       "fromstation": "Kadugodi Bus Station",
       "tostationid": 22604,
       "tostation": "Vidyaranyapura Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16100,
-      "routeno": "V-EXP 600F UP",
-      "routename": "BSK-ATB",
-      "fromstationid": 20623,
-      "fromstation": "Banashankari Bus Station",
-      "tostationid": 21670,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16101,
-      "routeno": "V-EXP 600F DOWN",
-      "routename": "ATB-BSK",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 20624,
-      "tostation": "Banashankari Bus Station",
       "responsecode": 200
     },
     {
@@ -93331,26 +92461,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 16295,
-      "routeno": "TRANSLYNC UP",
-      "routename": "CNH-ATB",
-      "fromstationid": 39816,
-      "fromstation": "CS-Cloud Nine Hospital",
-      "tostationid": 39456,
-      "tostation": "CS-Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16296,
-      "routeno": "TRANSLYNC DOWN",
-      "routename": "ATB-CNH",
-      "fromstationid": 39456,
-      "fromstation": "CS-Attibele Bus Stand",
-      "tostationid": 39816,
-      "tostation": "CS-Cloud Nine Hospital",
-      "responsecode": 200
-    },
-    {
       "routeid": 16297,
       "routeno": "254-A KGT-KBS UP",
       "routename": "KGT-KBS",
@@ -93387,7 +92497,7 @@
       "fromstationid": 20739,
       "fromstation": "Deepanjalinagara",
       "tostationid": 28611,
-      "tostation": "Magadi",
+      "tostation": "Magadi Bus Stand",
       "responsecode": 200
     },
     {
@@ -93395,7 +92505,7 @@
       "routeno": "240-MA DPJN-MGD DOWN",
       "routename": "MGD-DPJN",
       "fromstationid": 28611,
-      "fromstation": "Magadi",
+      "fromstation": "Magadi Bus Stand",
       "tostationid": 20738,
       "tostation": "Deepanjalinagara",
       "responsecode": 200
@@ -93808,26 +92918,6 @@
       "fromstation": "Vidyaniketan School Hebbala",
       "tostationid": 20707,
       "tostation": "Central Silk Board",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16348,
-      "routeno": "500-HK HSK-BMS IT UP",
-      "routename": "HSK-BMS IT",
-      "fromstationid": 22046,
-      "fromstation": "Hosakote Bus Stand (Old)",
-      "tostationid": 30141,
-      "tostation": "BMSIT College Campus Yelahanka",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16349,
-      "routeno": "500-HK HSK-BMS IT DOWN",
-      "routename": "BMS IT-HSK",
-      "fromstationid": 30141,
-      "fromstation": "BMSIT College Campus Yelahanka",
-      "tostationid": 22046,
-      "tostation": "Hosakote Bus Stand (Old)",
       "responsecode": 200
     },
     {
@@ -94351,26 +93441,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 16418,
-      "routeno": "MF-21BB UP",
-      "routename": "BSK-BGR",
-      "fromstationid": 20623,
-      "fromstation": "Banashankari Bus Station",
-      "tostationid": 35222,
-      "tostation": "Beguru",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16419,
-      "routeno": "MF-21BB DOWN",
-      "routename": "BGR-BSK",
-      "fromstationid": 35222,
-      "fromstation": "Beguru",
-      "tostationid": 20624,
-      "tostation": "Banashankari Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 16420,
       "routeno": "MF-19 UP",
       "routename": "RVMS-VJNT",
@@ -94861,26 +93931,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 16473,
-      "routeno": "MF-9 KRPGH-KDG UP",
-      "routename": "KRPGH-KDG",
-      "fromstationid": 20946,
-      "fromstation": "KR Pura Govt Hospital",
-      "tostationid": 20902,
-      "tostation": "Kadugodi Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16474,
-      "routeno": "MF-9 KRPGH-KDG DOWN",
-      "routename": "KDG-KRPGH",
-      "fromstationid": 20902,
-      "fromstation": "Kadugodi Bus Station",
-      "tostationid": 22204,
-      "tostation": "KR Pura Govt Hospital",
-      "responsecode": 200
-    },
-    {
       "routeid": 16475,
       "routeno": "210-TP UP",
       "routename": "JBS-DKMS",
@@ -95067,7 +94117,7 @@
       "fromstationid": 29871,
       "fromstation": "BEML Layout 5th stage",
       "tostationid": 39852,
-      "tostation": "Olive Hostel jayanna circle",
+      "tostation": "Olive Hostel jayanna Circle",
       "responsecode": 200
     },
     {
@@ -95075,7 +94125,7 @@
       "routeno": "BEML5-OHJC DOWN",
       "routename": "OHJC-BEML5",
       "fromstationid": 39852,
-      "fromstation": "Olive Hostel jayanna circle",
+      "fromstation": "Olive Hostel jayanna Circle",
       "tostationid": 29871,
       "tostation": "BEML Layout 5th stage",
       "responsecode": 200
@@ -95302,7 +94352,7 @@
     },
     {
       "routeid": 16519,
-      "routeno": "37-B SBS MBK UP",
+      "routeno": "37-A SBS MBK UP",
       "routename": "SBS-MBK",
       "fromstationid": 21172,
       "fromstation": "Shivajinagara Bus Station",
@@ -95312,7 +94362,7 @@
     },
     {
       "routeid": 16520,
-      "routeno": "37-B SBS MBK DOWN",
+      "routeno": "37-A SBS MBK DOWN",
       "routename": "MBK-SBS",
       "fromstationid": 23777,
       "fromstation": "Muneshwara Block",
@@ -95508,36 +94558,6 @@
       "fromstation": "Kempegowda Bus Station",
       "tostationid": 36392,
       "tostation": "Tata Values Homes Apartments",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16540,
-      "routeno": "MF-40B. DOWN",
-      "routename": "BTN-JBMS",
-      "fromstationid": 23988,
-      "fromstation": "Bharath Nagara 2nd Stage",
-      "tostationid": 37867,
-      "tostation": "Jnanabharathi Metro Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16541,
-      "routeno": "MF-40B. UP",
-      "routename": "JBMS-BTN",
-      "fromstationid": 37867,
-      "fromstation": "Jnanabharathi Metro Station",
-      "tostationid": 23988,
-      "tostation": "Bharath Nagara 2nd Stage",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16542,
-      "routeno": "MF-40B KGR-JBMS-BTN DOWN",
-      "routename": "BTN-KGR",
-      "fromstationid": 23988,
-      "fromstation": "Bharath Nagara 2nd Stage",
-      "tostationid": 20925,
-      "tostation": "Kengeri Bus Station",
       "responsecode": 200
     },
     {
@@ -95861,26 +94881,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 16582,
-      "routeno": "V-328H WTTMC-ATB DOWN",
-      "routename": "ATB-WTTMC",
-      "fromstationid": 21673,
-      "fromstation": "Attibele Bus Stand",
-      "tostationid": 21277,
-      "tostation": "White Field Bus Station (Vydehi Hospital)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16583,
-      "routeno": "V-328H WTTMC-ATB UP",
-      "routename": "WTTMC-ATB",
-      "fromstationid": 23656,
-      "fromstation": "White Field Bus Station (Vydehi Hospital)",
-      "tostationid": 21670,
-      "tostation": "Attibele Bus Stand",
-      "responsecode": 200
-    },
-    {
       "routeid": 16584,
       "routeno": "ABS-01 DOWN",
       "routename": "ABS-CDH",
@@ -96018,46 +95018,6 @@
       "fromstation": "Kadugodi Bus Station",
       "tostationid": 20922,
       "tostation": "Kempegowda Bus Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16598,
-      "routeno": "MF-1S UP",
-      "routename": "SJP-KRPMS",
-      "fromstationid": 22462,
-      "fromstation": "Sarjapura",
-      "tostationid": 38391,
-      "tostation": "KR Pura Metro Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16599,
-      "routeno": "MF-1S DOWN",
-      "routename": "KRPMS-SJP",
-      "fromstationid": 37688,
-      "fromstation": "KR Pura Metro Station",
-      "tostationid": 23907,
-      "tostation": "Sarjapura",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16600,
-      "routeno": "MF-1S D42G-KRPMS UP",
-      "routename": "D42G-KRPMS",
-      "fromstationid": 23509,
-      "fromstation": "Depot-42 Gate Departure",
-      "tostationid": 38391,
-      "tostation": "KR Pura Metro Station",
-      "responsecode": 200
-    },
-    {
-      "routeid": 16601,
-      "routeno": "MF-1S D42G-KRPMS DOWN",
-      "routename": "KRPMS-D42G",
-      "fromstationid": 37688,
-      "fromstation": "KR Pura Metro Station",
-      "tostationid": 23510,
-      "tostation": "Depot-42 Gate  Arrival",
       "responsecode": 200
     },
     {
@@ -96589,11 +95549,781 @@
       "tostationid": 34271,
       "tostation": "Poornaprajna Layout",
       "responsecode": 200
+    },
+    {
+      "routeid": 16657,
+      "routeno": "PESU-01 DOWN",
+      "routename": "PESU-KDHC",
+      "fromstationid": 36799,
+      "fromstation": "CS-PES College ORR",
+      "tostationid": 39329,
+      "tostation": "CS-Kadirenahalli Cross",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16658,
+      "routeno": "PESU-01 UP",
+      "routename": "KDHC-PESU",
+      "fromstationid": 39329,
+      "fromstation": "CS-Kadirenahalli Cross",
+      "tostationid": 36799,
+      "tostation": "CS-PES College ORR",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16659,
+      "routeno": "PESU-02 DOWN",
+      "routename": "PESU-KDHC",
+      "fromstationid": 36799,
+      "fromstation": "CS-PES College ORR",
+      "tostationid": 39329,
+      "tostation": "CS-Kadirenahalli Cross",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16660,
+      "routeno": "PESU-02 UP",
+      "routename": "KDHC-PESU",
+      "fromstationid": 39329,
+      "fromstation": "CS-Kadirenahalli Cross",
+      "tostationid": 36799,
+      "tostation": "CS-PES College ORR",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16661,
+      "routeno": "500-CD UP",
+      "routename": "SJP-TNF",
+      "fromstationid": 22462,
+      "fromstation": "Sarjapura",
+      "tostationid": 21228,
+      "tostation": "Tin Factory",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16662,
+      "routeno": "500-CD DOWN",
+      "routename": "TNF-SJP",
+      "fromstationid": 21229,
+      "fromstation": "Tin Factory",
+      "tostationid": 23907,
+      "tostation": "Sarjapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16663,
+      "routeno": "500-CD D42-TNF UP",
+      "routename": "D42G-TNF",
+      "fromstationid": 23509,
+      "fromstation": "Depot-42 Gate Departure",
+      "tostationid": 21228,
+      "tostation": "Tin Factory",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16664,
+      "routeno": "500-CD D42-TNF DOWN",
+      "routename": "TNF-D42G",
+      "fromstationid": 21229,
+      "fromstation": "Tin Factory",
+      "tostationid": 23510,
+      "tostation": "Depot-42 Gate  Arrival",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16665,
+      "routeno": "500CD SJP-KRPMS UP",
+      "routename": "SJP-KRPMS",
+      "fromstationid": 22462,
+      "fromstation": "Sarjapura",
+      "tostationid": 38391,
+      "tostation": "KR Pura Metro Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16666,
+      "routeno": "500CD SJP-KRPMS DOWN",
+      "routename": "KRPMS-SJP",
+      "fromstationid": 37688,
+      "fromstation": "KR Pura Metro Station",
+      "tostationid": 23907,
+      "tostation": "Sarjapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16667,
+      "routeno": "G-252 KBS D9 D22-PSS DOWN",
+      "routename": "PSS-D9 D22-KBS",
+      "fromstationid": 21080,
+      "fromstation": "Peenya 2nd Stage",
+      "tostationid": 20922,
+      "tostation": "Kempegowda Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16668,
+      "routeno": "342 D42-KDT UP",
+      "routename": "D42-KDT",
+      "fromstationid": 23509,
+      "fromstation": "Depot-42 Gate Departure",
+      "tostationid": 33511,
+      "tostation": "Kodathi Village",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16669,
+      "routeno": "342 D42-KDT DOWN",
+      "routename": "KDT-D42",
+      "fromstationid": 31131,
+      "fromstation": "Kodathi Village",
+      "tostationid": 23510,
+      "tostation": "Depot-42 Gate  Arrival",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16670,
+      "routeno": "GGS-05 UP",
+      "routename": "KDT-GSS",
+      "fromstationid": 39929,
+      "fromstation": "CS-Kodathi Village",
+      "tostationid": 36680,
+      "tostation": "CS-Genius Global School Kodathi",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16671,
+      "routeno": "GGS-05 DOWN",
+      "routename": "GSS-KDT",
+      "fromstationid": 36680,
+      "fromstation": "CS-Genius Global School Kodathi",
+      "tostationid": 39929,
+      "tostation": "CS-Kodathi Village",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16672,
+      "routeno": "342 KDTV-SJP UP",
+      "routename": "KDTV-SJP",
+      "fromstationid": 33511,
+      "fromstation": "Kodathi Village",
+      "tostationid": 23907,
+      "tostation": "Sarjapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16673,
+      "routeno": "342 KDTV-SJP DOWN",
+      "routename": "SJP-KDTV",
+      "fromstationid": 22462,
+      "fromstation": "Sarjapura",
+      "tostationid": 33511,
+      "tostation": "Kodathi Village",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16674,
+      "routeno": "290-G HSS-BTP UP",
+      "routename": "HSS-BTP",
+      "fromstationid": 25815,
+      "fromstation": "Head Start School Kommasandra",
+      "tostationid": 30270,
+      "tostation": "Byatarayanapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16675,
+      "routeno": "290-G HSS-BTP DOWN",
+      "routename": "BTP-HSS",
+      "fromstationid": 30270,
+      "fromstation": "Byatarayanapura",
+      "tostationid": 25815,
+      "tostation": "Head Start School Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16676,
+      "routeno": "323-DN-KDH-JYM-D41G DOWN",
+      "routename": "D41G-KDH",
+      "fromstationid": 37149,
+      "fromstation": "Depot-41 Gate",
+      "tostationid": 33525,
+      "tostation": "Kodihalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16677,
+      "routeno": "13-S DOWN",
+      "routename": "STP-BSK",
+      "fromstationid": 35285,
+      "fromstation": "Sultan palya",
+      "tostationid": 20624,
+      "tostation": "Banashankari Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16678,
+      "routeno": "13-S UP",
+      "routename": "BSK-STP",
+      "fromstationid": 20623,
+      "fromstation": "Banashankari Bus Station",
+      "tostationid": 35078,
+      "tostation": "Sultan palya",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16679,
+      "routeno": "EXP-213VJ UP",
+      "routename": "BSK-JNUG",
+      "fromstationid": 20623,
+      "fromstation": "Banashankari Bus Station",
+      "tostationid": 39936,
+      "tostation": "Jain University Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16680,
+      "routeno": "EXP-213VJ DOWN",
+      "routename": "JNUG-BSK",
+      "fromstationid": 39937,
+      "fromstation": "Jain University Gate",
+      "tostationid": 20624,
+      "tostation": "Banashankari Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16681,
+      "routeno": "225-C BEML5-BCH-VSD UP",
+      "routename": "BEML5-BCH-VSD",
+      "fromstationid": 29871,
+      "fromstation": "BEML Layout 5th stage",
+      "tostationid": 21259,
+      "tostation": "Vidhana Soudha Karnataka High Court",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16682,
+      "routeno": "225-C BEML5-BCH-VSD DOWN",
+      "routename": "VSD-BCH-BEML5",
+      "fromstationid": 21258,
+      "fromstation": "Vidhana Soudha Karnataka High Court",
+      "tostationid": 29871,
+      "tostation": "BEML Layout 5th stage",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16683,
+      "routeno": "240-MT UP",
+      "routename": "TVK-MGD",
+      "fromstationid": 21610,
+      "fromstation": "Tavarekere",
+      "tostationid": 28611,
+      "tostation": "Magadi Bus Stand",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16684,
+      "routeno": "240-MT DOWN",
+      "routename": "MGD-TVK",
+      "fromstationid": 28611,
+      "fromstation": "Magadi Bus Stand",
+      "tostationid": 21609,
+      "tostation": "Tavarekere",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16685,
+      "routeno": "374-M  NMG-TVK-MGD UP",
+      "routename": "NMG-TVK-MGD",
+      "fromstationid": 22353,
+      "fromstation": "Nelamangala Bus Station",
+      "tostationid": 28611,
+      "tostation": "Magadi Bus Stand",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16686,
+      "routeno": "374-M  NMG-TVK-MGD DOWN",
+      "routename": "MGD-TVK-NMG",
+      "fromstationid": 28611,
+      "fromstation": "Magadi Bus Stand",
+      "tostationid": 27411,
+      "tostation": "Nelamangala Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16687,
+      "routeno": "JGF-3 DOWN",
+      "routename": "D14G-JGF",
+      "fromstationid": 36617,
+      "fromstation": "CS-Depot-14 Gate",
+      "tostationid": 36541,
+      "tostation": "CS-Juggat Pharma",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16688,
+      "routeno": "JGF-3 UP",
+      "routename": "JGF-D14G",
+      "fromstationid": 36541,
+      "fromstation": "CS-Juggat Pharma",
+      "tostationid": 36617,
+      "tostation": "CS-Depot-14 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16691,
+      "routeno": "271-H KBS-HGV UP",
+      "routename": "KBS-HGV",
+      "fromstationid": 20921,
+      "fromstation": "Kempegowda Bus Station",
+      "tostationid": 20833,
+      "tostation": "Hesaraghatta",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16692,
+      "routeno": "253-FA UP",
+      "routename": "KMT-RDH",
+      "fromstationid": 22199,
+      "fromstation": "KR Market",
+      "tostationid": 34351,
+      "tostation": "Ramadevanahalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16693,
+      "routeno": "271-H KBS-HGV DOWN",
+      "routename": "HGV-KBS",
+      "fromstationid": 35751,
+      "fromstation": "Hesaraghatta",
+      "tostationid": 20922,
+      "tostation": "Kempegowda Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16694,
+      "routeno": "253-FA DOWN",
+      "routename": "RDH-KMT",
+      "fromstationid": 34351,
+      "fromstation": "Ramadevanahalli",
+      "tostationid": 22199,
+      "tostation": "KR Market",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16695,
+      "routeno": "253-FA KBS-RDH UP",
+      "routename": "KBS-RDH",
+      "fromstationid": 20921,
+      "fromstation": "Kempegowda Bus Station",
+      "tostationid": 34351,
+      "tostation": "Ramadevanahalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16696,
+      "routeno": "253-FA KBS-RDH DOWN",
+      "routename": "RDH-KBS",
+      "fromstationid": 34351,
+      "fromstation": "Ramadevanahalli",
+      "tostationid": 20922,
+      "tostation": "Kempegowda Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16697,
+      "routeno": "401-M YBS-D12G UP",
+      "routename": "YBS-D12G",
+      "fromstationid": 21288,
+      "fromstation": "Yeshawanthapura Bus Station",
+      "tostationid": 35721,
+      "tostation": "Depot-12 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16698,
+      "routeno": "401-M YBS-D12G DOWN",
+      "routename": "D12G-YBS",
+      "fromstationid": 35721,
+      "fromstation": "Depot-12 Gate",
+      "tostationid": 21288,
+      "tostation": "Yeshawanthapura Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16699,
+      "routeno": "139 SBS-KFC-SVM UP",
+      "routename": "SBS-SVM",
+      "fromstationid": 21172,
+      "fromstation": "Shivajinagara Bus Station",
+      "tostationid": 22527,
+      "tostation": "Swamy Vivekananda Metro Station/Isolation Hospital",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16700,
+      "routeno": "129 KBS-RBIQ UP",
+      "routename": "KBS-RBIQ",
+      "fromstationid": 20921,
+      "fromstation": "Kempegowda Bus Station",
+      "tostationid": 38783,
+      "tostation": "RBI Quarters Ulsoor",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16701,
+      "routeno": "138 JBN-HALNP UP",
+      "routename": "JBN-HALNP",
+      "fromstationid": 26321,
+      "fromstation": "Jeevanbheema Nagara",
+      "tostationid": 32819,
+      "tostation": "HAL New Public School",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16702,
+      "routeno": "SBS-HLS-SMVR UP",
+      "routename": "SBS-SMVR",
+      "fromstationid": 21172,
+      "fromstation": "Shivajinagara Bus Station",
+      "tostationid": 37713,
+      "tostation": "Sir M Visvesvaraya Terminal",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16703,
+      "routeno": "SBS-HLS-SMVR DOWN",
+      "routename": "SMVR-SBS",
+      "fromstationid": 37713,
+      "fromstation": "Sir M Visvesvaraya Terminal",
+      "tostationid": 21173,
+      "tostation": "Shivajinagara Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16704,
+      "routeno": "326-E KMT-KDG UP",
+      "routename": "KMT-KDG",
+      "fromstationid": 22199,
+      "fromstation": "KR Market",
+      "tostationid": 20902,
+      "tostation": "Kadugodi Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16705,
+      "routeno": "326-E KMT-KDG DOWN",
+      "routename": "KDG-KMT",
+      "fromstationid": 20902,
+      "fromstation": "Kadugodi Bus Station",
+      "tostationid": 22199,
+      "tostation": "KR Market",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16710,
+      "routeno": "507-DY D24G-BBSP UP",
+      "routename": "D24G-RMN-BBSP",
+      "fromstationid": 36727,
+      "fromstation": "Depot-24 Gate",
+      "tostationid": 37934,
+      "tostation": "Babusabpalya 302",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16711,
+      "routeno": "507-DY D24G-BBSP DOWN",
+      "routename": "BBSP-RMN-D24G",
+      "fromstationid": 37934,
+      "fromstation": "Babusabpalya 302",
+      "tostationid": 21886,
+      "tostation": "Depot-24 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16712,
+      "routeno": "365-BB BSK-BNP-ANK DOWN",
+      "routename": "ANK-BSK",
+      "fromstationid": 23094,
+      "fromstation": "Anekal",
+      "tostationid": 20624,
+      "tostation": "Banashankari Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16713,
+      "routeno": "365-BB BSK-BNP-ANK UP",
+      "routename": "BSK-ANK",
+      "fromstationid": 20623,
+      "fromstation": "Banashankari Bus Station",
+      "tostationid": 23094,
+      "tostation": "Anekal",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16714,
+      "routeno": "JKLO-YHK UP",
+      "routename": "JKLO-YHK",
+      "fromstationid": 26253,
+      "fromstation": "Jakkur Layout  shanimahatma Temple",
+      "tostationid": 22641,
+      "tostation": "Yelahanka Old Town",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16715,
+      "routeno": "JKLO-YHK DOWN",
+      "routename": "YHK-JKLO",
+      "fromstationid": 22640,
+      "fromstation": "Yelahanka Old Town",
+      "tostationid": 26252,
+      "tostation": "Jakkur Layout  Shanimahatma Temple",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16720,
+      "routeno": "335-G D31G-KDG UP",
+      "routename": "D31G-KDG",
+      "fromstationid": 21887,
+      "fromstation": "Depot-31 Gate",
+      "tostationid": 20902,
+      "tostation": "Kadugodi Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16721,
+      "routeno": "335-G D31G-KDG DOWN",
+      "routename": "KDG-D31G",
+      "fromstationid": 20902,
+      "fromstation": "Kadugodi Bus Station",
+      "tostationid": 21887,
+      "tostation": "Depot-31 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16722,
+      "routeno": "369 JBS-CKMH UP",
+      "routename": "JBS-CKMH",
+      "fromstationid": 21544,
+      "fromstation": "Jayanagara Bus Station",
+      "tostationid": 32275,
+      "tostation": "Chikka Kammanahalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16723,
+      "routeno": "369 JBS-CKMH DOWN",
+      "routename": "CKMH-JBS",
+      "fromstationid": 24511,
+      "fromstation": "Chikka Kammanahalli",
+      "tostationid": 23374,
+      "tostation": "Jayanagara Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16724,
+      "routeno": "241-S D31G-UST UP",
+      "routename": "D31G-UST",
+      "fromstationid": 21887,
+      "fromstation": "Depot-31 Gate",
+      "tostationid": 21238,
+      "tostation": "Ullala Satelite Town",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16725,
+      "routeno": "241-S D31G-UST DOWN",
+      "routename": "UST-D31G",
+      "fromstationid": 21238,
+      "fromstation": "Ullala Satelite Town",
+      "tostationid": 21887,
+      "tostation": "Depot-31 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16726,
+      "routeno": "240-MB G31G-MGD UP",
+      "routename": "D31G-MGD",
+      "fromstationid": 21887,
+      "fromstation": "Depot-31 Gate",
+      "tostationid": 28611,
+      "tostation": "Magadi Bus Stand",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16727,
+      "routeno": "240-MB G31G-MGD DOWN",
+      "routename": "MGD-D31G",
+      "fromstationid": 28611,
+      "fromstation": "Magadi Bus Stand",
+      "tostationid": 21887,
+      "tostation": "Depot-31 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16728,
+      "routeno": "253-CD UP",
+      "routename": "YBS-DHJ",
+      "fromstationid": 21288,
+      "fromstation": "Yeshawanthapura Bus Station",
+      "tostationid": 38837,
+      "tostation": "Doddahejjaji",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16729,
+      "routeno": "253-CD DOWN",
+      "routename": "DHJ-YBS",
+      "fromstationid": 38836,
+      "fromstation": "Doddahejjaji",
+      "tostationid": 24016,
+      "tostation": "Yeshawanthapura Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16730,
+      "routeno": "500-CH D42G-TNF UP",
+      "routename": "D42G-TNF",
+      "fromstationid": 23509,
+      "fromstation": "Depot-42 Gate Departure",
+      "tostationid": 21228,
+      "tostation": "Tin Factory",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16731,
+      "routeno": "500-CH D42G-TNF DOWN",
+      "routename": "TNF-D42G",
+      "fromstationid": 21229,
+      "fromstation": "Tin Factory",
+      "tostationid": 23510,
+      "tostation": "Depot-42 Gate  Arrival",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16732,
+      "routeno": "360-N KBS-NSP UP",
+      "routename": "KBS-NSP",
+      "fromstationid": 20921,
+      "fromstation": "Kempegowda Bus Station",
+      "tostationid": 34832,
+      "tostation": "Narasapura 1",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16733,
+      "routeno": "360-N KBS-NSP DOWN",
+      "routename": "NSP-KBS",
+      "fromstationid": 34098,
+      "fromstation": "Narasapura",
+      "tostationid": 20922,
+      "tostation": "Kempegowda Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16734,
+      "routeno": "NICE-10\tMDV-CPR UP",
+      "routename": "MDV-CPR",
+      "fromstationid": 22233,
+      "fromstation": "NICE Road Madavara",
+      "tostationid": 21817,
+      "tostation": "Chandapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16735,
+      "routeno": "NICE-10\tMDV-CPR DOWN",
+      "routename": "CPR-MDV",
+      "fromstationid": 21818,
+      "fromstation": "Chandapura",
+      "tostationid": 28598,
+      "tostation": "Madavara",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16736,
+      "routeno": "NICE-10 MDR-ELCW UP",
+      "routename": "MDV-ELCW",
+      "fromstationid": 22233,
+      "fromstation": "NICE Road Madavara",
+      "tostationid": 20772,
+      "tostation": "Electronic City Wipro Main Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16737,
+      "routeno": "NICE-10 MDR-ELCW DOWN",
+      "routename": "ELCW-MDV",
+      "fromstationid": 20772,
+      "fromstation": "Electronic City Wipro Main Gate",
+      "tostationid": 28598,
+      "tostation": "Madavara",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16738,
+      "routeno": "226-MA KBS-MYGH UP",
+      "routename": "KBS-MYGH",
+      "fromstationid": 20921,
+      "fromstation": "Kempegowda Bus Station",
+      "tostationid": 33884,
+      "tostation": "Mayaganahalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16739,
+      "routeno": "226-MA KBS-MYGH DOWN",
+      "routename": "MYGH-KBS",
+      "fromstationid": 28905,
+      "fromstation": "Mayaganahalli",
+      "tostationid": 20922,
+      "tostation": "Kempegowda Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16740,
+      "routeno": "215-NJ DOWN",
+      "routename": "GTNJ-BSK",
+      "fromstationid": 38971,
+      "fromstation": "Gottigere Nice Road Junction",
+      "tostationid": 20624,
+      "tostation": "Banashankari Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16741,
+      "routeno": "215-NJ UP",
+      "routename": "BSK-GTNJ",
+      "fromstationid": 20623,
+      "fromstation": "Banashankari Bus Station",
+      "tostationid": 39093,
+      "tostation": "Gottigere Nice Road Junction",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16742,
+      "routeno": "BEL GS-28 DOWN",
+      "routename": "BELF-NBVC",
+      "fromstationid": 35759,
+      "fromstation": "CS-BEL Factory",
+      "tostationid": 36468,
+      "tostation": "CS-Nagarabhavi Circle",
+      "responsecode": 200
+    },
+    {
+      "routeid": 16743,
+      "routeno": "BEL GS-28 UP",
+      "routename": "NBVC-BELF",
+      "fromstationid": 36468,
+      "fromstation": "CS-Nagarabhavi Circle",
+      "tostationid": 35759,
+      "tostation": "CS-BEL Factory",
+      "responsecode": 200
     }
   ],
   "Message": "Success",
   "Issuccess": true,
   "exception": null,
-  "RowCount": 9659,
+  "RowCount": 9632,
   "responsecode": 200
 }
