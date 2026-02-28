@@ -60,6 +60,7 @@ class GTFSWriter:
         self.stops[stop_id] = {
             'stop_id': stop_id,
             'stop_name': name,
+            'stop_desc': '',
             'stop_lat': lat,
             'stop_lon': lon,
             'zone_id': stop_id
@@ -598,6 +599,44 @@ def cleanup_trips():
     else:
         logging.info("No single-stop trips found to remove")
 
+def add_stop_desc():
+    translations_directory = '../raw/translations/'
+    failed_files = []
+
+    def is_english(s):
+        try:
+            s.encode('ascii')
+            return True
+        except UnicodeEncodeError:
+            return False
+
+    stop_geofences = {}
+    for filename in os.listdir(translations_directory):
+        if filename.endswith('_en.json'):
+            try:
+                file_path = os.path.join(translations_directory, filename)
+                if os.path.getsize(file_path) > 0:
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        if data.get("data"):
+                            for stop in data["data"]:
+                                stop_id = stop.get("stopid")
+                                gname = stop.get("geofencename", "")
+                                if stop_id and gname and gname not in stop_geofences.get(stop_id, []):
+                                    stop_geofences.setdefault(stop_id, []).append(gname)
+            except Exception as err:
+                logging.error(f"Failed to process English translation file {filename}: {str(err)}")
+                failed_files.append(filename)
+
+    updated = 0
+    for stop_id, geofences in stop_geofences.items():
+        if stop_id in gtfs.stops:
+            english_ones = [g for g in geofences if is_english(g)]
+            gtfs.stops[stop_id]['stop_desc'] = english_ones[0] if english_ones else geofences[0]
+            updated += 1
+
+    logging.info(f"Added stop_desc for {updated} stops ({len(failed_files)} failed files)")
+
 def add_translations():
     translations_directory = '../raw/translations/'
     translations_data = {}
@@ -873,6 +912,7 @@ add_stops()
 add_routes()
 add_shapes()
 add_trips()
+add_stop_desc()
 add_translations()
 add_fares()
 
