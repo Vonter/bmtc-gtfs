@@ -68,14 +68,11 @@ class GTFSWriter:
         return stop_id
 
     def add_route(self, route_id, short_name, long_name):
-        # Strip characters after first space in short_name if it's longer than 12 characters
-        short_name = short_name.split(' ')[0] if ' ' in short_name and len(short_name) > 12 else short_name
-        
         self.routes[route_id] = {
             'route_id': route_id,
             'route_short_name': short_name,
             'route_long_name': long_name,
-            'route_type': '3'  # Bus
+            'route_type': '3',  # Bus
         }
         return route_id
 
@@ -269,18 +266,40 @@ def add_routes():
     addedRoutes = []
     failedRoutes = []
 
+    # Build routeno -> routeparentid mapping from routeids files
+    routeids_directory = '../raw/routeids/'
+    route_parent_ids = {}
+    for filename in os.listdir(routeids_directory):
+        if filename.endswith('.json'):
+            file_path = os.path.join(routeids_directory, filename)
+            if os.path.getsize(file_path) > 0:
+                try:
+                    with open(file_path, 'r') as f:
+                        data = json.load(f)
+                        if data.get('data'):
+                            for entry in data['data']:
+                                routeno = entry.get('routeno', '')
+                                parent_id = entry.get('routeparentid', '')
+                                if routeno and parent_id:
+                                    route_parent_ids[routeno] = parent_id
+                except Exception as err:
+                    logging.warning(f"Failed to load routeids file {filename}: {str(err)}")
+
+    logging.info(f"Loaded {len(route_parent_ids)} route parent IDs")
+
     for route in routes_json["data"]:
         try:
-            route_id_name = route["routeno"].replace(" UP", "").replace(" DOWN", "")
-            if route_id_name not in gtfs.routes:
+            route_short_name = route["routeno"].replace(" UP", "").replace(" DOWN", "")
+            if route_short_name not in gtfs.routes:
+                route_id = route_parent_ids.get(route_short_name, '')
                 route_long_name = "{} ⇔ {}".format(route["fromstation"], route["tostation"])
-                gtfs.add_route(route_id_name, route_id_name, route_long_name)
-            addedRoutes.append(route_id_name)
+                gtfs.add_route(route_id, route_short_name, route_long_name)
+            addedRoutes.append(route_id)
 
         except Exception as err:
             logging.info("Failed to process " + route["routeno"])
             failedRoutes.append(route["routeno"])
-    
+
     logging.info("Added {} routes ({} errors)".format(len(addedRoutes), len(failedRoutes)))
     return gtfs.routes
 
@@ -350,10 +369,11 @@ def add_trips():
     # Maximum allowed speed in km/h
     MAX_SPEED_KMH = 75.0
 
-    for route_id in gtfs.routes:
+    for route_id, route_data in gtfs.routes.items():
+        route_short_name = route_data['route_short_name']
         for direction in ["UP", "DOWN"]:
             try:
-                filename = "{} {}.json".format(route_id, direction)
+                filename = "{} {}.json".format(route_short_name, direction)
                 if filename not in stops_files:
                     noStops.append(filename)
                     continue
@@ -363,7 +383,7 @@ def add_trips():
                     noStops.append(filename)
                     continue
 
-                shape_id = "{} {}".format(route_id, direction)
+                shape_id = "{} {}".format(route_short_name, direction)
                 if shape_id not in gtfs.shapes:
                     noShapes.append(filename)
                     continue
