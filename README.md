@@ -17,28 +17,6 @@ Due to the design of the Namma BMTC app, only routes with functional live tracki
 
 The GTFS dataset can be found **[here](gtfs/bmtc.zip?raw=1)**
 
-## Maps
-
-### Route frequency
-
-![](analysis/route-frequency.png)
-*Route frequency - number of daily trips passing through a given route. [View interactive map](https://felt.com/map/BMTC-Routes-January-2024-tmH9CPE9AsQmaAIqpwyh9AkdC?loc=13.00,77.50,11z)*
-
-### Stop frequency
-
-![](analysis/stop-frequency.png)
-*Stop frequency - number of daily trips passing through a given stop. [View interactive map](https://felt.com/map/BMTC-Stops-January-2024-r1xBsx0DSxu67ij4v36cSC?loc=13.00,77.50,11z)*
-
-### Most frequent route
-
-![](analysis/route-top.png)
-*Most frequent routes - MF-375D (434 trips), MF-378 (393 trips), MF-410FA (319 trips), 290-E (306 trips), KBS-3A (293 trips). [View interactive map](https://felt.com/map/Most-Frequent-BMTC-Routes-xc2XS9BtXRFCpqEQBS3REjC?loc=12.9417,77.5444,10.98z)*
-
-### Most frequent stop
-
-![](analysis/stop-top.png)
-*Most frequent stops - KBS (12520 trips), Corporation (7376 trips), Town Hall (4631 trips), Indian Express (4268 trips), Maharani College (4187 trips). [View interactive map](https://felt.com/map/Most-Frequent-BMTC-Stops-x3iatTZpSKGCdZGG9ClzZMB?loc=12.96784,77.57994,12.68z)*
-
 ## GeoJSON
 
 GeoJSONs can be found below:
@@ -55,9 +33,9 @@ CSVs can be found below:
 - [Stops](csv/stops.csv?raw=1) (or explore [here](https://flatgithub.com/Vonter/bmtc-gtfs?filename=csv/stops.csv&stickyColumnName=name&sort=trip_count%2Cdesc))
 - [Aggregated Stops](csv/aggregated.csv?raw=1) (or explore [here](https://flatgithub.com/Vonter/bmtc-gtfs?filename=csv/aggregated.csv&stickyColumnName=name&sort=trip_count%2Cdesc))
 
-## HTML
+## Visualization
 
-Visualize the routes, stops and timetables in the GTFS dataset, with a web browser: **[https://bmtc-gtfs.netlify.app](https://bmtc-gtfs.netlify.app)**
+Visualize the routes, stops and timetables in the GTFS dataset, with a web browser: **[https://transitrouter.pages.dev](https://transitrouter.pages.dev)**
 
 ## Validations
 
