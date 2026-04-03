@@ -89,9 +89,9 @@ class TransitDataAnalysis:
             for i, feature in enumerate(geojson["features"]):
                 try:
                     properties = feature["properties"]
-                    route_id = properties["route_id"]
+                    route_id = int(properties["route_id"])
                     route_name = properties["route_short_name"]
-                    direction_id = properties["direction_id"]
+                    direction_id = int(properties["direction_id"])
                     
                     # Filter trips for this route and direction
                     trip_df = self.trips_df[
