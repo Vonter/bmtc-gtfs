@@ -62462,7 +62462,7 @@
     },
     {
       "routeid": 11645,
-      "routeno": "HSS-22 UP",
+      "routeno": "HSS-022 UP",
       "routename": "HSS-22",
       "fromstationid": 38006,
       "fromstation": "CS-HAL Museum",
@@ -62472,7 +62472,7 @@
     },
     {
       "routeid": 11646,
-      "routeno": "HSS-22 DOWN",
+      "routeno": "HSS-022 DOWN",
       "routename": "HSS-22",
       "fromstationid": 36231,
       "fromstation": "CS-Head Start School Kommasandra",
@@ -85391,26 +85391,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 15535,
-      "routeno": "VLS-06 UP",
-      "routename": "BMG-VLS",
-      "fromstationid": 36214,
-      "fromstation": "CS-Sri Dharmaraya Circle",
-      "tostationid": 36283,
-      "tostation": "CS-Valley School Kanakapura Road",
-      "responsecode": 200
-    },
-    {
-      "routeid": 15536,
-      "routeno": "VLS-06 DOWN",
-      "routename": "VLS-BGM",
-      "fromstationid": 36283,
-      "fromstation": "CS-Valley School Kanakapura Road",
-      "tostationid": 36214,
-      "tostation": "CS-Sri Dharmaraya Circle",
-      "responsecode": 200
-    },
-    {
       "routeid": 15537,
       "routeno": "D34G-CCDV UP",
       "routename": "D34G-CCDV",
@@ -99431,26 +99411,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 17237,
-      "routeno": "298-MW. UP",
-      "routename": "DVH-NDC",
-      "fromstationid": 32458,
-      "fromstation": "Devanahalli New Bus Station",
-      "tostationid": 37996,
-      "tostation": "Nandi Cross",
-      "responsecode": 200
-    },
-    {
-      "routeid": 17238,
-      "routeno": "298-MW. DOWN",
-      "routename": "NDC-DVH",
-      "fromstationid": 37997,
-      "fromstation": "Nandi Cross",
-      "tostationid": 24931,
-      "tostation": "Devanahalli New Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 17239,
       "routeno": "EXP-298MP UP",
       "routename": "KBS-VJP",
@@ -99781,26 +99741,6 @@
       "responsecode": 200
     },
     {
-      "routeid": 17272,
-      "routeno": "EXP-STRR1 UP",
-      "routename": "NMG-HSK",
-      "fromstationid": 22353,
-      "fromstation": "Nelamangala Bus Station",
-      "tostationid": 36152,
-      "tostation": "Hosakote Bus Station (TTMC)",
-      "responsecode": 200
-    },
-    {
-      "routeid": 17273,
-      "routeno": "EXP-STRR1 DOWN",
-      "routename": "HSK-NMG",
-      "fromstationid": 36152,
-      "fromstation": "Hosakote Bus Station (TTMC)",
-      "tostationid": 27411,
-      "tostation": "Nelamangala Bus Station",
-      "responsecode": 200
-    },
-    {
       "routeid": 17274,
       "routeno": "CRST Pickup UP",
       "routename": "COX-CRST",
@@ -99989,11 +99929,541 @@
       "tostationid": 20823,
       "tostation": "Hebbala Bridge",
       "responsecode": 200
+    },
+    {
+      "routeid": 17293,
+      "routeno": "298-MW UP",
+      "routename": "DVH-SJCIT",
+      "fromstationid": 32458,
+      "fromstation": "Devanahalli New Bus Station",
+      "tostationid": 38000,
+      "tostation": "BGS College Chikkaballapura( SJC Institute)",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17294,
+      "routeno": "298-MW DOWN",
+      "routename": "SJCIT-DVH",
+      "fromstationid": 38000,
+      "fromstation": "BGS College Chikkaballapura( SJC Institute)",
+      "tostationid": 24931,
+      "tostation": "Devanahalli New Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17295,
+      "routeno": "TR-4 NGV-CLO UP",
+      "routename": "NGV-CLO",
+      "fromstationid": 22327,
+      "fromstation": "Nagawara",
+      "tostationid": 22776,
+      "tostation": "Chandra Layout",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17296,
+      "routeno": "242 D31G-KMT DOWN",
+      "routename": "KMT-D31G",
+      "fromstationid": 20944,
+      "fromstation": "KR Market (Kalasipalya)",
+      "tostationid": 35917,
+      "tostation": "Depot-31 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17297,
+      "routeno": "SKL-JSD UP",
+      "routename": "SKL-JSD",
+      "fromstationid": 23581,
+      "fromstation": "Shanthiniketan Layout",
+      "tostationid": 35804,
+      "tostation": "Jambu Savari Dinne",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17298,
+      "routeno": "112 CMS-KBR UP",
+      "routename": "CMS-KBR",
+      "fromstationid": 37694,
+      "fromstation": "Cubbon Park Metro Station",
+      "tostationid": 20918,
+      "tostation": "Kaval Byrasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17299,
+      "routeno": "112 CMS-KBR DOWN",
+      "routename": "KVB-CMS",
+      "fromstationid": 20918,
+      "fromstation": "Kaval Byrasandra",
+      "tostationid": 38459,
+      "tostation": "Cubbon Park Metro Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17300,
+      "routeno": "378 ELCW-PTPL UP",
+      "routename": "ELCW-PTPL",
+      "fromstationid": 20772,
+      "fromstation": "Electronic City Wipro Main Gate",
+      "tostationid": 36531,
+      "tostation": "PAPAS Trading PVT LTD",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17301,
+      "routeno": "378 ELCW-PTPL DOWN",
+      "routename": "PTPL-ELCW",
+      "fromstationid": 36531,
+      "fromstation": "PAPAS Trading PVT LTD",
+      "tostationid": 20772,
+      "tostation": "Electronic City Wipro Main Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17302,
+      "routeno": "VLS-4 Pick Up UP",
+      "routename": "GEM-VLS",
+      "fromstationid": 38998,
+      "fromstation": "CS-Good Earth Malhar",
+      "tostationid": 36283,
+      "tostation": "CS-Valley School Kanakapura Road",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17303,
+      "routeno": "VLS-04 Drop UP",
+      "routename": "VLS-D12G",
+      "fromstationid": 36283,
+      "fromstation": "CS-Valley School Kanakapura Road",
+      "tostationid": 38900,
+      "tostation": "CS-Depot-12 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17304,
+      "routeno": "VLS-06 UP",
+      "routename": "D34-VLS",
+      "fromstationid": 36207,
+      "fromstation": "CS-Depot-34",
+      "tostationid": 36283,
+      "tostation": "CS-Valley School Kanakapura Road",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17305,
+      "routeno": "VLS-06 DOWN",
+      "routename": "VLS-D34",
+      "fromstationid": 36283,
+      "fromstation": "CS-Valley School Kanakapura Road",
+      "tostationid": 36207,
+      "tostation": "CS-Depot-34",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17306,
+      "routeno": "401-KC YBS-D12G UP",
+      "routename": "YBS-KGR-D12G",
+      "fromstationid": 24016,
+      "fromstation": "Yeshawanthapura Bus Station",
+      "tostationid": 35721,
+      "tostation": "Depot-12 Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17307,
+      "routeno": "VLS-07 UP",
+      "routename": "BSK-VLS",
+      "fromstationid": 36579,
+      "fromstation": "CS-Banashankari",
+      "tostationid": 36283,
+      "tostation": "CS-Valley School Kanakapura Road",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17308,
+      "routeno": "VLS-07 DOWN",
+      "routename": "VLS-BSK",
+      "fromstationid": 36283,
+      "fromstation": "CS-Valley School Kanakapura Road",
+      "tostationid": 36579,
+      "tostation": "CS-Banashankari",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17309,
+      "routeno": "V-500CA KMK-BSK-ITPL UP",
+      "routename": "KMK-BSK-ITPL",
+      "fromstationid": 35773,
+      "fromstation": "Kamakya Talkies",
+      "tostationid": 20866,
+      "tostation": "ITPL",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17310,
+      "routeno": "V-500CA KMK-BSK-ITPL DOWN",
+      "routename": "KMK-BSK-ITPL",
+      "fromstationid": 20865,
+      "fromstation": "ITPL",
+      "tostationid": 35772,
+      "tostation": "Kamakya Talkies",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17311,
+      "routeno": "ABS-02 UP",
+      "routename": "TRL-ABP",
+      "fromstationid": 40416,
+      "fromstation": "CS-Tamara Residencial Layout Kachmaranhalli",
+      "tostationid": 36557,
+      "tostation": "CS-Aspire bee School",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17312,
+      "routeno": "ABS-02 DOWN",
+      "routename": "ABP-TRL",
+      "fromstationid": 36557,
+      "fromstation": "CS-Aspire bee School",
+      "tostationid": 40416,
+      "tostation": "CS-Tamara Residencial Layout Kachmaranhalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17313,
+      "routeno": "D41G-TRL UP",
+      "routename": "D41G-TRL",
+      "fromstationid": 37149,
+      "fromstation": "Depot-41 Gate",
+      "tostationid": 40415,
+      "tostation": "Tamara Residencial Layout Kachmaranhalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17314,
+      "routeno": "328 TRL-SJP UP",
+      "routename": "TRL-SJP",
+      "fromstationid": 40415,
+      "fromstation": "Tamara Residencial Layout Kachmaranhalli",
+      "tostationid": 23907,
+      "tostation": "Sarjapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17315,
+      "routeno": "ASP-3 UP",
+      "routename": "KMS-ABS",
+      "fromstationid": 40417,
+      "fromstation": "CS-Kommasandra",
+      "tostationid": 36557,
+      "tostation": "CS-Aspire bee School",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17316,
+      "routeno": "ASP-3 DOWN",
+      "routename": "ABS-KMS",
+      "fromstationid": 36557,
+      "fromstation": "CS-Aspire bee School",
+      "tostationid": 40417,
+      "tostation": "CS-Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17317,
+      "routeno": "328 KMS-ATB UP",
+      "routename": "KMS-ATB",
+      "fromstationid": 31199,
+      "fromstation": "Kommasandra",
+      "tostationid": 21671,
+      "tostation": "Attibele Bus Stand",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17318,
+      "routeno": "DKN-5 UP",
+      "routename": "DKN-ASP",
+      "fromstationid": 36577,
+      "fromstation": "CS-Doddakannalli",
+      "tostationid": 36557,
+      "tostation": "CS-Aspire bee School",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17319,
+      "routeno": "DKN-5 DOWN",
+      "routename": "ASP-DKN",
+      "fromstationid": 36557,
+      "fromstation": "CS-Aspire bee School",
+      "tostationid": 36577,
+      "tostation": "CS-Doddakannalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17320,
+      "routeno": "500-CH TNF-ASP UP",
+      "routename": "TNF-ASP",
+      "fromstationid": 21229,
+      "fromstation": "Tin Factory",
+      "tostationid": 36556,
+      "tostation": "Aspire bee School",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17321,
+      "routeno": "500-CH TNF-ASP DOWN",
+      "routename": "ASP-TNF",
+      "fromstationid": 36556,
+      "fromstation": "Aspire bee School",
+      "tostationid": 21228,
+      "tostation": "Tin Factory",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17322,
+      "routeno": "DKN-6 UP",
+      "routename": "DNK-ASP",
+      "fromstationid": 36577,
+      "fromstation": "CS-Doddakannalli",
+      "tostationid": 36557,
+      "tostation": "CS-Aspire bee School",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17323,
+      "routeno": "DKN-6 DOWN",
+      "routename": "ASP-DKN",
+      "fromstationid": 36557,
+      "fromstation": "CS-Aspire bee School",
+      "tostationid": 36577,
+      "tostation": "CS-Doddakannalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17325,
+      "routeno": "HSS-11 UP",
+      "routename": "HSS-HAL M",
+      "fromstationid": 36231,
+      "fromstation": "CS-Head Start School Kommasandra",
+      "tostationid": 38006,
+      "tostation": "CS-HAL Museum",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17326,
+      "routeno": "HSS-11 DOWN",
+      "routename": "HALM-HSS",
+      "fromstationid": 38006,
+      "fromstation": "CS-HAL Museum",
+      "tostationid": 36231,
+      "tostation": "CS-Head Start School Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17327,
+      "routeno": "335-E KDG-HALM UP",
+      "routename": "KDG-HALM",
+      "fromstationid": 20902,
+      "fromstation": "Kadugodi Bus Station",
+      "tostationid": 38007,
+      "tostation": "HAL Museum",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17328,
+      "routeno": "HSS-22 UP",
+      "routename": "HSS-BSN",
+      "fromstationid": 36231,
+      "fromstation": "CS-Head Start School Kommasandra",
+      "tostationid": 39686,
+      "tostation": "CS-Basavanagara",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17329,
+      "routeno": "HSS-22 DOWN",
+      "routename": "BSN-HSS",
+      "fromstationid": 39686,
+      "fromstation": "CS-Basavanagara",
+      "tostationid": 36231,
+      "tostation": "CS-Head Start School Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17330,
+      "routeno": "D06G-TNF-HSS UP",
+      "routename": "D06G-HSS",
+      "fromstationid": 20741,
+      "fromstation": "Depot-06 Gate",
+      "tostationid": 25815,
+      "tostation": "Head Start School Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17331,
+      "routeno": "D06G-TNF-DMS UP",
+      "routename": "D06G-DMS",
+      "fromstationid": 20741,
+      "fromstation": "Depot-06 Gate",
+      "tostationid": 23906,
+      "tostation": "Dommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17332,
+      "routeno": "342-F BEG-KBS UP",
+      "routename": "BEG-KBS",
+      "fromstationid": 21938,
+      "fromstation": "Exide Gate",
+      "tostationid": 20922,
+      "tostation": "Kempegowda Bus Station",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17333,
+      "routeno": "500-CH DNK-BEG UP",
+      "routename": "DNK-BEG",
+      "fromstationid": 32516,
+      "fromstation": "Dodda Nekkundi",
+      "tostationid": 21937,
+      "tostation": "Exide Gate",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17334,
+      "routeno": "HSS-24 UP",
+      "routename": "HSS-BEG",
+      "fromstationid": 36231,
+      "fromstation": "CS-Head Start School Kommasandra",
+      "tostationid": 40418,
+      "tostation": "CS-Exide Gate Billapura",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17335,
+      "routeno": "HSS-24 DOWN",
+      "routename": "BEG-HSS",
+      "fromstationid": 40418,
+      "fromstation": "CS-Exide Gate Billapura",
+      "tostationid": 36231,
+      "tostation": "CS-Head Start School Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17336,
+      "routeno": "SVM-1 UP",
+      "routename": "CKB-SVM",
+      "fromstationid": 36567,
+      "fromstation": "CS-Chikka Bellanduru",
+      "tostationid": 36568,
+      "tostation": "CS-Sapthagiri Vidya Mandir",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17337,
+      "routeno": "SVM-1 DOWN",
+      "routename": "SVM-CKB",
+      "fromstationid": 36568,
+      "fromstation": "CS-Sapthagiri Vidya Mandir",
+      "tostationid": 36567,
+      "tostation": "CS-Chikka Bellanduru",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17338,
+      "routeno": "SVM-002 UP",
+      "routename": "SNT-SVM",
+      "fromstationid": 40420,
+      "fromstation": "CS-Shaneshwara Swamy Temple Doddakannahalli",
+      "tostationid": 36568,
+      "tostation": "CS-Sapthagiri Vidya Mandir",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17339,
+      "routeno": "SVM-002 DOWN",
+      "routename": "SVM-SNT",
+      "fromstationid": 36568,
+      "fromstation": "CS-Sapthagiri Vidya Mandir",
+      "tostationid": 40420,
+      "tostation": "CS-Shaneshwara Swamy Temple Doddakannahalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17340,
+      "routeno": "D41G-DMS-DKNH UP",
+      "routename": "D41G-DKNH",
+      "fromstationid": 37149,
+      "fromstation": "Depot-41 Gate",
+      "tostationid": 35240,
+      "tostation": "Doddakannalli",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17341,
+      "routeno": "D42G-KMS UP",
+      "routename": "D42G-KMS",
+      "fromstationid": 23509,
+      "fromstation": "Depot-42 Gate Departure",
+      "tostationid": 31199,
+      "tostation": "Kommasandra",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17342,
+      "routeno": "STJHS-05 UP",
+      "routename": "STJHS-KLND23",
+      "fromstationid": 36275,
+      "fromstation": "CS-St Johns High School Thomas Cafe",
+      "tostationid": 36797,
+      "tostation": "CS-Kalyananagara Bus Stand",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17343,
+      "routeno": "STJHS-05 DOWN",
+      "routename": "KLND23-STJHS",
+      "fromstationid": 36797,
+      "fromstation": "CS-Kalyananagara Bus Stand",
+      "tostationid": 36275,
+      "tostation": "CS-St Johns High School Thomas Cafe",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17344,
+      "routeno": "CHMS-2 UP",
+      "routename": "BGR-CHMS",
+      "fromstationid": 36505,
+      "fromstation": "CS-Beguru",
+      "tostationid": 36654,
+      "tostation": "CS-Chinmaya Vidyalaya Koramangala",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17345,
+      "routeno": "CHMS-2 DOWN",
+      "routename": "CHMS-BGR",
+      "fromstationid": 36654,
+      "fromstation": "CS-Chinmaya Vidyalaya Koramangala",
+      "tostationid": 36505,
+      "tostation": "CS-Beguru",
+      "responsecode": 200
+    },
+    {
+      "routeid": 17346,
+      "routeno": "401-N MBS-BEML5 DOWN",
+      "routename": "BEML5-MBS",
+      "fromstationid": 29871,
+      "fromstation": "BEML Layout 5th stage",
+      "tostationid": 22787,
+      "tostation": "Malleshwara Bus Stand",
+      "responsecode": 200
     }
   ],
   "Message": "Success",
   "Issuccess": true,
   "exception": null,
-  "RowCount": 9999,
+  "RowCount": 10046,
   "responsecode": 200
 }
