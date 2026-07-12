@@ -1,0 +1,156 @@
+{
+  "banashankari": {
+    "seed_ids": [
+      20621,
+      20623,
+      20624,
+      21711
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-banashankari.geojson"
+  },
+  "bapujinagar": {
+    "seed_ids": [
+      21042,
+      38815
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-bapujinagar.geojson"
+  },
+  "domlur": {
+    "seed_ids": [
+      21923,
+      21914,
+      21915,
+      35937,
+      25137,
+      21916
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-domlur.geojson"
+  },
+  "jayanagar": {
+    "seed_ids": [
+      21544,
+      21545,
+      23374,
+      23691
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-jayanagar.geojson"
+  },
+  "kalasipalya": {
+    "seed_ids": [
+      20944,
+      20945,
+      36640,
+      20940,
+      20941,
+      20942,
+      20943,
+      21557,
+      22199,
+      22201,
+      36229,
+      31256
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-kalasipalya.geojson"
+  },
+  "kengeri": {
+    "seed_ids": [
+      20925,
+      20926,
+      35360,
+      36259
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-kengeri.geojson"
+  },
+  "kuvempunagar": {
+    "seed_ids": [
+      20686,
+      20687,
+      35932
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-kuvempunagar.geojson"
+  },
+  "majestic": {
+    "seed_ids": [
+      20921,
+      20922,
+      35931,
+      38880
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-majestic.geojson"
+  },
+  "shantinagar": {
+    "seed_ids": [
+      21166,
+      21167,
+      23640,
+      23667
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-shantinagar.geojson"
+  },
+  "shivajinagar": {
+    "seed_ids": [
+      21172,
+      21173,
+      35779
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-shivajinagar.geojson"
+  },
+  "silkboard": {
+    "seed_ids": [
+      20707,
+      37850,
+      35768,
+      21479,
+      32213,
+      20704,
+      35944
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-silkboard.geojson"
+  },
+  "vijayanagar": {
+    "seed_ids": [
+      35395,
+      39061,
+      34878,
+      21267
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-vijayanagar.geojson"
+  },
+  "yelahanka": {
+    "seed_ids": [
+      22645,
+      22644,
+      22642,
+      22641,
+      22640,
+      27854
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-yelahanka.geojson"
+  },
+  "yeshwanthpur": {
+    "seed_ids": [
+      21288,
+      24016,
+      36187,
+      22835,
+      22706,
+      22836,
+      21289
+    ],
+    "nest_level": 2,
+    "geojson": "platforms-yeshwanthpur.geojson"
+  }
+}

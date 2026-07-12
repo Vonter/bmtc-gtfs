@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6159191131592,
+          12.9158948645401
+        ]
+      },
+      "properties": {
+        "Platform": "25A/60E/164"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.61633217334749,
+          12.91603081054936
+        ]
+      },
+      "properties": {
+        "Platform": "Main"
+      }
+    }
+  ]
+}

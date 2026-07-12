@@ -1,0 +1,122 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57303997874261,
+          12.917360201760564
+        ]
+      },
+      "properties": {
+        "Platform": "1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57289916276933,
+          12.917364123258091
+        ]
+      },
+      "properties": {
+        "Platform": "2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5730386376381,
+          12.917747122553903
+        ]
+      },
+      "properties": {
+        "Platform": "3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57290318608285,
+          12.917796794774507
+        ]
+      },
+      "properties": {
+        "Platform": "4"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57290855050087,
+          12.917662156890506
+        ]
+      },
+      "properties": {
+        "Platform": "5"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57290452718736,
+          12.917500068467863
+        ]
+      },
+      "properties": {
+        "Platform": "6"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57277444005013,
+          12.917407259726893
+        ]
+      },
+      "properties": {
+        "Platform": "7"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57277444005013,
+          12.917612484643122
+        ]
+      },
+      "properties": {
+        "Platform": "8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.57277712225915,
+          12.917802023428738
+        ]
+      },
+      "properties": {
+        "Platform": "9"
+      }
+    }
+  ]
+}

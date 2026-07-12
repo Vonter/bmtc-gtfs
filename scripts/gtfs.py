@@ -38,7 +38,28 @@ class GTFSWriter:
                 'agency_id': '1',
                 'agency_name': 'BMTC',
                 'agency_url': 'https://mybmtc.karnataka.gov.in/english',
-                'agency_timezone': 'Asia/Kolkata'
+                'agency_timezone': 'Asia/Kolkata',
+                'agency_lang': 'en',
+            }
+        ]
+
+    def write_attributions(self):
+        return [
+            {
+                'attribution_id': 'bmtc',
+                'organization_name': 'Bengaluru Metropolitan Transport Corporation',
+                'is_producer': '0',
+                'is_operator': '1',
+                'is_authority': '1',
+                'attribution_url': 'https://mybmtc.karnataka.gov.in/english'
+            },
+            {
+                'attribution_id': 'vonter',
+                'organization_name': 'Vonter',
+                'is_producer': '1',
+                'is_operator': '0',
+                'is_authority': '0',
+                'attribution_url': 'https://www.github.com/Vonter/bmtc-gtfs'
             }
         ]
 
@@ -56,23 +77,33 @@ class GTFSWriter:
             'end_date': (datetime.datetime.now() + datetime.timedelta(days=365)).strftime('%Y%m%d')
         }]
 
-    def add_stop(self, stop_id, lat, lon, name):
+    def add_stop(self, stop_id, lat, lon, name, stop_code='', location_type='',
+                 parent_station='', platform_code=''):
         self.stops[stop_id] = {
             'stop_id': stop_id,
+            'stop_code': stop_code,
             'stop_name': name,
             'stop_desc': '',
             'stop_lat': lat,
             'stop_lon': lon,
-            'zone_id': stop_id
+            'zone_id': stop_id,
+            'stop_url': '',
+            'location_type': location_type,
+            'parent_station': parent_station,
+            'platform_code': platform_code,
+            'wheelchair_boarding': ''
         }
         return stop_id
 
     def add_route(self, route_id, short_name, long_name):
         self.routes[route_id] = {
             'route_id': route_id,
+            'agency_id': '1',
             'route_short_name': short_name,
             'route_long_name': long_name,
+            'route_desc': '',
             'route_type': '3',  # Bus
+            'route_url': '',
         }
         return route_id
 
@@ -91,7 +122,9 @@ class GTFSWriter:
             'trip_id': trip_id,
             'trip_headsign': headsign,
             'direction_id': direction_id,
-            'shape_id': shape_id
+            'shape_id': shape_id,
+            'wheelchair_accessible': '0',
+            'bikes_allowed': '0'
         }
         self.trips.append(trip)
         return trip_id
@@ -132,15 +165,17 @@ class GTFSWriter:
         return fare_id
 
     def add_fare_rule(self, fare_id, route_id=None, origin_id=None, destination_id=None):
-        """Add a fare rule to the GTFS feed"""
-        rule = {'fare_id': fare_id}
-        if route_id:
-            rule['route_id'] = route_id
-        if origin_id:
-            rule['origin_id'] = origin_id
-        if destination_id:
-            rule['destination_id'] = destination_id
-        self.fare_rules.append(rule)
+        """Add a fare rule to the GTFS feed.
+
+        All rules carry the same columns so ordinary (route-independent, zone
+        only) and premium (route-scoped) rules can coexist in fare_rules.txt.
+        """
+        self.fare_rules.append({
+            'fare_id': fare_id,
+            'route_id': route_id or '',
+            'origin_id': origin_id or '',
+            'destination_id': destination_id or ''
+        })
 
     def write_feed_info(self):
         return [{
@@ -170,6 +205,7 @@ class GTFSWriter:
                 'stop_times.txt': self.stop_times,
                 'translations.txt': self.translations,
                 'feed_info.txt': self.write_feed_info(),
+                'attributions.txt': self.write_attributions(),
             }
             
             # Only include legacy fare files if they have data
@@ -697,192 +733,362 @@ def add_translations():
     logging.info(f"Added {added_translations} translations ({len(failed_files)} failed files)")
     return translations_data
 
-def identify_fare_stages(stop_pair_fares, route_stops):
-    """
-    Identify fare stages based on fare changes between stops.
-    A fare stage is a stop where the fare increases compared to the previous stop.
-    
-    Args:
-        stop_pair_fares: Dictionary mapping (stop_a, stop_b) tuples to fare prices
-        route_stops: List of stops in a route in order
-        
-    Returns:
-        Dictionary mapping stop IDs to stage IDs and a dictionary of stage boundaries
-    """
-    if not route_stops or len(route_stops) < 2:
-        return {}, {}
-    
-    # Initialize stages
-    stages = {}
-    stage_boundaries = {}  # Maps stage number to the stop where that stage begins
-    current_stage = 0
-    stages[route_stops[0]] = current_stage  # First stop is always in stage 0
-    stage_boundaries[current_stage] = route_stops[0]
-    
-    # Track the highest fare seen so far for each stop
-    max_fares = {route_stops[0]: 0.0}
-    
-    # Process each stop in the route
-    for i in range(1, len(route_stops)):
-        current_stop = route_stops[i]
-        prev_stop = route_stops[i-1]
-        
-        # Get fare from previous stop to current stop
-        fare_key = (prev_stop, current_stop)
-        if fare_key in stop_pair_fares:
-            current_fare = stop_pair_fares[fare_key]
-            
-            # Update max fare for current stop
-            max_fares[current_stop] = max(max_fares.get(prev_stop, 0.0), current_fare)
-            
-            # If fare increased, this is a new stage
-            if current_fare > max_fares.get(prev_stop, 0.0):
-                current_stage += 1
-                stages[current_stop] = current_stage
-                stage_boundaries[current_stage] = current_stop
-            else:
-                # Same stage as previous stop
-                stages[current_stop] = stages[prev_stop]
-        else:
-            # No fare data, assume same stage as previous stop
-            stages[current_stop] = stages[prev_stop]
-            max_fares[current_stop] = max_fares.get(prev_stop, 0.0)
-    
-    return stages, stage_boundaries
-
 def add_fares():
-    """Process fare information using GTFS Fares v1"""
+    """Populate GTFS Fares v1 using stage-based, route-independent fares.
+
+    BMTC fares depend only on the fare-stage codes of the origin and
+    destination, so each stop is assigned a ``zone_id`` equal to its stage code
+    and fares are expressed as zone-to-zone rules with no ``route_id``. This
+    collapses what used to be O(routes x stop_pairs) fare rules into one rule
+    per priced stage-code pair (per direction).
+    """
     fares_directory = '../raw/fares/'
-    added_fares = []
-    failed_fares = []
-    
-    logging.info("Starting fare processing...")
-    
-    # Load stop codes mapping
-    logging.info("Loading stop codes mapping...")
+    ORDINARY_SERVICES = ('Bengaluru Sarige', 'Electric')
+
+    # Load stage codes (station_id -> code) and the consolidated fare matrix
     try:
-        with open(os.path.join(fares_directory, 'stop_codes.json'), 'r') as f:
+        with open(os.path.join(fares_directory, 'stop_codes.json')) as f:
             stop_codes = json.load(f)
-        logging.info(f"Loaded {len(stop_codes)} stop codes")
     except Exception as e:
-        logging.error(f"Failed to load stop codes: {str(e)}")
+        logging.error(f"Failed to load stop codes: {e}")
         return {}
-    
-    # Create mappings for quick lookups
-    stop_code_to_id = {code: str(stop_id) for stop_id, code in stop_codes.items()}
-    trip_to_route = {trip['trip_id']: trip['route_id'] for trip in gtfs.trips}
-    
-    # Build route stops mapping
-    route_stops_map = defaultdict(set)
-    for stop_time in gtfs.stop_times:
-        trip_id = stop_time['trip_id']
-        stop_id = str(stop_time['stop_id'])
-        route_id = trip_to_route.get(trip_id)
-        if route_id:
-            route_stops_map[route_id].add(stop_id)
-    
-    # Convert sets to sorted lists
-    for route_id in route_stops_map:
-        route_stops_map[route_id] = sorted(list(route_stops_map[route_id]))
-    
-    logging.info(f"Processed stops for {len(route_stops_map)} routes")
-    
-    # Process fare files and build fare cache
-    fare_data_cache = {}
-    unique_fares = set()
-    
-    logging.info("Processing fare files...")
-    fare_files = [f for f in os.listdir(fares_directory) if f.endswith('.json') and f != 'stop_codes.json']
-    
-    for fare_file in fare_files:
-        try:
-            fare_path = os.path.join(fares_directory, fare_file)
-            if not os.path.exists(fare_path) or os.path.getsize(fare_path) == 0:
+    try:
+        with open(os.path.join(fares_directory, 'fares.json')) as f:
+            fare_matrix = json.load(f)
+    except Exception as e:
+        logging.error(f"Failed to load fare matrix: {e}")
+        return {}
+
+    logging.info(f"Loaded {len(stop_codes)} stage codes and {len(fare_matrix)} priced pairs")
+
+    # Assign zone_id = stage code to every stop that has one. Platform child
+    # stops carry their station's stage code (pre-set by add_platforms) so that
+    # boardings repointed onto them stay fare-covered. Only zones belonging to a
+    # stop that is actually used by a trip count as "used", so fare rules never
+    # reference a zone whose stops gtfstidy prunes as orphans.
+    code_set = set(stop_codes.values())
+    stops_in_use = set(str(st['stop_id']) for st in gtfs.stop_times)
+    used_zones = set()
+    for stop_id, stop in gtfs.stops.items():
+        code = stop_codes.get(str(stop_id))
+        if code:
+            stop['zone_id'] = code
+        elif stop.get('zone_id') not in code_set:
+            stop['zone_id'] = ''
+        if stop['zone_id'] and str(stop_id) in stops_in_use:
+            used_zones.add(stop['zone_id'])
+
+    # ---- Shared fare machinery (ordinary + premium) ----
+    # Every fare class maps to an ordered list of service types: the first
+    # service present in a stage pair's rows sets the price. 'Ordinary' is the
+    # route-independent baseline; the rest are premium (AC / express) classes.
+    FARE_PREFERENCE = {
+        'Ordinary': ORDINARY_SERVICES,
+        'Vajra': ('Vajra', 'Vajra Electric', 'Volvo Electric'),
+        'Vayu Vajra': ('Vayu Vajra', 'Vayu Vajra Electric', 'Vajra', 'Volvo Electric'),
+        'Express': ('Vajra', 'Vayu Vajra', 'Vayu Vajra Electric', 'Volvo Electric'),
+    }
+    ORDINARY_SERVICE_SET = set(ORDINARY_SERVICES)
+
+    def pick_price(rows, fare_class):
+        """Choose a price from a stage pair's service rows for a fare class.
+
+        The first service in the class's preference wins; otherwise fall back to
+        the cheapest ordinary fare (for the baseline) or the dearest premium
+        fare (for a premium class).
+        """
+        by_service = {r.get('servicetype'): r.get('fare') for r in rows}
+        for service in FARE_PREFERENCE[fare_class]:
+            if service in by_service:
+                try:
+                    return float(by_service[service])
+                except (TypeError, ValueError):
+                    pass
+        ordinary = fare_class == 'Ordinary'
+        values = []
+        for service, fare in by_service.items():
+            if not ordinary and service in ORDINARY_SERVICE_SET:
                 continue
-                
-            with open(fare_path, 'r') as f:
-                fare_data = json.load(f)
-                
-            if not fare_data.get('data'):
-                continue
-                
-            stop_codes_pair = fare_file.replace('.json', '')
             try:
-                fare_value = float(fare_data['data'][0]['fare'])
-                fare_data_cache[stop_codes_pair] = fare_value
-                unique_fares.add(fare_value)
-                    
-            except (ValueError, TypeError) as e:
-                logging.warning(f"Invalid fare value in {fare_file}: {str(e)}")
+                values.append(float(fare))
+            except (TypeError, ValueError):
+                pass
+        if not values:
+            return None
+        return min(values) if ordinary else max(values)
+
+    def fare_id_for(price):
+        fid = f"F{price:g}"
+        if fid not in gtfs.fare_attributes:
+            gtfs.add_fare_attribute(fare_id=fid, price=price, payment_method=0, transfers=0)
+        return fid
+
+    def emit_rule(price, origin, dest, route_id=None):
+        """Emit a zone-to-zone fare rule when both zones are used by a trip."""
+        if (price is None or not origin or not dest
+                or origin not in used_zones or dest not in used_zones):
+            return False
+        gtfs.add_fare_rule(fare_id=fare_id_for(price), route_id=route_id,
+                           origin_id=origin, destination_id=dest)
+        return True
+
+    # ---- Ordinary (route-independent) zone-to-zone rules ----
+    # Resolve one price per ordered zone pair (deduped). Fares are symmetric in
+    # the source data, so each canonical pair seeds both directions.
+    od_price = {}
+    min_price = None
+    for key, rows in fare_matrix.items():
+        if '_' not in key:
+            continue
+        code_a, code_b = key.split('_')
+        price = pick_price(rows, 'Ordinary')
+        if price is None:
+            continue
+        if min_price is None or price < min_price:
+            min_price = price
+        if code_a not in used_zones or code_b not in used_zones:
+            continue
+        for pair in ((code_a, code_b), (code_b, code_a)):
+            od_price.setdefault(pair, price)
+
+    # Intra-stage travel (same zone) falls back to the minimum fare unless the
+    # source data already priced it explicitly.
+    if min_price is not None:
+        for zone in used_zones:
+            od_price.setdefault((zone, zone), min_price)
+
+    for (origin, dest), price in od_price.items():
+        emit_rule(price, origin, dest)
+
+    # ---- Premium (AC / express) route-scoped rules ----
+    # Premium routes (V-*, KIA-*, EXP-*) charge their own fares, so they get
+    # route-scoped rules (with route_id) that take precedence over the ordinary
+    # zone rules for those routes.
+    def route_class(name):
+        n = (name or '').upper().strip()
+        if n.startswith('KIA') or n.startswith('VAYU'):
+            return 'Vayu Vajra'
+        if n.startswith('V-') or n.startswith('V '):
+            return 'Vajra'
+        if n.startswith('EXP'):
+            return 'Express'
+        return None
+
+    premium_fares = {}
+    premium_path = os.path.join(fares_directory, 'premium_fares.json')
+    if os.path.exists(premium_path):
+        with open(premium_path) as f:
+            premium_fares = json.load(f)
+
+    premium_rules = 0
+    premium_routes = 0
+    if premium_fares:
+        stops_directory = '../raw/stops/'
+        for route_id, route_data in gtfs.routes.items():
+            cls = route_class(route_data['route_short_name'])
+            if not cls:
                 continue
-                
-        except Exception as e:
-            logging.warning(f"Failed to process fare file {fare_file}: {str(e)}")
-            failed_fares.append(fare_file)
-    
-    logging.info(f"Processed {len(fare_data_cache)} fare entries")
-    
-    # Create fare attributes for each unique fare
-    for fare_value in unique_fares:
-        fare_id = f"fare_{fare_value:.2f}"
-        gtfs.add_fare_attribute(
-            fare_id=fare_id,
-            price=fare_value,
-            currency_type="INR",
-            payment_method=0,  # Onboard payment
-            transfers=None  # Unlimited transfers
-        )
-        added_fares.append(fare_id)
-    
-    # Process stop pairs and create fare rules
-    logging.info("Creating fare rules...")
-    total_fare_rules = 0
-    routes_with_fares = 0
-    routes_without_fares = 0
-    
-    for route_id, route_stops in route_stops_map.items():
-        route_fare_rules = 0
-        
-        # Process each pair of stops in the route
-        for i in range(len(route_stops)):
-            for j in range(i + 1, len(route_stops)):
-                stop_a = route_stops[i]
-                stop_b = route_stops[j]
-                
-                # Get stop codes
-                stop_a_code = stop_codes.get(stop_a)
-                stop_b_code = stop_codes.get(stop_b)
-                
-                if not stop_a_code or not stop_b_code:
+            emitted_here = set()
+            had_rule = False
+            for direction in ('UP', 'DOWN'):
+                stops_path = os.path.join(
+                    stops_directory, f"{route_data['route_short_name']} {direction}.json")
+                if not os.path.exists(stops_path):
                     continue
-                
-                # Get fare for this stop pair
-                fare_key = f"{stop_a_code}_{stop_b_code}"
-                if fare_key in fare_data_cache:
-                    fare_value = fare_data_cache[fare_key]
-                    fare_id = f"fare_{fare_value:.2f}"
-                    
-                    gtfs.add_fare_rule(
-                        fare_id=fare_id,
-                        route_id=route_id,
-                        origin_id=stop_a,
-                        destination_id=stop_b
-                    )
-                    route_fare_rules += 1
-                    total_fare_rules += 1
-        
-        if route_fare_rules > 0:
-            routes_with_fares += 1
-            logging.info(f"Route {route_id}: Added {route_fare_rules} fare rules")
-        else:
-            routes_without_fares += 1
-            logging.warning(f"Route {route_id}: No fare rules added (no fare data available)")
-    
-    logging.info(f"Fare rules creation complete: {total_fare_rules} rules added across {routes_with_fares} routes")
-    logging.info(f"Routes without fare data: {routes_without_fares}")
-    
-    logging.info(f"Added {len(added_fares)} fare attributes ({len(failed_fares)} failed)")
+                try:
+                    with open(stops_path) as f:
+                        seq = json.load(f).get(direction.lower(), {}).get('data') or []
+                except Exception:
+                    continue
+                station_ids = [str(s['stationid']) for s in seq if s.get('stationid')]
+                for i in range(len(station_ids)):
+                    for j in range(i + 1, len(station_ids)):
+                        rows = premium_fares.get(f"{station_ids[i]}_{station_ids[j]}")
+                        if not rows:
+                            continue
+                        origin = stop_codes.get(station_ids[i])
+                        dest = stop_codes.get(station_ids[j])
+                        if not origin or not dest or origin == dest:
+                            continue
+                        rule_key = (origin, dest)
+                        if rule_key in emitted_here:
+                            continue
+                        if emit_rule(pick_price(rows, cls), origin, dest, route_id):
+                            emitted_here.add(rule_key)
+                            premium_rules += 1
+                            had_rule = True
+            if had_rule:
+                premium_routes += 1
+
+    logging.info(f"Added {len(gtfs.fare_attributes)} fare attributes, {len(od_price)} ordinary "
+                 f"zone rules across {len(used_zones)} zones, and {premium_rules} premium "
+                 f"route-scoped rules across {premium_routes} routes")
     return gtfs.fare_attributes
+
+def _maybe_int(value):
+    """Return int(value) when possible, else the original value (for dict keys)."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return value
+
+def add_platforms():
+    """Add parent stations and platform child stops for major bus stations.
+
+    Combines hand-drawn platform locations (raw/platforms/geojson) with scraped
+    route->platform assignments (raw/platforms/platforms-<station>.json) to:
+      1. create a parent station (location_type=1) per configured station,
+      2. create a platform child stop (location_type=0 + platform_code) per
+         platform point, and
+      3. repoint the boarding stop_time of each route known to depart from a
+         platform onto that platform child stop, so the platform survives
+         gtfstidy's orphan removal and is fare-covered.
+    """
+    platforms_dir = '../raw/platforms/'
+    stations_file = os.path.join(platforms_dir, 'stations.json')
+    if not os.path.exists(stations_file):
+        logging.info("No platform data found; skipping platforms")
+        return
+
+    with open(stations_file) as f:
+        stations = json.load(f)
+
+    stops_platforms = {}
+    sp_file = os.path.join(platforms_dir, 'stops-platforms.json')
+    if os.path.exists(sp_file):
+        with open(sp_file) as f:
+            stops_platforms = json.load(f)
+
+    # Stage codes let platform stops inherit their station's fare zone
+    stop_codes = {}
+    sc_file = '../raw/fares/stop_codes.json'
+    if os.path.exists(sc_file):
+        with open(sc_file) as f:
+            stop_codes = json.load(f)
+
+    route_short_by_id = {rid: r['route_short_name'] for rid, r in gtfs.routes.items()}
+    trip_meta = {
+        t['trip_id']: (route_short_by_id.get(t['route_id'], ''), t['direction_id'])
+        for t in gtfs.trips
+    }
+
+    seed_to_station = {}          # seed_id -> station_name
+    assignment = {}               # (station_name, route_short, direction_id) -> platform stop_id
+    route_platforms = defaultdict(set)  # (station_name, route_short) -> {platform stop_ids}
+    total_platform_stops = 0
+
+    for station_name, config in stations.items():
+        seed_ids = [str(s) for s in config.get('seed_ids', [])]
+        geojson_name = config.get('geojson')
+        geojson_path = os.path.join(platforms_dir, 'geojson', geojson_name) if geojson_name else None
+        if not geojson_path or not os.path.exists(geojson_path):
+            continue
+
+        with open(geojson_path) as f:
+            geo = json.load(f)
+
+        for sid in seed_ids:
+            seed_to_station[sid] = station_name
+
+        # The bus station's own ID is the first seed that exists as a GTFS stop;
+        # platform IDs are that station ID with a _PF<label> suffix.
+        station_id = None
+        parent_name = None
+        seed_code = None
+        for sid in seed_ids:
+            seed_stop = gtfs.stops.get(sid) or gtfs.stops.get(_maybe_int(sid))
+            if seed_stop:
+                if station_id is None:
+                    station_id = sid
+                    parent_name = seed_stop['stop_name']
+            if not seed_code:
+                seed_code = stop_codes.get(sid)
+        if station_id is None:
+            station_id = seed_ids[0] if seed_ids else station_name
+        if not parent_name:
+            parent_name = station_name.title()
+
+        parent_id = f"{station_id}_ST"
+        platform_label_to_stop = {}   # UPPER label/alias -> platform stop_id
+        platform_points = []
+        for feature in geo.get('features', []):
+            if feature.get('geometry', {}).get('type') != 'Point':
+                continue
+            props = feature.get('properties', {})
+            label = str(props.get('Platform', '')).strip()
+            if not label:
+                continue
+            lon, lat = feature['geometry']['coordinates'][:2]
+            pstop_id = f"{station_id}_PF{label}".replace(' ', '_')
+            platform_points.append((pstop_id, lat, lon, label))
+            platform_label_to_stop[label.upper()] = pstop_id
+            for alias in props.get('Alias', []) or []:
+                platform_label_to_stop[str(alias).strip().upper()] = pstop_id
+
+        if not platform_points:
+            continue
+
+        # Parent station at the centroid of its platforms
+        clat = sum(p[1] for p in platform_points) / len(platform_points)
+        clon = sum(p[2] for p in platform_points) / len(platform_points)
+        gtfs.add_stop(parent_id, clat, clon, parent_name, location_type='1')
+
+        for pstop_id, lat, lon, label in platform_points:
+            gtfs.add_stop(pstop_id, lat, lon, f"{parent_name} - Platform {label}",
+                          location_type='0', parent_station=parent_id, platform_code=label)
+            if seed_code:
+                gtfs.stops[pstop_id]['zone_id'] = seed_code
+            total_platform_stops += 1
+
+        # Scraped route -> platform assignments for this station. Keyed by
+        # (station, route, direction) so a route is matched at whichever of the
+        # station's seed stops its own stoplist happens to use.
+        raw_path = os.path.join(platforms_dir, f'platforms-{station_name}.json')
+        if not os.path.exists(raw_path):
+            continue
+        with open(raw_path) as f:
+            raw = json.load(f)
+
+        for entry in raw.get('Received', []):
+            from_id = str(entry.get('from-station-id'))
+            plat_value = (stops_platforms.get(from_id)
+                          or entry.get('platform-name')
+                          or entry.get('platform-number'))
+            if plat_value in (None, ''):
+                continue
+            pstop_id = platform_label_to_stop.get(str(plat_value).strip().upper())
+            if not pstop_id:
+                continue
+            route_no = (entry.get('route-number') or '').replace(' UP', '').replace(' DOWN', '').strip()
+            ext = (entry.get('extended-route-number') or '').strip()
+            direction_id = '1' if ext.endswith('DOWN') else '0'
+            assignment[(station_name, route_no, direction_id)] = pstop_id
+            route_platforms[(station_name, route_no)].add(pstop_id)
+
+    # Single pass: repoint boardings at any of a station's seed stops onto the
+    # platform assigned to that (station, route, direction). If the scraped
+    # departure direction does not match the trip's direction (the timetable may
+    # only cover one direction), fall back to the route's platform when it is
+    # unambiguous (the route uses a single platform at that station).
+    total_repointed = 0
+    if assignment:
+        for st in gtfs.stop_times:
+            seed = str(st['stop_id'])
+            station_name = seed_to_station.get(seed)
+            if not station_name:
+                continue
+            route_no, direction_id = trip_meta.get(st['trip_id'], ('', ''))
+            pstop_id = assignment.get((station_name, route_no, direction_id))
+            if not pstop_id:
+                platforms = route_platforms.get((station_name, route_no))
+                if platforms and len(platforms) == 1:
+                    pstop_id = next(iter(platforms))
+            if pstop_id:
+                st['stop_id'] = pstop_id
+                total_repointed += 1
+
+    logging.info(f"Added {total_platform_stops} platform stops across {len(stations)} "
+                 f"stations; repointed {total_repointed} boardings")
 
 def save_missing_files():
     # Get list of stops that still exist in the final GTFS
@@ -934,6 +1140,7 @@ add_shapes()
 add_trips()
 add_stop_desc()
 add_translations()
+add_platforms()
 add_fares()
 
 # Final cleanup to ensure no single-stop trips

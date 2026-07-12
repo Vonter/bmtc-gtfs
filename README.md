@@ -57,8 +57,9 @@ Raw JSON data scraped from Namma BMTC can be found below:
 - [routelines.7z](raw/routelines.7z?raw=1): Pointwise co-ordinates of each route
 - [stops.7z](raw/stops.7z?raw=1): Stops through which each route passes
 - [timetables.7z](raw/timetables.7z?raw=1): Timetables for each route
-- [fares.7z](raw/fares.7z?raw=1): Fares for each route and stop-pair
+- [fares.7z](raw/fares.7z?raw=1): Fare matrix keyed by fare-stage code pairs
 - [translations.7z](raw/translations.7z?raw=1): Kannada names for each stop
+- [platforms/](raw/platforms): Platform locations and route-platform assignments for major bus stations
 
 ## To-do
 

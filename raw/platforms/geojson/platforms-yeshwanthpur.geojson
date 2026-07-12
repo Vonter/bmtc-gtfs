@@ -1,0 +1,82 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.55675226449968,
+          13.017885809641822
+        ]
+      },
+      "properties": {
+        "Platform": "1",
+        "Alias": [
+        "B1"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5566476583481,
+          13.017938075150191
+        ]
+      },
+      "properties": {
+        "Platform": "2",
+        "Alias": [
+        "B2"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.55655378103258,
+          13.017995567196651
+        ]
+      },
+      "properties": {
+        "Platform": "3",
+        "Alias": [
+        "B3"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.55647063255311,
+          13.018039992859798
+        ]
+      },
+      "properties": {
+        "Platform": "4",
+        "Alias": [
+        "B4"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.55637407302858,
+          13.017932848599846
+        ]
+      },
+      "properties": {
+        "Platform": "Level 1 entry bus"
+      }
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 import aiohttp
 import json
 import logging
+import math
 import sys
 import time
 import traceback
@@ -28,8 +29,9 @@ class Config:
         'Content-Type': 'application/json',
         'lan': 'en',
         'deviceType': 'WEB',
-        'Origin': 'https://nammabmtcapp.karnataka.gov.in',
-        'Referer': 'https://nammabmtcapp.karnataka.gov.in/'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Origin': 'https://bmtcwebportal.amnex.com',
+        'Referer': 'https://bmtcwebportal.amnex.com/'
     }
     
     # Directories
@@ -41,6 +43,7 @@ class Config:
         'translations': Path('../raw/translations'),
         'routeids': Path('../raw/routeids'),
         'fares': Path('../raw/fares'),
+        'platforms': Path('../raw/platforms'),
     }
     
     # Languages and other constants
@@ -78,9 +81,14 @@ class BMTCApiClient:
         try:
             async with self.semaphore:  # Limit concurrent requests
                 async with (
-                    self.session.post(url, json=data, timeout=Config.REQUEST_TIMEOUT) if method.upper() == 'POST'
+                    self.session.post(url, json=data if data is not None else {},
+                                      timeout=Config.REQUEST_TIMEOUT) if method.upper() == 'POST'
                     else self.session.get(url, timeout=Config.REQUEST_TIMEOUT)
                 ) as response:
+                    # 400/404 mean the request itself is rejected (unserved
+                    # station/route pair); retrying will not help, so return now.
+                    if response.status in (400, 404):
+                        return None
                     response.raise_for_status()
                     # First get the text content, then parse as JSON
                     text = await response.text()
@@ -90,7 +98,7 @@ class BMTCApiClient:
                         self.logger.error(f"Failed to parse JSON response: {str(e)}")
                         self.logger.error(f"Response text: {text[:200]}...")  # Log first 200 chars
                         return None
-            
+
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             retry_count += 1
             self.logger.warning(
@@ -403,216 +411,541 @@ class BMTCScraper:
         
         self.logger.info(f"Finished fetching stoplists ({total_fetched} new files)")
     
-    async def get_fares(self):
-        """Fetch fare information for all route stop pairs."""
-        self.logger.info("Fetching fares...")
-        
+    def _build_next_stops_graph(self) -> Dict[str, List[str]]:
+        """Build a stop -> immediate-next-stops adjacency map from raw stoplists.
+
+        Mirrors the GTFS stop_times traversal used by the reference platforms
+        methodology, but sourced from the already-scraped ordered stoplists so
+        it can run before the GTFS is generated.
+        """
+        next_stops: Dict[str, set] = {}
+        stops_dir = Config.DIRECTORIES['stops']
+        for filename in self.file_manager.list_files(stops_dir):
+            data = self.file_manager.load_json(stops_dir / filename)
+            if not data:
+                continue
+            for direction in ('up', 'down'):
+                sequence = data.get(direction, {}).get('data') or []
+                for current, nxt in zip(sequence, sequence[1:]):
+                    curr_id = str(current.get('stationid'))
+                    next_id = str(nxt.get('stationid'))
+                    if curr_id and next_id:
+                        next_stops.setdefault(curr_id, set()).add(next_id)
+        return {stop: list(neighbours) for stop, neighbours in next_stops.items()}
+
+    # Safety cap on GetTimetableByStation_v4 requests per station so a station
+    # whose seeds return errors cannot balloon the BFS.
+    PLATFORM_REQUEST_BUDGET = 1500
+
+    async def get_platforms(self):
+        """Fetch platform-level route assignments for major bus stations.
+
+        For each configured station, BMTC's ``GetTimetableByStation_v4`` endpoint
+        reports the departure platform/bay of every route serving that station.
+        A breadth-first expansion over reachable destination stops ensures every
+        route departing the station is captured, following the methodology of
+        github.com/croyla/bmtc-platforms-geojson.
+        """
+        self.logger.info("Fetching platforms...")
+
         if not self.routes_data:
             self.logger.error("Routes data not available")
             return
-        
+
+        platforms_dir = Config.DIRECTORIES['platforms']
+        stations = self.file_manager.load_json(platforms_dir / 'stations.json')
+        if not stations:
+            self.logger.warning("No platform stations config found; skipping platforms")
+            return
+
+        next_stops = self._build_next_stops_graph()
+        routes_by_id = {str(route['routeid']): route for route in self.routes_data['data']}
+        overrides_all = self.file_manager.load_json(platforms_dir / 'overrides.json') or {}
+
+        tomorrow = datetime.now() + timedelta(days=1)
+        window_start = tomorrow.strftime('%Y-%m-%d 00:00')
+        window_end = tomorrow.strftime('%Y-%m-%d 23:59')
+
+        total_received = 0
+        for station_name, config in stations.items():
+            received = await self._fetch_station_platforms(
+                station_name, config, next_stops, routes_by_id,
+                overrides_all, window_start, window_end
+            )
+            total_received += received
+
+        self.logger.info(f"Finished fetching platforms ({total_received} route-platform assignments)")
+
+    async def _fetch_station_platforms(self, station_name: str, config: Dict,
+                                       next_stops: Dict[str, List[str]],
+                                       routes_by_id: Dict[str, Dict],
+                                       overrides_all: Dict, window_start: str,
+                                       window_end: str) -> int:
+        """Run the BFS platform discovery for a single station."""
+        platforms_dir = Config.DIRECTORIES['platforms']
+        seed_ids = [str(s) for s in config.get('seed_ids', [])]
+        nest_level = int(config.get('nest_level', 2))
+
+        # Merge per-seed overrides (route_id -> platform) for this station
+        station_overrides: Dict[str, str] = {}
+        for seed in seed_ids:
+            station_overrides.update(overrides_all.get(seed, {}))
+
+        async def send_request(from_stop: str, to_stop: str):
+            data = {
+                'fromStationId': int(from_stop),
+                'toStationId': int(to_stop),
+                'p_startdate': window_start,
+                'p_enddate': window_end,
+                'p_isshortesttime': 0,
+                'p_routeid': "",
+                'p_date': window_start,
+            }
+            response = await self.client.make_request('GetTimetableByStation_v4', data)
+            # 'ok'    -> routes returned, record them
+            # 'empty' -> valid response but no routes this way, worth exploring deeper
+            # 'error' -> transient/404 failure, do NOT explore deeper (avoids blowup)
+            if response is None:
+                status = 'error'
+            elif response.get("data"):
+                status = 'ok'
+            else:
+                status = 'empty'
+            return from_stop, to_stop, response, status
+
+        received: Dict[int, Dict] = {}
+        failed_log: List[Dict] = []
+        routes_done = set()
+        requests_made = 0
+
+        for seed in seed_ids:
+            visited = {seed}
+            levels: Dict[int, set] = {0: {seed}}
+            for level in range(nest_level):
+                if requests_made >= self.PLATFORM_REQUEST_BUDGET:
+                    break
+                candidates = set()
+                for base in levels.get(level, set()):
+                    for nxt in next_stops.get(base, []):
+                        if nxt not in visited:
+                            candidates.add(nxt)
+                if not candidates:
+                    break
+                visited.update(candidates)
+                requests_made += len(candidates)
+
+                results = await asyncio.gather(
+                    *(send_request(seed, dest) for dest in candidates)
+                )
+
+                levels[level + 1] = set()
+                should_expand = False
+                for from_stop, to_stop, response, status in results:
+                    if status == 'error':
+                        failed_log.append({
+                            "from_stop": from_stop, "to_stop": to_stop, "level": level
+                        })
+                        continue
+                    if status == 'empty':
+                        levels[level + 1].add(to_stop)
+                        should_expand = True
+                        continue
+                    for entry in response.get("data", []):
+                        route_id = entry.get("routeid")
+                        if route_id is None or route_id in routes_done:
+                            continue
+                        override = station_overrides.get(str(route_id))
+                        pf_name = override if override is not None else entry.get("platformname")
+                        pf_num = override if override is not None else entry.get("platformnumber")
+                        route_meta = routes_by_id.get(str(route_id))
+                        if not route_meta:
+                            continue
+                        received[route_id] = {
+                            "route-number": entry.get("routeno"),
+                            "extended-route-number": route_meta.get("routeno"),
+                            "route-name": entry.get("routename"),
+                            "start-station": route_meta.get("fromstation"),
+                            "start-station-id": route_meta.get("fromstationid"),
+                            "from-station-id": entry.get("fromstationid"),
+                            "route-id": route_id,
+                            "to-station-id": route_meta.get("tostationid"),
+                            "to-station": route_meta.get("tostation"),
+                            "platform-name": pf_name,
+                            "platform-number": pf_num,
+                            "bay-number": entry.get("baynumber"),
+                        }
+                        if (pf_name not in (None, "")) or (pf_num not in (None, "")):
+                            routes_done.add(route_id)
+
+                if not should_expand:
+                    break
+
+        output = {"Received": list(received.values()), "Failed": failed_log}
+        self.file_manager.save_json(platforms_dir / f'platforms-{station_name}.json', output)
+        self.logger.info(
+            f"Fetched platforms for {station_name}: "
+            f"{len(received)} routes ({len(routes_done)} with platform data)"
+        )
+        return len(received)
+
+    # ------------------------------------------------------------------
+    # Fares
+    #
+    # BMTC fares are stage-based and route-independent: the fare between two
+    # stops depends only on their fare-stage codes, and thousands of station
+    # IDs collapse onto a few thousand stage codes. The pipeline therefore:
+    #   1. Resolves each station's stage code once (O(stations)) by pairing it
+    #      with an anchor station, instead of once per stop pair (O(pairs)).
+    #   2. Requests each unordered stage-code pair at most once (fares are
+    #      symmetric), instead of once per station pair per route.
+    #   3. Stores everything in a handful of consolidated files rather than one
+    #      tiny file per pair.
+    # ------------------------------------------------------------------
+
+    FARE_ANCHOR_IDS = [20921, 20707, 21544]  # Majestic, Silk Board, Jayanagar
+    SPATIAL_FARE_CODE_RADIUS_M = 500  # inherit a neighbour's stage code within this
+
+    @staticmethod
+    def _haversine_m(a, b):
+        """Great-circle distance in metres between two (lat, lon) points."""
+        R = 6371000.0
+        dlat = math.radians(b[0] - a[0])
+        dlon = math.radians(b[1] - a[1])
+        h = (math.sin(dlat / 2) ** 2
+             + math.cos(math.radians(a[0])) * math.cos(math.radians(b[0])) * math.sin(dlon / 2) ** 2)
+        return 2 * R * math.asin(math.sqrt(h))
+
+    async def get_fares(self):
+        """Fetch the network fare matrix, keyed by fare-stage code pairs."""
+        self.logger.info("Fetching fares...")
+
         fares_dir = Config.DIRECTORIES['fares']
         stops_dir = Config.DIRECTORIES['stops']
-        
-        # Load or initialize stop codes mapping
-        stop_codes_file = fares_dir / 'stop_codes.json'
-        stop_codes_map = self.file_manager.load_json(stop_codes_file) or {}
+        fares_dir.mkdir(parents=True, exist_ok=True)
 
-        # Load or initialize failed stop codes
-        failed_stop_codes_file = fares_dir / 'failed_stop_codes.json'
-        failed_stop_codes = self.file_manager.load_json(failed_stop_codes_file) or []
-        self.failed_stop_pairs = set(tuple(pair) for pair in failed_stop_codes)
-        
-        # Process routes in batches
-        BATCH_SIZE = 5  # Reduced batch size for better control
-        stop_files = self.file_manager.list_files(stops_dir)
-        
-        # Track progress
-        total_fares_fetched = 0
-        processed_routes_file = fares_dir / 'processed_routes.json'
-        processed_routes = set(self.file_manager.load_json(processed_routes_file) or [])
-        
-        # Process routes in batches
-        for i in range(0, len(stop_files), BATCH_SIZE):
-            batch = stop_files[i:i + BATCH_SIZE]
-            batch_tasks = []
-            
-            for stop_file in batch:
-                route_name = stop_file.replace('.json', '')
-                if route_name in processed_routes:
-                    continue
-                
-                self.logger.info(f"Processing route fares: {route_name}")
-                batch_tasks.append(self._process_route_fares_async(
-                    stop_file, stops_dir, fares_dir, stop_codes_map
-                ))
-            
-            if batch_tasks:
-                try:
-                    results = await asyncio.gather(*batch_tasks, return_exceptions=True)
-                    # Handle results and count only successful ones
-                    batch_fares = sum(r for r in results if isinstance(r, int))
-                    total_fares_fetched += batch_fares
-                    
-                    # Update processed routes only for successful ones
-                    for stop_file, result in zip(batch, results):
-                        if isinstance(result, int):  # Only mark as processed if successful
-                            route_name = stop_file.replace('.json', '')
-                            processed_routes.add(route_name)
-                            # Save processed routes after each route is completed
-                            self.file_manager.save_json(processed_routes_file, list(processed_routes))
-                    
-                    self.logger.info(f"Batch completed. Total fares so far: {total_fares_fetched}")
-                    
-                except Exception as e:
-                    self.logger.error(f"Error processing batch: {str(e)}")
-                    continue
-                
-                await asyncio.sleep(Config.RATE_LIMIT_DELAY)
-        
-        self.logger.info(f"Finished fetching fares! Total fares fetched: {total_fares_fetched}")
-    
-    async def _process_route_fares_async(self, stop_file: str, stops_dir: Path, 
-                                       fares_dir: Path, stop_codes_map: Dict) -> int:
-        """Process fare data for a single route file asynchronously."""
-        try:
-            route_name = stop_file.replace('.json', '')
-            
-            # Load route stops data
-            route_data = self.file_manager.load_json(stops_dir / stop_file)
+        # Consolidated stores
+        stop_codes = self.file_manager.load_json(fares_dir / 'stop_codes.json') or {}
+        fares = self.file_manager.load_json(fares_dir / 'fares.json') or {}
+        empty_pairs = set(self.file_manager.load_json(fares_dir / 'fares_empty.json') or [])
+        failed_codes = set(str(x) for x in (self.file_manager.load_json(fares_dir / 'failed_stop_codes.json') or []))
+
+        # 1. Gather every station ID that appears in a stoplist, plus a
+        #    representative route for it (the fare endpoint requires a route).
+        route_for_station = {}
+        all_station_ids = set()
+        route_stop_sequences = []  # ordered [station_id, ...] per direction
+        station_coords = {}        # station_id -> (lat, lon)
+        for filename in self.file_manager.list_files(stops_dir):
+            route_data = self.file_manager.load_json(stops_dir / filename)
             if not route_data:
-                self.logger.warning(f"No route data found for {route_name}")
-                return 0
-            
-            # Get route information
-            route_info = self._get_route_info(route_name)
-            if not route_info:
-                self.logger.warning(f"No route info found for {route_name}")
-                return 0
-            
-            # Extract stops from both directions
-            stops = []
-            for direction in ['up', 'down']:
-                if direction in route_data and 'data' in route_data[direction]:
-                    stops.extend(route_data[direction]['data'])
-            
-            if not stops:
-                self.logger.warning(f"No stops found for route {route_name}")
-                return 0
-            
-            # Process stop pairs in smaller batches
-            STOP_BATCH_SIZE = 5  # Process 5 source stops at a time
-            total_fares = 0
-            
-            # Get file paths for stop codes
-            stop_codes_file = fares_dir / 'stop_codes.json'
-            
-            # Process all possible stop pairs in batches
-            for i in range(0, len(stops), STOP_BATCH_SIZE):
-                stop_batch = stops[i:i + STOP_BATCH_SIZE]
-                
-                for from_stop in stop_batch:
-                    # For each source stop, try all possible destination stops that come after it
-                    next_stop_index = stops.index(from_stop) + 1
-                    if next_stop_index >= len(stops):
+                continue
+            route_info = self._get_route_info(filename.replace('.json', ''))
+            for direction in ('up', 'down'):
+                sequence = route_data.get(direction, {}).get('data') or []
+                ids = [str(s['stationid']) for s in sequence if s.get('stationid')]
+                if len(ids) >= 2:
+                    route_stop_sequences.append(ids)
+                for s in sequence:
+                    sid = str(s['stationid']) if s.get('stationid') else None
+                    if not sid:
                         continue
-                        
-                    for to_stop in stops[next_stop_index:]:
+                    all_station_ids.add(sid)
+                    if route_info and sid not in route_for_station:
+                        route_for_station[sid] = route_info
+                    if sid not in station_coords and s.get('centerlat'):
                         try:
-                            result = await self._fetch_fare_for_stop_pair(
-                                from_stop, to_stop, route_info,
-                                fares_dir, stop_codes_map
-                            )
-                            if result:
-                                total_fares += 1
-                                # Save progress after each successful fare fetch
-                                self.file_manager.save_json(stop_codes_file, stop_codes_map)
-                                self.logger.info(f"Progress: {total_fares} fares fetched for route {route_name}")
-                            
-                            # Add small delay between requests to prevent rate limiting
-                            await asyncio.sleep(Config.RATE_LIMIT_DELAY)
-                            
-                        except Exception as e:
-                            self.logger.error(
-                                f"Error fetching fare for stop pair in {route_name}: {str(e)}"
-                            )
-                            continue
-                
-                await asyncio.sleep(Config.RATE_LIMIT_DELAY)
-                self.logger.info(
-                    f"Completed batch for route {route_name}. "
-                    f"Processed stops {i+1} to {min(i+STOP_BATCH_SIZE, len(stops))} of {len(stops)}"
-                )
-            
-            return total_fares
-            
-        except Exception as e:
-            self.logger.error(f"Error processing route fares for {stop_file}: {str(e)}")
-            return 0
-    
-    async def _fetch_fare_for_stop_pair(self, from_stop: Dict, to_stop: Dict, 
-                                      route_info: Dict, fares_dir: Path, 
-                                      stop_codes_map: Dict) -> bool:
-        """Fetch fare data for a specific stop pair."""
-        try:
-            from_stop_name = from_stop["stationname"].strip()
-            to_stop_name = to_stop["stationname"].strip()
+                            station_coords[sid] = (float(s['centerlat']),
+                                                   float(s.get('centerlong') or s.get('centerlon')))
+                        except (TypeError, ValueError):
+                            pass
+        self.logger.info(f"Fares: {len(all_station_ids)} stations across "
+                         f"{len(route_stop_sequences)} directional stoplists")
 
-            # Get stop IDs directly from the stop data
-            from_stop_id = from_stop.get("stationid")
-            to_stop_id = to_stop.get("stationid")
-            
-            if not from_stop_id or not to_stop_id:
-                self.logger.warning(
-                    f"Missing stop IDs for: {from_stop_name} to {to_stop_name}"
+        # 2. Resolve stage codes for all stations (anchor-based, O(stations)).
+        await self._resolve_stage_codes(all_station_ids, route_stop_sequences,
+                                        station_coords, stop_codes, failed_codes, fares_dir)
+
+        # 3. Build the set of unordered stage-code pairs we still need fares for.
+        needed = {}  # canonical "codeA_codeB" -> (source_code, dest_code, route_info)
+        for ids in route_stop_sequences:
+            codes = [stop_codes.get(sid) for sid in ids]
+            for i in range(len(ids)):
+                code_a = codes[i]
+                if not code_a:
+                    continue
+                for j in range(i + 1, len(ids)):
+                    code_b = codes[j]
+                    if not code_b or code_a == code_b:
+                        continue
+                    key = '_'.join(sorted((code_a, code_b)))
+                    if key in fares or key in empty_pairs or key in needed:
+                        continue
+                    route_info = route_for_station.get(ids[i]) or route_for_station.get(ids[j])
+                    needed[key] = (code_a, code_b, route_info)
+
+        self.logger.info(f"Fares: {len(needed)} new stage-code pairs to fetch "
+                         f"({len(fares)} cached, {len(empty_pairs)} known-empty)")
+
+        # 4. Fetch missing pairs concurrently, in batches, persisting as we go.
+        pairs = list(needed.items())
+        BATCH_SIZE = 200
+        fetched = 0
+        for start in range(0, len(pairs), BATCH_SIZE):
+            batch = pairs[start:start + BATCH_SIZE]
+            results = await asyncio.gather(*(
+                self._fetch_fare(key, src, dst, route_info)
+                for key, (src, dst, route_info) in batch
+            ))
+            for key, data in results:
+                if data:
+                    fares[key] = data
+                    fetched += 1
+                else:
+                    empty_pairs.add(key)
+            self.file_manager.save_json(fares_dir / 'fares.json', fares)
+            self.file_manager.save_json(fares_dir / 'fares_empty.json', sorted(empty_pairs))
+            self.logger.info(f"Fares: processed {start + len(batch)}/{len(pairs)} "
+                             f"pairs ({fetched} priced)")
+
+        self.file_manager.save_json(fares_dir / 'stop_codes.json', stop_codes)
+        self.logger.info(f"Finished fetching fares ({len(fares)} priced stage-code pairs)")
+
+    async def _resolve_stage_codes(self, station_ids, route_stop_sequences,
+                                   station_coords, stop_codes, failed_codes, fares_dir):
+        """Ensure every station has a fare-stage code.
+
+        A single GetFareRoutes call returns the stage code for both the source
+        and destination station, so pairing an unknown station with one it
+        already shares a fare relationship with resolves its code in one request.
+        Fixed hubs (FARE_ANCHOR_IDS) resolve the common case; stations with no
+        fare route to any hub fall back to their co-occurring stops, which can
+        cascade as those neighbours themselves get resolved. Stations the fare
+        API has no data for at all (e.g. depot/gate pseudo-stops) finally inherit
+        the stage code of their nearest resolved stop; only stations with no
+        nearby resolved stop (usually bad coordinates) are marked failed.
+        """
+        anchors = [str(a) for a in self.FARE_ANCHOR_IDS]
+        unknown = [sid for sid in station_ids
+                   if sid not in stop_codes and sid not in failed_codes]
+        if not unknown:
+            return
+        self.logger.info(f"Fares: resolving stage codes for {len(unknown)} stations")
+
+        # Co-occurring stops per unknown station, used as fallback anchors when
+        # none of the fixed hubs share a fare relationship with the station.
+        unknown_set = set(unknown)
+        neighbors = {}
+        for ids in route_stop_sequences:
+            shared = unknown_set.intersection(ids)
+            for sid in shared:
+                neighbors.setdefault(sid, set()).update(ids)
+
+        async def resolve(sid):
+            nbrs = neighbors.get(sid, ())
+            # Fixed hubs first (cheap, resolves most stations), then co-occurring
+            # stops with resolved ones preferred as they most likely share a rule.
+            ordered_nbrs = sorted(nbrs, key=lambda x: (x not in stop_codes, x))
+            for cand in anchors + [n for n in ordered_nbrs if n != sid][:10]:
+                if cand == sid:
+                    continue
+                response = await self.client.make_request(
+                    'GetFareRoutes',
+                    {'fromStationId': int(sid), 'toStationId': int(cand), 'lan': 'English'}
                 )
-                return False
-            
-            # Get or fetch stop codes
-            try:
-                stop_codes = await self._get_stop_codes(
-                    from_stop_id, to_stop_id, stop_codes_map
-                )
-            except Exception as e:
-                self.logger.error(f"Error getting stop codes: {str(e)}")
-                return False
-            
-            if not stop_codes:
-                self.logger.warning(f"No stop codes found for {from_stop_name} to {to_stop_name}")
-                return False
-            
-            from_stop_code, to_stop_code = stop_codes
-            
-            # Check if fare file already exists
-            fare_file = fares_dir / f"{from_stop_code}_{to_stop_code}.json"
-            if fare_file.exists():
-                return False
-            
-            # Fetch fare data
-            fare_data = {
-                'routeno': route_info['route_no'],
-                'routeid': route_info['route_id'],
-                'route_direction': route_info['direction'],
-                'source_code': from_stop_code,
-                'destination_code': to_stop_code
-            }
-            
-            response = await self.client.make_request('GetMobileFareData_v2', fare_data)
-            
-            if response:
-                self.file_manager.save_json(fare_file, response)
-                self.logger.info(f"Successfully fetched fare: {from_stop_code} to {to_stop_code}")
-                return True
-            
-            self.logger.warning(f"No fare data received for {from_stop_code} to {to_stop_code}")
-            return False
-            
-        except Exception as e:
-            self.logger.error(
-                f"Error fetching fare for {from_stop_name} to {to_stop_name}: {str(e)}"
+                if response and response.get('data'):
+                    row = response['data'][0]
+                    return sid, cand, row.get('source_code'), row.get('destination_code')
+            return sid, None, None, None
+
+        BATCH_SIZE = 200
+        for round_num in range(3):  # neighbour resolution can cascade
+            pending = [sid for sid in unknown if sid not in stop_codes]
+            if not pending:
+                break
+            resolved_this_round = 0
+            for start in range(0, len(pending), BATCH_SIZE):
+                batch = pending[start:start + BATCH_SIZE]
+                results = await asyncio.gather(*(resolve(sid) for sid in batch))
+                for sid, cand, src_code, dst_code in results:
+                    if src_code:
+                        stop_codes[sid] = src_code
+                        if cand and dst_code and cand not in stop_codes:
+                            stop_codes[cand] = dst_code
+                        resolved_this_round += 1
+                self.file_manager.save_json(fares_dir / 'stop_codes.json', stop_codes)
+                self.logger.info(
+                    f"Fares: resolved {min(start + BATCH_SIZE, len(pending))}/{len(pending)} "
+                    f"stations (round {round_num + 1})")
+            if resolved_this_round == 0:
+                break
+
+        # Final tier: stations the fare API has no data for (depot/gate pseudo-
+        # stops that return "Data not found" for every pairing) inherit the stage
+        # code of their nearest resolved stop, since fare stages are geographic
+        # and such stops sit within metres of a real, priced stop.
+        resolved_pts = [(sid, station_coords[sid]) for sid in stop_codes
+                        if stop_codes.get(sid) and sid in station_coords]
+        inherited = 0
+        for sid in unknown:
+            if sid in stop_codes:
+                continue
+            here = station_coords.get(sid)
+            if not here:
+                continue
+            best_sid, best_d = None, None
+            for rsid, rpt in resolved_pts:
+                d = self._haversine_m(here, rpt)
+                if best_d is None or d < best_d:
+                    best_d, best_sid = d, rsid
+            if best_sid is not None and best_d <= self.SPATIAL_FARE_CODE_RADIUS_M:
+                stop_codes[sid] = stop_codes[best_sid]
+                inherited += 1
+        if inherited:
+            self.logger.info(f"Fares: inherited stage codes for {inherited} stations from "
+                             f"the nearest resolved stop (<= {self.SPATIAL_FARE_CODE_RADIUS_M}m)")
+
+        # Anything still unresolved (no nearby resolved stop / bad coords) is
+        # left uncoded and cannot be priced.
+        for sid in unknown:
+            if sid not in stop_codes:
+                failed_codes.add(sid)
+        self.file_manager.save_json(fares_dir / 'stop_codes.json', stop_codes)
+        self.file_manager.save_json(fares_dir / 'failed_stop_codes.json', sorted(failed_codes))
+
+    async def _fetch_fare(self, key, source_code, dest_code, route_info):
+        """Fetch fare rows for one stage-code pair. Returns (key, data|None)."""
+        payload = {
+            'routeno': route_info['route_no'] if route_info else '',
+            'routeid': route_info['route_id'] if route_info else 0,
+            'route_direction': route_info['direction'] if route_info else 'UP',
+            'source_code': source_code,
+            'destination_code': dest_code,
+        }
+        response = await self.client.make_request('GetMobileFareData_v2', payload)
+        if response and response.get('data'):
+            data = [{'servicetype': r.get('servicetype'), 'fare': r.get('fare')}
+                    for r in response['data']]
+            return key, data
+        return key, None
+
+    # ------------------------------------------------------------------
+    # Premium (AC / express) fares
+    #
+    # Fares depend on the route's service class as well as the stop pair: the
+    # same code pair returns "Bengaluru Sarige" for an ordinary route but
+    # "Vajra"/"Vayu Vajra" for a V-/KIA- route. Ordinary fares are captured by
+    # get_fares(); this pass captures the premium classes for the routes that
+    # carry them. GetFareRoutes conveniently returns the routes serving a stop
+    # pair together with the exact fare codes for each, so a premium route entry
+    # from that response gives a self-consistent context for GetMobileFareData.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _route_class(routeno: str) -> Optional[str]:
+        """Map a route number to its premium service class (None = ordinary)."""
+        n = (routeno or '').upper().strip()
+        if n.startswith('KIA') or n.startswith('VAYU'):
+            return 'Vayu Vajra'
+        if n.startswith('V-') or n.startswith('V '):
+            return 'Vajra'
+        if n.startswith('EXP'):
+            return 'Express'
+        return None
+
+    async def get_premium_fares(self):
+        """Fetch class-specific fares for premium (AC/express) routes."""
+        self.logger.info("Fetching premium fares...")
+
+        if not self.routes_data:
+            self.logger.error("Routes data not available")
+            return
+
+        fares_dir = Config.DIRECTORIES['fares']
+        stops_dir = Config.DIRECTORIES['stops']
+        premium_file = fares_dir / 'premium_fares.json'
+        processed_file = fares_dir / 'premium_processed.json'
+        premium = self.file_manager.load_json(premium_file) or {}
+        processed = set(self.file_manager.load_json(processed_file) or [])
+
+        # Ordered station pairs served by premium routes
+        pairs = set()
+        for route in self.routes_data['data']:
+            if not self._route_class(route['routeno']):
+                continue
+            base = route['routeno'].replace(' UP', '').replace(' DOWN', '').strip()
+            direction = 'UP' if 'UP' in route['routeno'] else 'DOWN'
+            data = self.file_manager.load_json(stops_dir / f"{base} {direction}.json")
+            if not data:
+                continue
+            seq = data.get(direction.lower(), {}).get('data') or []
+            ids = [str(s['stationid']) for s in seq if s.get('stationid')]
+            for i in range(len(ids)):
+                for j in range(i + 1, len(ids)):
+                    if ids[i] != ids[j]:
+                        pairs.add((ids[i], ids[j]))
+
+        todo = [p for p in pairs if f"{p[0]}_{p[1]}" not in processed]
+        self.logger.info(f"Premium fares: {len(pairs)} station pairs "
+                         f"({len(todo)} to fetch, {len(premium)} already priced)")
+
+        async def fetch_pair(frm: str, to: str):
+            routes_resp = await self.client.make_request(
+                'GetFareRoutes',
+                {'fromStationId': int(frm), 'toStationId': int(to), 'lan': 'English'}
             )
-            return False
-    
+            rows_out = []
+            if routes_resp and routes_resp.get('data'):
+                # One representative route per class (shortest routeno tends to
+                # be the base form the fare endpoint accepts)
+                by_class = {}
+                for r in routes_resp['data']:
+                    cls = self._route_class(r.get('routeno', ''))
+                    if not cls:
+                        continue
+                    cur = by_class.get(cls)
+                    if cur is None or len(r.get('routeno', '')) < len(cur.get('routeno', '')):
+                        by_class[cls] = r
+                for r in by_class.values():
+                    fare = await self.client.make_request('GetMobileFareData_v2', {
+                        'routeno': r.get('routeno'),
+                        'routeid': r.get('routeid'),
+                        'route_direction': r.get('route_direction', 'UP'),
+                        'source_code': r.get('source_code'),
+                        'destination_code': r.get('destination_code'),
+                    })
+                    if fare and fare.get('data'):
+                        for row in fare['data']:
+                            rows_out.append({'servicetype': row.get('servicetype'),
+                                             'fare': row.get('fare')})
+            return frm, to, rows_out
+
+        BATCH_SIZE = 200
+        for start in range(0, len(todo), BATCH_SIZE):
+            batch = todo[start:start + BATCH_SIZE]
+            results = await asyncio.gather(*(fetch_pair(f, t) for f, t in batch))
+            for frm, to, rows in results:
+                key = f"{frm}_{to}"
+                if rows:
+                    merged = {}
+                    for row in rows:
+                        try:
+                            value = float(row['fare'])
+                        except (TypeError, ValueError):
+                            continue
+                        svc = row['servicetype']
+                        if svc not in merged or value > merged[svc]:
+                            merged[svc] = value
+                    if merged:
+                        premium[key] = [{'servicetype': s, 'fare': f'{v:g}'}
+                                        for s, v in merged.items()]
+                processed.add(key)
+            self.file_manager.save_json(premium_file, premium)
+            self.file_manager.save_json(processed_file, sorted(processed))
+            self.logger.info(f"Premium fares: processed {start + len(batch)}/{len(todo)} "
+                             f"pairs ({len(premium)} priced)")
+
+        self.logger.info(f"Finished premium fares ({len(premium)} priced pairs)")
+
     def _get_next_monday(self) -> datetime:
         """Get the date of the next Monday."""
         today = datetime.now()
@@ -620,62 +953,12 @@ class BMTCScraper:
         if days_ahead <= 0:  # Target day already happened this week
             days_ahead += 7
         return today + timedelta(days=days_ahead)
-    
-    def _load_translations(self) -> Dict[str, int]:
-        """Load all translation files and build stop name to ID mapping."""
-        translations = {}
-        trans_dir = Config.DIRECTORIES['translations']
-        
-        for filepath in trans_dir.glob('*_en.json'):
-            if filepath.name.startswith('_'):
-                continue
-            
-            data = self.file_manager.load_json(filepath)
-            if data and 'data' in data:
-                for stop in data['data']:
-                    translations[stop['stopname'].strip().lower()] = stop['stopid']
-        
-        return translations
-    
-    def _process_route_fares(self, stop_file: str, stops_dir: Path, fares_dir: Path,
-                           stop_codes_map: Dict, translations: Dict):
-        """Process fare data for a single route file."""
-        route_name = stop_file.replace('.json', '')
-        self.logger.info(f"Processing route fares: {route_name}")
-        
-        # Load route stops data
-        route_data = self.file_manager.load_json(stops_dir / stop_file)
-        if not route_data:
-            return
-        
-        # Get route information
-        route_info = self._get_route_info(route_name)
-        if not route_info:
-            return
-        
-        # Extract stops from both directions
-        stops = []
-        for direction in ['up', 'down']:
-            if direction in route_data and 'data' in route_data[direction]:
-                stops.extend(route_data[direction]['data'])
-        
-        if not stops:
-            self.logger.warning(f"No stops found for route {route_name}")
-            return
-        
-        # Process all stop pairs for fare data
-        for i in range(len(stops)):
-            for j in range(i + 1, len(stops)):
-                self._fetch_fare_for_stop_pair(
-                    stops[i], stops[j], route_info, 
-                    fares_dir, stop_codes_map
-                )
-    
+
     def _get_route_info(self, route_name: str) -> Optional[Dict]:
         """Get route information from routes data."""
         if not self.routes_data:
             return None
-        
+
         for route in self.routes_data['data']:
             if route['routeno'].strip() == route_name:
                 return {
@@ -683,47 +966,9 @@ class BMTCScraper:
                     'route_no': route_name.replace(" UP", "").replace(" DOWN", ""),
                     'direction': "UP" if "UP" in route_name else "DOWN"
                 }
-        
-        self.logger.warning(f"Could not find route info for {route_name}")
-        return None
-    
-    async def _get_stop_codes(self, from_stop_id: int, to_stop_id: int, 
-                            stop_codes_map: Dict) -> Optional[Tuple[str, str]]:
-        """Get stop codes from map or fetch from API."""
-        stop_pair = (str(from_stop_id), str(to_stop_id))
-        if stop_pair in self.failed_stop_pairs:
-            return None
 
-        # Check existing mappings first
-        from_stop_code = stop_codes_map.get(str(from_stop_id))
-        to_stop_code = stop_codes_map.get(str(to_stop_id))
-        if from_stop_code and to_stop_code:
-            return from_stop_code, to_stop_code
-        
-        # Fetch from API if not found
-        response = await self.client.make_request(
-            'GetFareRoutes',
-            {'fromStationId': from_stop_id, 'toStationId': to_stop_id, 'lan': 'English'}
-        )
-        
-        if not response or not response.get('data'):
-            self.failed_stop_pairs.add(stop_pair)
-            self.file_manager.save_json(
-                Config.DIRECTORIES['fares'] / 'failed_stop_codes.json',
-                [list(pair) for pair in self.failed_stop_pairs]
-            )
-            return None
-        
-        # Update stop codes map with new values
-        from_stop_code = response['data'][0]['source_code']
-        to_stop_code = response['data'][0]['destination_code']
-        stop_codes_map.update({
-            str(from_stop_id): from_stop_code,
-            str(to_stop_id): to_stop_code
-        })
-        
-        return from_stop_code, to_stop_code
-    
+        return None
+
     async def run_full_scrape(self):
         """Run the complete scraping process."""
         self.logger.info("Starting BMTC data scraping...")
@@ -743,9 +988,13 @@ class BMTCScraper:
                 
                 # 4. Get translations
                 await self.get_translations()
-                
-                # 5. Get fare information
+
+                # 5. Get platform-level route assignments for major stations
+                await self.get_platforms()
+
+                # 6. Get fare information (ordinary, then premium/AC classes)
                 await self.get_fares()
+                await self.get_premium_fares()
                 
                 self.logger.info("BMTC data scraping completed successfully!")
             
