@@ -70,7 +70,8 @@ class BMTCApiClient:
             await self.session.close()
     
     async def make_request(self, endpoint: str, data: Optional[Dict] = None, 
-                    method: str = 'POST', retry_count: int = 0) -> Optional[Dict]:
+                    method: str = 'POST', retry_count: int = 0,
+                    headers: Optional[Dict[str, str]] = None) -> Optional[Dict]:
         """Make HTTP request with retry functionality."""
         if retry_count > Config.MAX_RETRIES:
             self.logger.error(f"Maximum retries exceeded for endpoint: {endpoint}")
@@ -82,8 +83,8 @@ class BMTCApiClient:
             async with self.semaphore:  # Limit concurrent requests
                 async with (
                     self.session.post(url, json=data if data is not None else {},
-                                      timeout=Config.REQUEST_TIMEOUT) if method.upper() == 'POST'
-                    else self.session.get(url, timeout=Config.REQUEST_TIMEOUT)
+                                      headers=headers, timeout=Config.REQUEST_TIMEOUT) if method.upper() == 'POST'
+                    else self.session.get(url, headers=headers, timeout=Config.REQUEST_TIMEOUT)
                 ) as response:
                     # 400/404 mean the request itself is rejected (unserved
                     # station/route pair); retrying will not help, so return now.
@@ -107,7 +108,7 @@ class BMTCApiClient:
             if retry_count <= Config.MAX_RETRIES:
                 self.logger.warning(f"Retrying in {Config.RETRY_DELAY} seconds...")
                 await asyncio.sleep(Config.RETRY_DELAY)
-                return await self.make_request(endpoint, data, method, retry_count)
+                return await self.make_request(endpoint, data, method, retry_count, headers)
             return None
 
 
@@ -200,8 +201,10 @@ class BMTCScraper:
             if filename in existing_files:
                 return None
             
-            self.client.session.headers.update({'lan': language, 'deviceType': 'android'})
-            response = await self.client.make_request('SearchStation', {'stationName': alphabet})
+            response = await self.client.make_request(
+                'SearchStation', {'stationName': alphabet},
+                headers={'lan': language, 'deviceType': 'android'}
+            )
             
             if response:
                 self.file_manager.save_json(trans_dir / filename, response)

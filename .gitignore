@@ -1,7 +1,10 @@
-scripts/__pycache__
-scripts/gtfs_temp
-
+debug/
 tools
+
+**/__pycache__
+**/*.log
+
+scripts/gtfs_temp
 
 raw/debug.log
 raw/fares

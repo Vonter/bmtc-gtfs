@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/MobilityData/gtfs_diff/spec/v2/json_schema/v2-rc1.json",
+  "title": "GTFS Diff v2",
+  "description": "Schema for GTFS Diff v2 output: a single JSON document describing all differences between two GTFS archives.",
+  "type": "object",
+  "required": ["metadata", "summary", "file_diffs"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "row_changes_cap_per_file", "base_feed", "new_feed", "unsupported_files"],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "The version of the schema."
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the diff was generated."
+        },
+        "row_changes_cap_per_file": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Maximum number of row changes included per file in file_diffs. 0 means no row changes are included; null means no cap is applied."
+        },
+        "base_feed": { "$ref": "#/$defs/feed_source" },
+        "new_feed": { "$ref": "#/$defs/feed_source" },
+        "unsupported_files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file_name", "present_in"],
+            "properties": {
+              "file_name": {
+                "type": "string",
+                "description": "File name as it appears in the archive."
+              },
+              "present_in": {
+                "type": "string",
+                "enum": ["base", "new", "both"],
+                "description": "Which archive(s) contain this file."
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_changes", "files_added_count", "files_deleted_count", "files_modified_count", "files_not_compared_count", "files"],
+      "properties": {
+        "total_changes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of changes across all files."
+        },
+        "files_added_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files added."
+        },
+        "files_deleted_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files deleted."
+        },
+        "files_modified_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files modified."
+        },
+        "files_not_compared_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files that could not be meaningfully compared."
+        },
+        "files": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/file_summary" }
+        }
+      }
+    },
+    "file_diffs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/file_diff" }
+    }
+  },
+  "$defs": {
+    "column_entry": {
+      "type": "object",
+      "required": ["name", "position"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Column name."
+        },
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based position of this column in the CSV header row."
+        }
+      }
+    },
+    "feed_source": {
+      "type": "object",
+      "required": ["source", "downloaded_at"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "URL or local path to the GTFS archive."
+        },
+        "downloaded_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the feed was downloaded."
+        }
+      }
+    },
+    "file_summary": {
+      "type": "object",
+      "required": ["file_name", "status"],
+      "properties": {
+        "file_name": {
+          "type": "string",
+          "description": "Name of the GTFS file."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["added", "deleted", "modified", "not_compared"],
+          "description": "File-level status."
+        }
+      }
+    },
+    "file_diff": {
+      "type": "object",
+      "required": ["file_name", "file_action"],
+      "properties": {
+        "file_name": {
+          "type": "string",
+          "description": "Name of the GTFS file."
+        },
+        "file_action": {
+          "type": "string",
+          "enum": ["modified", "added", "deleted", "not_compared"],
+          "description": "Action describing how this file changed."
+        },
+        "not_compared_reason": { "$ref": "#/$defs/not_compared_reason" },
+        "ignored_columns": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ignored_column" },
+          "description": "Columns excluded from the diff because their values are unreliable (e.g. they reference a file that was not compared)."
+        },
+        "columns_added": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/column_entry" },
+          "description": "Columns added to this file, in the order they appear in the new file's CSV header. Each entry includes the column name and its 1-based position in that header."
+        },
+        "columns_deleted": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/column_entry" },
+          "description": "Columns deleted from this file, in the order they appeared in the base file's CSV header. Each entry includes the column name and its 1-based position in that header."
+        },
+        "row_changes": {
+          "type": "object",
+          "required": ["primary_key", "columns", "added", "deleted", "modified"],
+          "properties": {
+            "primary_key": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "description": "Column(s) that uniquely identify a row."
+            },
+            "columns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Union of all columns across both base and new versions. Order matches the base feed's original column order; columns only in the new feed are appended."
+            },
+            "added": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/row_added" },
+              "description": "Added rows (capped)."
+            },
+            "deleted": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/row_deleted" },
+              "description": "Deleted rows (capped)."
+            },
+            "modified": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/row_modified" },
+              "description": "Modified rows (capped)."
+            }
+          }
+        },
+        "truncated": {
+          "type": "object",
+          "required": ["is_truncated", "omitted_count"],
+          "properties": {
+            "is_truncated": {
+              "type": "boolean",
+              "const": true,
+              "description": "Always true when present."
+            },
+            "omitted_count": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of row changes omitted due to the cap."
+            }
+          }
+        },
+        "stats": { "$ref": "#/$defs/file_stats" }
+      }
+    },
+    "not_compared_reason": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Machine-readable reason code (e.g. \"id_churn\", \"missing_primary_key\", \"file_too_large\")."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable explanation of why the file or column was not compared."
+        }
+      }
+    },
+    "ignored_column": {
+      "type": "object",
+      "required": ["column", "reason"],
+      "properties": {
+        "column": {
+          "type": "string",
+          "description": "The column name that was ignored."
+        },
+        "reason": { "$ref": "#/$defs/not_compared_reason" }
+      }
+    },
+    "file_stats": {
+      "type": "object",
+      "properties": {
+        "total_rows_base": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of rows in the base version of the file."
+        },
+        "total_rows_new": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of rows in the new version of the file."
+        },
+        "columns_added_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of columns added."
+        },
+        "columns_deleted_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of columns deleted."
+        },
+        "rows_added_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "True count of rows added."
+        },
+        "rows_deleted_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "True count of rows deleted."
+        },
+        "rows_modified_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "True count of rows modified."
+        },
+        "rows_changed_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage of rows that were added, deleted, or modified relative to the larger of the two versions."
+        },
+        "column_stats": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/column_stat" },
+          "description": "Per-column modification statistics. Only covers modified rows."
+        }
+      }
+    },
+    "column_stat": {
+      "type": "object",
+      "required": ["column", "modifications_count", "modifications_percentage"],
+      "properties": {
+        "column": {
+          "type": "string",
+          "description": "The column name."
+        },
+        "modifications_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of modified rows that had a change in this column."
+        },
+        "modifications_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "modifications_count as a percentage of total modified rows."
+        }
+      }
+    },
+    "row_added": {
+      "type": "object",
+      "required": ["identifier", "raw_value", "new_line_number"],
+      "properties": {
+        "identifier": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Primary key values identifying this row."
+        },
+        "raw_value": {
+          "type": "string",
+          "description": "The CSV row from the new file as a comma-separated string. Field order matches the columns array, which preserves the raw CSV column order of the base feed (new-feed-only columns appended)."
+        },
+        "new_line_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based line number of this row in the new CSV file."
+        }
+      }
+    },
+    "row_deleted": {
+      "type": "object",
+      "required": ["identifier", "raw_value", "base_line_number"],
+      "properties": {
+        "identifier": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Primary key values identifying this row."
+        },
+        "raw_value": {
+          "type": "string",
+          "description": "The CSV row from the base file as a comma-separated string. Field order matches the columns array, which preserves the raw CSV column order of the base feed (new-feed-only columns appended)."
+        },
+        "base_line_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based line number of this row in the base CSV file."
+        }
+      }
+    },
+    "row_modified": {
+      "type": "object",
+      "required": ["identifier", "raw_value", "base_line_number", "new_line_number", "field_changes"],
+      "properties": {
+        "identifier": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Primary key values identifying this row."
+        },
+        "raw_value": {
+          "type": "string",
+          "description": "The base CSV row as a comma-separated string. Field order matches the columns array, which preserves the raw CSV column order of the base feed (new-feed-only columns appended)."
+        },
+        "base_line_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based line number of this row in the base CSV file."
+        },
+        "new_line_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based line number of this row in the new CSV file."
+        },
+        "field_changes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["field", "base_value", "new_value"],
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "The column name that changed."
+              },
+              "base_value": {
+                "type": "string",
+                "description": "The value in the base feed."
+              },
+              "new_value": {
+                "type": "string",
+                "description": "The value in the new feed."
+              }
+            }
+          },
+          "description": "List of field-level changes."
+        }
+      }
+    }
+  }
+}

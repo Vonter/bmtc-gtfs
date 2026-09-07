@@ -43,6 +43,20 @@
       "bay-number": null
     },
     {
+      "route-number": "KBS-DPJN",
+      "extended-route-number": "KBS-DPJN UP",
+      "route-name": "KBS-DPJN",
+      "start-station": "Kempegowda Bus Station",
+      "start-station-id": 20921,
+      "from-station-id": 21042,
+      "route-id": 1930,
+      "to-station-id": 20739,
+      "to-station": "Deepanjalinagara",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
       "route-number": "248",
       "extended-route-number": "248 UP",
       "route-name": "KMT-JHC",
@@ -71,20 +85,6 @@
       "bay-number": null
     },
     {
-      "route-number": "238-U KMT-BUCADM",
-      "extended-route-number": "238-U KMT-BUCADM UP",
-      "route-name": "KMT-CLO-BUCADM",
-      "start-station": "KR Market (Kalasipalya)",
-      "start-station-id": 20944,
-      "from-station-id": 21042,
-      "route-id": 2601,
-      "to-station-id": 20646,
-      "to-station": "BUC ADM Block",
-      "platform-name": null,
-      "platform-number": null,
-      "bay-number": null
-    },
-    {
       "route-number": "248-PS",
       "extended-route-number": "248-PS UP",
       "route-name": "KMT-PSBS",
@@ -94,6 +94,20 @@
       "route-id": 2719,
       "to-station-id": 21084,
       "to-station": "Peenya Satellite Bus Station (Basaveshwara)",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "248 KMT-KDGR",
+      "extended-route-number": "248 KMT-KDGR UP",
+      "route-name": "KMT-KDGR",
+      "start-station": "KR Market (Kalasipalya)",
+      "start-station-id": 20944,
+      "from-station-id": 21042,
+      "route-id": 2811,
+      "to-station-id": 31308,
+      "to-station": "Kuduregere Madanayakanahalli",
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
@@ -113,15 +127,15 @@
       "bay-number": null
     },
     {
-      "route-number": "KIA-10",
-      "extended-route-number": "KIA-10 UP",
-      "route-name": "MRBS-KIA",
-      "start-station": "Mysore Road Bus Station",
-      "start-station-id": 21042,
+      "route-number": "121-BA",
+      "extended-route-number": "121-BA UP",
+      "route-name": "SBS-VJN",
+      "start-station": "Shivajinagara Bus Station",
+      "start-station-id": 21172,
       "from-station-id": 21042,
-      "route-id": 3812,
-      "to-station-id": 35805,
-      "to-station": "Kempegowda International Airport",
+      "route-id": 3093,
+      "to-station-id": 21266,
+      "to-station": "Vijayanagara",
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
@@ -253,6 +267,20 @@
       "bay-number": null
     },
     {
+      "route-number": "75-H",
+      "extended-route-number": "75-H UP",
+      "route-name": "MRBS-MBS",
+      "start-station": "Mysore Road Bus Station",
+      "start-station-id": 21042,
+      "from-station-id": 21042,
+      "route-id": 5153,
+      "to-station-id": 22787,
+      "to-station": "Malleshwara Bus Stand",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
       "route-number": "TR-4A CLO-JJN-RKHN",
       "extended-route-number": "TR-4A CLO-JJN-RKHN DOWN",
       "route-name": "RKHN-CLO",
@@ -274,6 +302,20 @@
       "start-station-id": 35932,
       "from-station-id": 21042,
       "route-id": 5260,
+      "to-station-id": 35395,
+      "to-station": "Vijayanagara Bus Station",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "60-L",
+      "extended-route-number": "60-L DOWN",
+      "route-name": "JBN-VTTMC",
+      "start-station": "Jai Bheema Nagara",
+      "start-station-id": 35287,
+      "from-station-id": 21042,
+      "route-id": 5311,
       "to-station-id": 35395,
       "to-station": "Vijayanagara Bus Station",
       "platform-name": null,
@@ -304,6 +346,20 @@
       "route-id": 5397,
       "to-station-id": 22776,
       "to-station": "Chandra Layout",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "235-A SNBS-NBDA",
+      "extended-route-number": "235-A SNBS-NBDA UP",
+      "route-name": "SNBS-NBDA",
+      "start-station": "Shanthinagara Bus Station",
+      "start-station-id": 21167,
+      "from-station-id": 21042,
+      "route-id": 7425,
+      "to-station-id": 35397,
+      "to-station": "BDA Complex Nagarabhavi",
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
@@ -388,6 +444,20 @@
       "route-id": 13398,
       "to-station-id": 22776,
       "to-station": "Chandra Layout",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "MF-47A",
+      "extended-route-number": "MF-47A UP",
+      "route-name": "MRBS-MRBS",
+      "start-station": "Mysore Road Bus Station",
+      "start-station-id": 21042,
+      "from-station-id": 21042,
+      "route-id": 13455,
+      "to-station-id": 38815,
+      "to-station": "Mysore Road Bus Station",
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
@@ -533,15 +603,15 @@
       "bay-number": null
     },
     {
-      "route-number": "G-6 SNBS-LMG-KGR",
-      "extended-route-number": "G-6 SNBS-LMG-KGR UP",
-      "route-name": "SNBS-KGR",
+      "route-number": "G-6 SNBS-LMG-D12G",
+      "extended-route-number": "G-6 SNBS-LMG-D12G UP",
+      "route-name": "SNBS-D12G",
       "start-station": "Shanthinagara Bus Station",
       "start-station-id": 21166,
       "from-station-id": 21042,
-      "route-id": 15415,
-      "to-station-id": 20925,
-      "to-station": "Kengeri Bus Station",
+      "route-id": 15416,
+      "to-station-id": 35721,
+      "to-station": "Depot-12 Gate",
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
@@ -570,6 +640,20 @@
       "route-id": 15579,
       "to-station-id": 39168,
       "to-station": "Mallasandra Bus Stand (Charging Point)",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "248 JHC-BCGS",
+      "extended-route-number": "248 JHC-BCGS DOWN",
+      "route-name": "BCGS-JHC",
+      "start-station": "Bishop Coton Girls High School",
+      "start-station-id": 36208,
+      "from-station-id": 21042,
+      "route-id": 15593,
+      "to-station-id": 20870,
+      "to-station": "Jalahalli Cross",
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
@@ -645,20 +729,6 @@
       "bay-number": null
     },
     {
-      "route-number": "TR-4 NGV-JJN-CLO",
-      "extended-route-number": "TR-4 NGV-JJN-CLO UP",
-      "route-name": "NGV-CLO",
-      "start-station": "Nagawara",
-      "start-station-id": 22327,
-      "from-station-id": 21042,
-      "route-id": 17295,
-      "to-station-id": 22776,
-      "to-station": "Chandra Layout",
-      "platform-name": null,
-      "platform-number": null,
-      "bay-number": null
-    },
-    {
       "route-number": "TR-4 CLO-NGV",
       "extended-route-number": "TR-4 CLO-NGV DOWN",
       "route-name": "NGV-CLO",
@@ -687,6 +757,62 @@
       "bay-number": null
     },
     {
+      "route-number": "401-B PTH-MRBS",
+      "extended-route-number": "401-B PTH-MRBS DOWN",
+      "route-name": "MRBS-PTH",
+      "start-station": "Mysore Road Bus Station",
+      "start-station-id": 21042,
+      "from-station-id": 21042,
+      "route-id": 17495,
+      "to-station-id": 34299,
+      "to-station": "Puttenahalli",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "248 DPJN-KMT",
+      "extended-route-number": "248 DPJN-KMT DOWN",
+      "route-name": "KMT-DPJN",
+      "start-station": "KR Market (Kalasipalya)",
+      "start-station-id": 20944,
+      "from-station-id": 21042,
+      "route-id": 18050,
+      "to-station-id": 20739,
+      "to-station": "Deepanjalinagara",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "180-A MRBS-HIRT",
+      "extended-route-number": "180-A MRBS-HIRT UP",
+      "route-name": "MRBS-HIRT",
+      "start-station": "Mysore Road Bus Station",
+      "start-station-id": 21042,
+      "from-station-id": 21042,
+      "route-id": 18065,
+      "to-station-id": 40687,
+      "to-station": "HIVE RT Nagara (Kaverinagara)",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
+      "route-number": "KIA-10",
+      "extended-route-number": "KIA-10 UP",
+      "route-name": "MRBS-KIA",
+      "start-station": "Mysore Road Bus Station",
+      "start-station-id": 21042,
+      "from-station-id": 21042,
+      "route-id": 3812,
+      "to-station-id": 35805,
+      "to-station": "Kempegowda International Airport",
+      "platform-name": null,
+      "platform-number": null,
+      "bay-number": null
+    },
+    {
       "route-number": "DPJN-GNE",
       "extended-route-number": "DPJN-GNE UP",
       "route-name": "DPJN-GNE",
@@ -699,31 +825,17 @@
       "platform-name": null,
       "platform-number": null,
       "bay-number": null
-    },
-    {
-      "route-number": "KBS-DPJN",
-      "extended-route-number": "KBS-DPJN UP",
-      "route-name": "KBS-DPJN",
-      "start-station": "Kempegowda Bus Station",
-      "start-station-id": 20921,
-      "from-station-id": 21042,
-      "route-id": 1930,
-      "to-station-id": 20739,
-      "to-station": "Deepanjalinagara",
-      "platform-name": null,
-      "platform-number": null,
-      "bay-number": null
     }
   ],
   "Failed": [
     {
       "from_stop": "21042",
-      "to_stop": "21052",
+      "to_stop": "20664",
       "level": 0
     },
     {
       "from_stop": "21042",
-      "to_stop": "20664",
+      "to_stop": "21052",
       "level": 0
     }
   ]
