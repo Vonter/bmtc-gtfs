@@ -53,7 +53,7 @@ generated [Markdown](diff/diff.md) and [JSON](diff/diff.json) reports.
 - [scrape.py](scripts/scrape.py): Scrape raw data from Namma BMTC
 - [gtfs.py](scripts/gtfs.py): Parse raw data and save as GTFS
 - [valiate.py](scripts/validate.py): Pass the GTFS through multiple GTFS validation tools
-- [analysis.py](scripts/analysis.py): Process the GTFS and output a GeoJSON representing the network
+- [analysis.py](scripts/analysis.py): Export route, stop and aggregated-stop summaries as GeoJSON and CSV
 
 ## Raw JSON
 
