@@ -2,11 +2,11 @@ import csv
 import datetime
 import json
 import logging
+import math
 import os
 import subprocess
 import traceback
 import zipfile
-import math
 from collections import defaultdict
 from io import StringIO
 
@@ -19,6 +19,8 @@ logging.basicConfig(
     ]
 )
 
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
 class GTFSWriter:
     def __init__(self, output_path="../gtfs/intermediate/bmtc.zip"):
         self.output_path = output_path
@@ -28,10 +30,11 @@ class GTFSWriter:
         self.trips = []
         self.stop_times = []
         self.translations = []
+        self.calendar = []
         # Add fare-related attributes
         self.fare_attributes = {}
         self.fare_rules = []
-        
+
     def write_agency(self):
         return [
             {
@@ -63,7 +66,18 @@ class GTFSWriter:
             }
         ]
 
+    def add_calendar(self, service_id, days, start_date, end_date):
+        """Add one calendar.txt row for a distinct weekday pattern."""
+        row = {'service_id': service_id}
+        row.update({wd: ('1' if wd in days else '0') for wd in WEEKDAYS})
+        row['start_date'] = start_date
+        row['end_date'] = end_date
+        self.calendar.append(row)
+        return service_id
+
     def write_calendar(self):
+        if self.calendar:
+            return self.calendar
         return [{
             'service_id': '1',
             'monday': '1',
@@ -192,7 +206,7 @@ class GTFSWriter:
     def write_gtfs(self):
         # Create a temporary directory for CSV files
         os.makedirs('gtfs_temp', exist_ok=True)
-        
+
         try:
             # Write each GTFS file
             files_to_write = {
@@ -207,7 +221,7 @@ class GTFSWriter:
                 'feed_info.txt': self.write_feed_info(),
                 'attributions.txt': self.write_attributions(),
             }
-            
+
             # Only include legacy fare files if they have data
             if self.fare_attributes:
                 files_to_write['fare_attributes.txt'] = list(self.fare_attributes.values())
@@ -217,7 +231,7 @@ class GTFSWriter:
             for filename, data in files_to_write.items():
                 if not data:
                     continue
-                    
+
                 filepath = os.path.join('gtfs_temp', filename)
                 with open(filepath, 'w', newline='', encoding='utf-8') as f:
                     if data:
@@ -253,7 +267,7 @@ class GTFSWriter:
         for stop_area in self.fare_attributes.values():
             if stop_area['fare_id'] == stop_id:
                 return  # Skip if stop already exists in any stage
-        
+
         # Add the new stop_area entry
         self.fare_attributes[stop_id] = {
             'fare_id': stop_id,
@@ -267,363 +281,370 @@ class GTFSWriter:
 os.makedirs('../gtfs/intermediate', exist_ok=True)
 gtfs = GTFSWriter()
 
+# route_id (Namma BMTC 2.0, per direction entry) -> {gtfs_route_id, direction_id, shape_id}
+# populated by add_routes(), consumed by add_shapes()/add_trips()/add_platforms()
+route_entry_meta = {}
+
+_ROUTES_JSON_CACHE = None
+
+def _load_routes_json():
+    """raw/routes.json: Namma BMTC 2.0's route catalog (list of route+direction entries)."""
+    global _ROUTES_JSON_CACHE
+    if _ROUTES_JSON_CACHE is None:
+        with open('../raw/routes.json', encoding='utf-8') as f:
+            _ROUTES_JSON_CACHE = json.load(f)
+    return _ROUTES_JSON_CACHE
+
+def _stop_schedule_path(stop_id, day):
+    return os.path.join('../raw/stop_schedules', day, f'{stop_id}.json')
+
+def _route_end_times_path(route_id, day):
+    return os.path.join('../raw/route_end_times', day, f'{route_id}.json')
+
+def _load_route_end_times(route_id, day):
+    """trip_id -> end_time (arrival at the route's own final stop) for one route on one day."""
+    path = _route_end_times_path(route_id, day)
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {}
+
+def _load_stop_schedule(stop_id, day):
+    """[(trip_id, route_id, arrival_time), ...] for one stop on one day.
+
+    Written by scripts/scrape.py's crawl_stop_schedules().
+    """
+    path = _stop_schedule_path(stop_id, day)
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return []
+
+def decode_polyline(encoded):
+    """Decode a Google-encoded polyline (as found in each Namma BMTC 2.0 route entry's
+    'polyline' field) into an ordered list of (lat, lon) points."""
+    points = []
+    index = lat = lng = 0
+    length = len(encoded)
+    while index < length:
+        for is_lat in (True, False):
+            shift = result = 0
+            while True:
+                b = ord(encoded[index]) - 63
+                index += 1
+                result |= (b & 0x1f) << shift
+                shift += 5
+                if b < 0x20:
+                    break
+            delta = ~(result >> 1) if (result & 1) else (result >> 1)
+            if is_lat:
+                lat += delta
+            else:
+                lng += delta
+        points.append((lat / 1e5, lng / 1e5))
+    return points
+
+def _fmt_gtfs_time(total_seconds):
+    total_seconds = max(0, int(total_seconds))
+    h, rem = divmod(total_seconds, 3600)
+    m, s = divmod(rem, 60)
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+def _haversine_km(lat1, lon1, lat2, lon2):
+    lat1, lon1, lat2, lon2 = map(math.radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 2 * 6371 * math.asin(math.sqrt(a))
+
+def _extrapolate_final_arrival(resolved, stop_lookup, last_stop):
+    """Estimate a trip's arrival at its route's final stop from the pace of
+    its last known real leg (distance-based), for the rare trip that has no
+    end_time in either raw/route_end_times or raw/stop_schedules.
+
+    Only this one, unavoidable final-stop gap is ever estimated -- every
+    other stop_time in the feed is a real reported value.
+    """
+    if len(resolved) < 2:
+        return None
+    (_idx_a, stop_a, t_a), (_idx_b, stop_b, t_b) = resolved[-2], resolved[-1]
+    a, b = stop_lookup.get(stop_a), stop_lookup.get(stop_b)
+    if not a or not b or t_b <= t_a:
+        return None
+    dist_ab = _haversine_km(a['stop_lat'], a['stop_lon'], b['stop_lat'], b['stop_lon'])
+    if dist_ab <= 0:
+        return None
+    dist_b_last = _haversine_km(b['stop_lat'], b['stop_lon'], last_stop['stop_lat'], last_stop['stop_lon'])
+    pace_s_per_km = (t_b - t_a) / dist_ab
+    return int(round(t_b + pace_s_per_km * dist_b_last))
+
+def _earliest_departure(entry):
+    """The earliest arrival_time (seconds since midnight) this route+direction
+    entry's own trips show at its own terminus, on the first weekday that has
+    any -- used by add_routes() to pick which direction of a route "runs
+    first" (see the route/direction grouping rule)."""
+    terminus = (entry.get('first_stop') or {}).get('stop_id')
+    route_id = entry.get('route_id')
+    if not terminus or not route_id:
+        return None
+    for day in WEEKDAYS:
+        times = [a for t, r, a in _load_stop_schedule(terminus, day) if r == route_id]
+        if times:
+            return min(times)
+    return None
+
+def _compute_patterns_for_entry(entry):
+    """[(trip_id set, [weekday names with that exact set]), ...] for one Namma BMTC 2.0
+    route+direction entry, built the same way as scrape.py's terminus-based
+    schedule-pattern detection (see crawl_stop_schedules())."""
+    terminus = (entry.get('first_stop') or {}).get('stop_id')
+    route_id = entry.get('route_id')
+    if not terminus or not route_id:
+        return []
+    groups = {}
+    for day in WEEKDAYS:
+        trip_ids = frozenset(t for t, r, _a in _load_stop_schedule(terminus, day) if r == route_id)
+        if trip_ids:
+            groups.setdefault(trip_ids, []).append(day)
+    return list(groups.items())
+
+def _schedule_for_route(route_id, day, sequence):
+    """trip_id -> [(stop_id, arrival_time), ...] for one route+direction entry
+    on one day, read back from every stop on its own sequence."""
+    by_trip = {}
+    for stop in sequence:
+        stop_id = stop.get('stop_id')
+        if not stop_id:
+            continue
+        for trip_id, r_id, arrival_time in _load_stop_schedule(stop_id, day):
+            if r_id == route_id:
+                by_trip.setdefault(trip_id, []).append((stop_id, arrival_time))
+    return by_trip
+
 def add_stops():
-    directory = '../raw/stops/'
-    addedRoutesStops = []
-    failedRoutesStops = []
+    routes_json = _load_routes_json()
+    failed = 0
 
-    for filename in os.listdir(directory):
-        if filename.endswith('.json'):
-            file_path = os.path.join(directory, filename)
-            if os.path.getsize(file_path) > 0:
-                try:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        for stop in (data["up"]["data"] + data["down"]["data"]):
-                            if stop["stationid"] not in gtfs.stops:
-                                gtfs.add_stop(
-                                    stop["stationid"],
-                                    stop["centerlat"],
-                                    stop["centerlong"],
-                                    stop["stationname"]
-                                )
-                    addedRoutesStops.append(file_path.replace(".json", ""))
+    for entry in routes_json:
+        for stop in entry.get('stopSequenceWithDetails') or []:
+            stop_id = stop.get('stop_id')
+            if not stop_id or stop_id in gtfs.stops:
+                continue
+            try:
+                gtfs.add_stop(stop_id, stop.get('stop_lat'), stop.get('stop_lon'), stop.get('stop_name', ''))
+            except Exception:
+                logging.exception(f"Failed to add stop {stop_id}")
+                failed += 1
 
-                except Exception as err:
-                    logging.info("Failed to process " + file_path)
-                    failedRoutesStops.append(file_path.replace(".json", ""))
-    
-    logging.info("Added {} stops ({} errors)".format(len(gtfs.stops), len(failedRoutesStops)))
+    logging.info("Added {} stops ({} errors)".format(len(gtfs.stops), failed))
     return gtfs.stops
 
 def add_routes():
-    json_file = '../raw/routes.json'
-    routes_json = json.load(open(json_file))
-    addedRoutes = []
-    failedRoutes = []
+    """Group Namma BMTC 2.0 route+direction entries by route_name (the public-facing
+    route number -- a group may contain more than two entries, e.g. branches
+    sharing the same number) into one GTFS route per group.
 
-    # Build routeno -> routeparentid mapping from routeids files
-    routeids_directory = '../raw/routeids/'
-    route_parent_ids = {}
-    for filename in os.listdir(routeids_directory):
-        if filename.endswith('.json'):
-            file_path = os.path.join(routeids_directory, filename)
-            if os.path.getsize(file_path) > 0:
-                try:
-                    with open(file_path, 'r') as f:
-                        data = json.load(f)
-                        if data.get('data'):
-                            for entry in data['data']:
-                                routeno = entry.get('routeno', '')
-                                parent_id = entry.get('routeparentid', '')
-                                if routeno and parent_id:
-                                    route_parent_ids[routeno] = parent_id
-                except Exception as err:
-                    logging.warning(f"Failed to load routeids file {filename}: {str(err)}")
+    direction_id is assigned relative to whichever entry's earliest trip of
+    the day departs first overall (the group's "direction 0" reference): an
+    entry shares direction_id 0 if it starts from that reference's origin OR
+    ends at its destination; otherwise it's direction_id 1.
+    """
+    routes_json = _load_routes_json()
+    groups = defaultdict(list)
+    for entry in routes_json:
+        groups[entry.get('route_name') or entry['route_id']].append(entry)
 
-    logging.info(f"Loaded {len(route_parent_ids)} route parent IDs")
-
-    for route in routes_json["data"]:
+    failed = 0
+    for route_name, entries in groups.items():
         try:
-            route_short_name = route["routeno"].replace(" UP", "").replace(" DOWN", "")
-            if route_short_name not in gtfs.routes:
-                route_id = route_parent_ids.get(route_short_name, '')
-                route_long_name = "{} ⇔ {}".format(route["fromstation"], route["tostation"])
-                gtfs.add_route(route_id, route_short_name, route_long_name)
-            addedRoutes.append(route_id)
+            earliest = {e['route_id']: _earliest_departure(e) for e in entries}
+            ref = min(entries, key=lambda e: (earliest[e['route_id']] is None,
+                                               earliest[e['route_id']] or 0))
+            origin_0 = (ref.get('first_stop') or {}).get('stop_id')
+            dest_0 = (ref.get('last_stop') or {}).get('stop_id')
+            origin_name = (ref.get('first_stop') or {}).get('stop_name', '')
+            dest_name = (ref.get('last_stop') or {}).get('stop_name', '')
 
-        except Exception as err:
-            logging.info("Failed to process " + route["routeno"])
-            failedRoutes.append(route["routeno"])
+            gtfs_route_id = str(route_name)
+            gtfs.add_route(gtfs_route_id, str(route_name), f"{origin_name} to {dest_name}")
 
-    logging.info("Added {} routes ({} errors)".format(len(addedRoutes), len(failedRoutes)))
+            for e in entries:
+                first = (e.get('first_stop') or {}).get('stop_id')
+                last = (e.get('last_stop') or {}).get('stop_id')
+                direction_id = '0' if (first == origin_0 or last == dest_0) else '1'
+                route_entry_meta[e['route_id']] = {
+                    'gtfs_route_id': gtfs_route_id,
+                    'direction_id': direction_id,
+                    'shape_id': e['route_id'],
+                }
+        except Exception:
+            logging.exception(f"Failed to process route group {route_name}")
+            failed += 1
+
+    logging.info("Added {} routes from {} Namma BMTC 2.0 route+direction entries ({} errors)".format(
+        len(gtfs.routes), len(routes_json), failed))
     return gtfs.routes
 
 def add_shapes():
-    directory = '../raw/routelines/'
-    addedShapes = []
-    failedShapes = []
+    routes_json = _load_routes_json()
+    added = 0
+    failed = 0
 
-    for filename in os.listdir(directory):
-        if filename.endswith('.json'):
-            file_path = os.path.join(directory, filename)
-            if os.path.getsize(file_path) > 0:
-                try:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        if len(data["data"]) > 0:
-                            shape_id = filename.replace(".json", "")
-                            shape_id = ''.join(c for c in shape_id if c.isprintable())
-                            for i, point in enumerate(data["data"]):
-                                gtfs.add_shape_point(
-                                    shape_id,
-                                    point["latitude"],
-                                    point["longitude"],
-                                    i + 1
-                                )
-                    addedShapes.append(filename.replace("json", ""))
+    for entry in routes_json:
+        route_id = entry.get('route_id')
+        polyline = entry.get('polyline')
+        if not route_id or not polyline:
+            continue
+        try:
+            points = decode_polyline(polyline)
+            for i, (lat, lon) in enumerate(points):
+                gtfs.add_shape_point(route_id, lat, lon, i + 1)
+            added += 1
+        except Exception:
+            logging.exception(f"Failed to decode polyline for route {route_id}")
+            failed += 1
 
-                except Exception as err:
-                    logging.info("Failed to process " + filename)
-                    failedShapes.append(filename.replace(".json", ""))
-    
-    logging.info("Added {} shapes ({} errors)".format(len(addedShapes), len(failedShapes)))
+    logging.info("Added {} shapes ({} errors)".format(added, failed))
     return gtfs.shapes
 
-def haversine_distance(lat1, lon1, lat2, lon2):
-    """
-    Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
-    Returns distance in kilometers
-    """
-    # Convert decimal degrees to radians
-    lat1, lon1, lat2, lon2 = map(math.radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
-    
-    # Haversine formula
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a))
-    r = 6371  # Radius of earth in kilometers
-    return c * r
-
 def add_trips():
-    stops_directory = '../raw/stops/'
-    timetables_directory = '../raw/timetables/Monday/'
+    today = datetime.datetime.now().strftime('%Y%m%d')
+    end = (datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y%m%d')
+    service_ids = {}
 
-    addedTrips = []
-    failedTrips = []
-    noStops = []
-    noTimetables = []
-    noShapes = []
-    interpolated_routes = []
-    speed_adjustments = 0
+    def service_id_for(days):
+        flags = tuple(1 if wd in days else 0 for wd in WEEKDAYS)
+        sid = service_ids.get(flags)
+        if sid is None:
+            sid = "SVC_" + "".join(str(f) for f in flags)
+            service_ids[flags] = sid
+            gtfs.add_calendar(sid, days, today, end)
+        return sid
 
-    trip_counter = 0
-    stops_files = os.listdir(stops_directory)
+    routes_json = _load_routes_json()
+    trip_count = 0
+    entries_with_trips = 0
+    failed = 0
+    # A trip_id can show up under more than one weekday-pattern group -- e.g.
+    # _schedule_for_route(route_id, representative_day) can return a trip
+    # that also belongs to a different pattern's representative day, if that
+    # trip happens to run on both. Since GTFS requires a globally unique
+    # trip_id, each is only ever emitted once: full-length trips are only
+    # considered once per their own detected trip_ids set (filtered below),
+    # and the short-working pass further down skips anything already seen
+    # here, including across multiple representative days for the same route.
+    seen_trip_ids = set()
 
-    # Maximum allowed speed in km/h
-    MAX_SPEED_KMH = 75.0
+    for entry in routes_json:
+        route_id = entry.get('route_id')
+        meta = route_entry_meta.get(route_id)
+        if not meta:
+            continue
+        try:
+            sequence = entry.get('stopSequenceWithDetails') or []
+            stop_index = {s['stop_id']: i for i, s in enumerate(sequence) if s.get('stop_id')}
+            stop_lookup = {s['stop_id']: s for s in sequence if s.get('stop_id')}
+            headsign = (entry.get('last_stop') or {}).get('stop_name', '')
+            last_seq_idx = len(sequence) - 1
+            last_stop_id = sequence[-1].get('stop_id') if sequence else None
+            last_stop = sequence[-1] if sequence else None
 
-    for route_id, route_data in gtfs.routes.items():
-        route_short_name = route_data['route_short_name']
-        for direction in ["UP", "DOWN"]:
-            try:
-                filename = "{} {}.json".format(route_short_name, direction)
-                if filename not in stops_files:
-                    noStops.append(filename)
-                    continue
-
-                file_path = os.path.join(stops_directory, filename)
-                if os.stat(file_path).st_size == 0:
-                    noStops.append(filename)
-                    continue
-
-                shape_id = "{} {}".format(route_short_name, direction)
-                if shape_id not in gtfs.shapes:
-                    noShapes.append(filename)
-                    continue
-
-                # Load stops file
-                try:
-                    with open(file_path) as stops_file:
-                        stops = json.load(stops_file)
-                except Exception as e:
-                    logging.error(f"Failed to load stops file {file_path}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-
-                # Load and validate timetable
-                timetable_path = os.path.join(timetables_directory, filename)
-                if not os.path.exists(timetable_path):
-                    noTimetables.append(timetable_path)
-                    continue
-                
-                if os.stat(timetable_path).st_size == 0:
-                    noTimetables.append(timetable_path)
-                    continue
-
-                try:
-                    with open(timetable_path) as timetables_file:
-                        timetables = json.load(timetables_file)
-                except json.JSONDecodeError as e:
-                    logging.error(f"Invalid JSON in timetable {timetable_path}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-                except Exception as e:
-                    logging.error(f"Failed to load timetable {timetable_path}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-
-                if not timetables.get("data"):
-                    logging.info(f"No data in timetable for {filename}")
-                    noTimetables.append(timetable_path)
-                    continue
-
-                if timetables.get("Message") == "No Records Found.":
-                    noTimetables.append(timetable_path)
-                    continue
-
-                try:
-                    trip_details = timetables["data"][0]["tripdetails"]
-                except (KeyError, IndexError) as e:
-                    logging.error(f"Invalid timetable structure in {filename}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-
-                # Process each trip
-                for trip in trip_details:
-                    try:
-                        trip_counter += 1
-                        direction_id = "1" if direction == "DOWN" else "0"
-
-                        # Validate required trip fields
-                        if "starttime" not in trip or "endtime" not in trip:
-                            logging.error(f"Missing time data in trip for {filename}")
-                            continue
-
-                        start_time = datetime.datetime.strptime(trip["starttime"], '%H:%M')
-                        end_time = datetime.datetime.strptime(trip["endtime"], '%H:%M')
-                        duration = (end_time - start_time).total_seconds()
-                        
-                        trip_id = str(trip_counter)
-                        gtfs.add_trip(
-                            route_id=route_id,
-                            service_id="1",
-                            trip_id=trip_id,
-                            headsign=timetables["data"][0].get("tostationname", ""),
-                            direction_id=direction_id,
-                            shape_id=shape_id
-                        )
-
-                        stops_data = stops[direction.lower()]["data"]
-                        if not stops_data:
-                            logging.error(f"No stops data for {filename}")
-                            continue
-
-                        # Initial distribution of time (will be adjusted for speed)
-                        stop_times = []
-                        current_time = start_time
-                        
-                        # First pass: Calculate distances and distribute time evenly
-                        total_distance = 0
-                        distances = []
-                        
-                        # Calculate distances between consecutive stops
-                        for i in range(len(stops_data) - 1):
-                            current_stop = stops_data[i]
-                            next_stop = stops_data[i + 1]
-                            
-                            try:
-                                distance = haversine_distance(
-                                    current_stop["centerlat"], 
-                                    current_stop["centerlong"],
-                                    next_stop["centerlat"], 
-                                    next_stop["centerlong"]
-                                )
-                                distances.append(distance)
-                                total_distance += distance
-                            except (KeyError, ValueError) as e:
-                                # If coordinates are missing, use a reasonable default distance
-                                distances.append(0.5)  # 500 meters default
-                                total_distance += 0.5
-                        
-                        # Add the first stop
-                        stop_times.append({
-                            'stop_id': stops_data[0]["stationid"],
-                            'stop_sequence': 1,
-                            'time': current_time
-                        })
-                        
-                        # Second pass: Adjust times based on distance while respecting speed limits
-                        remaining_time = duration
-                        time_used = 0
-                        
-                        for i in range(len(distances)):
-                            # Calculate minimum time needed for this segment based on maximum speed
-                            distance_km = distances[i]
-                            min_time_hours = distance_km / MAX_SPEED_KMH
-                            min_time_seconds = min_time_hours * 3600
-                            
-                            # Calculate proportional time based on distance
-                            if total_distance > 0:
-                                prop_time = duration * (distance_km / total_distance)
-                            else:
-                                prop_time = duration / len(distances)
-                            
-                            # Use the maximum of proportional time and minimum time needed
-                            segment_time = max(prop_time, min_time_seconds)
-                            
-                            # Update remaining time and time used
-                            time_used += segment_time
-                            
-                            # Calculate the next stop time
-                            current_time = current_time + datetime.timedelta(seconds=segment_time)
-                            
-                            stop_times.append({
-                                'stop_id': stops_data[i + 1]["stationid"],
-                                'stop_sequence': i + 2,
-                                'time': current_time
-                            })
-                            
-                            # Keep track if we had to adjust for speed
-                            if segment_time > prop_time:
-                                speed_adjustments += 1
-                        
-                        # If our adjusted times exceed the end time, we need to scale back
-                        if current_time > end_time:
-                            # Calculate scaling factor
-                            actual_duration = (current_time - start_time).total_seconds()
-                            scale_factor = duration / actual_duration
-                            
-                            # Reset the start time
-                            current_time = start_time
-                            
-                            # Rescale all times except the first
-                            for i in range(1, len(stop_times)):
-                                original_delta = (stop_times[i]['time'] - start_time).total_seconds()
-                                scaled_delta = original_delta * scale_factor
-                                stop_times[i]['time'] = start_time + datetime.timedelta(seconds=scaled_delta)
-                        
-                        # Add stop times to GTFS
-                        for stop_time_data in stop_times:
-                            formatted_time = stop_time_data['time'].strftime('%H:%M:%S')
-                            gtfs.add_stop_time(
-                                trip_id=trip_id,
-                                stop_id=stop_time_data['stop_id'],
-                                stop_sequence=stop_time_data['stop_sequence'],
-                                arrival_time=formatted_time,
-                                departure_time=formatted_time
-                            )
-
-                    except Exception as err:
-                        logging.error(f"Failed to process trip in {filename}: {str(err)}")
-                        logging.error(traceback.format_exc())
+            entry_had_trip = False
+            for trip_ids, days in _compute_patterns_for_entry(entry):
+                representative_day = days[0]
+                sid = service_id_for(days)
+                by_trip = _schedule_for_route(route_id, representative_day, sequence)
+                # Namma BMTC 2.0's per-stop schedule never reports a route's own
+                # arrival at its own final stop; this endpoint's per-trip
+                # end_time is the only source for that one value.
+                end_times = _load_route_end_times(route_id, representative_day)
+                for trip_id in trip_ids:
+                    if trip_id in seen_trip_ids:
                         continue
+                    stops = by_trip.get(trip_id)
+                    if not stops:
+                        continue
+                    resolved = sorted(
+                        {(stop_index[s], s, a) for s, a in stops if s in stop_index}
+                    )
+                    if len(resolved) < 2:
+                        continue
+                    if last_stop_id and resolved[-1][0] != last_seq_idx:
+                        end_time = end_times.get(trip_id)
+                        if end_time is None:
+                            # routedetails has no end_time for this trip
+                            # either -- estimate just this last leg from the
+                            # pace of the trip's last known real leg.
+                            end_time = _extrapolate_final_arrival(resolved, stop_lookup, last_stop)
+                        if end_time is not None:
+                            resolved.append((last_seq_idx, last_stop_id, end_time))
+                    gtfs.add_trip(
+                        route_id=meta['gtfs_route_id'],
+                        service_id=sid,
+                        trip_id=trip_id,
+                        headsign=headsign,
+                        direction_id=meta['direction_id'],
+                        shape_id=meta['shape_id'],
+                    )
+                    for seq, stop_id, arrival_time in resolved:
+                        formatted = _fmt_gtfs_time(arrival_time)
+                        gtfs.add_stop_time(trip_id, stop_id, seq + 1, formatted, formatted)
+                    seen_trip_ids.add(trip_id)
+                    trip_count += 1
+                    entry_had_trip = True
 
-                addedTrips.append(filename.replace(".json", ""))
+                # Short-working trips: real per-stop data exists for this
+                # same route_id (by_trip already covers every stop in the
+                # sequence, not just the terminus), but the trip never
+                # touches this entry's own terminus, so _compute_patterns_
+                # for_entry() (which is terminus-anchored) never surfaced it
+                # above. Same route_id/direction/shape as the full-length
+                # trips -- it's a short-turning working of the same route,
+                # not a different one -- but the headsign reflects the
+                # trip's own real last stop, not the full route's, and no
+                # terminus-arrival fill applies (its real last stop already
+                # is its destination).
+                for trip_id, stops in by_trip.items():
+                    if trip_id in seen_trip_ids or trip_id in trip_ids:
+                        continue
+                    resolved = sorted(
+                        {(stop_index[s], s, a) for s, a in stops if s in stop_index}
+                    )
+                    if len(resolved) < 2:
+                        continue
+                    short_headsign = stop_lookup.get(resolved[-1][1], {}).get('stop_name', headsign)
+                    gtfs.add_trip(
+                        route_id=meta['gtfs_route_id'],
+                        service_id=sid,
+                        trip_id=trip_id,
+                        headsign=short_headsign,
+                        direction_id=meta['direction_id'],
+                        shape_id=meta['shape_id'],
+                    )
+                    for seq, stop_id, arrival_time in resolved:
+                        formatted = _fmt_gtfs_time(arrival_time)
+                        gtfs.add_stop_time(trip_id, stop_id, seq + 1, formatted, formatted)
+                    seen_trip_ids.add(trip_id)
+                    trip_count += 1
+                    entry_had_trip = True
+            if entry_had_trip:
+                entries_with_trips += 1
+        except Exception:
+            logging.exception(f"Failed to process trips for route {route_id}")
+            failed += 1
 
-            except Exception as err:
-                logging.error(f"Failed to process timetable for route {filename}")
-                logging.error(traceback.format_exc())
-                failedTrips.append(filename)
-    
-    logging.info("Added {} trips ({} errors)".format(len(addedTrips), len(failedTrips)))
-    logging.info("Missing timetable for {} routes".format(len(noTimetables)))
-    logging.info("Missing stopslist for {} routes".format(len(noStops)))
-    logging.info("Missing shape for {} routes".format(len(noShapes)))
-    logging.info(f"Made {speed_adjustments} speed adjustments to stay under {MAX_SPEED_KMH} km/h")
+    logging.info(
+        "Added {} trips across {}/{} route+direction entries ({} errors)".format(
+            trip_count, entries_with_trips, len(routes_json), failed
+        )
+    )
 
-    # Write missing files
-    for filename, items in [
-        ('../gtfs/missingTimetables.txt', noTimetables),
-        ('../gtfs/missingStops.txt', noStops),
-        ('../gtfs/missingShapes.txt', noShapes),
-    ]:
-        with open(filename, 'w') as f:
-            for item in items:
-                f.write(f"{item}\n")
-    
     # Remove trips with only one stop
     cleanup_trips()
 
@@ -631,116 +652,62 @@ def cleanup_trips():
     """Drop trips that contain only a single stop or single row."""
     single_stop_trips = []
     stop_counts = defaultdict(int)
-    
+
     # Count stops per trip
     for stop_time in gtfs.stop_times:
         stop_counts[str(stop_time['trip_id'])] += 1
-    
+
     # Log current state
     logging.info(f"Before cleanup: {len(gtfs.trips)} trips, {len(gtfs.stop_times)} stop times")
-    
+
     # Identify trips with only one stop
     for trip_id, count in stop_counts.items():
         if count <= 1:
             single_stop_trips.append(trip_id)
-    
+
     if single_stop_trips:
         # Make sure trip_id is compared as string for consistency
         gtfs.trips = [trip for trip in gtfs.trips if str(trip['trip_id']) not in single_stop_trips]
         gtfs.stop_times = [st for st in gtfs.stop_times if str(st['trip_id']) not in single_stop_trips]
-        
+
         # Log results of cleanup
         logging.info(f"Removed {len(single_stop_trips)} trips with only a single stop")
         logging.info(f"After cleanup: {len(gtfs.trips)} trips, {len(gtfs.stop_times)} stop times")
     else:
         logging.info("No single-stop trips found to remove")
 
-def add_stop_desc():
-    translations_directory = '../raw/translations/'
-    failed_files = []
-
-    def is_english(s):
-        try:
-            s.encode('ascii')
-            return True
-        except UnicodeEncodeError:
-            return False
-
-    stop_geofences = {}
-    for filename in os.listdir(translations_directory):
-        if filename.endswith('_en.json'):
-            try:
-                file_path = os.path.join(translations_directory, filename)
-                if os.path.getsize(file_path) > 0:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        if data.get("data"):
-                            for stop in data["data"]:
-                                stop_id = stop.get("stopid")
-                                gname = stop.get("geofencename", "")
-                                if stop_id and gname and gname not in stop_geofences.get(stop_id, []):
-                                    stop_geofences.setdefault(stop_id, []).append(gname)
-            except Exception as err:
-                logging.error(f"Failed to process English translation file {filename}: {str(err)}")
-                failed_files.append(filename)
-
-    updated = 0
-    for stop_id, geofences in stop_geofences.items():
-        if stop_id in gtfs.stops:
-            english_ones = [g for g in geofences if is_english(g)]
-            gtfs.stops[stop_id]['stop_desc'] = english_ones[0] if english_ones else geofences[0]
-            updated += 1
-
-    logging.info(f"Added stop_desc for {updated} stops ({len(failed_files)} failed files)")
-
 def add_translations():
-    translations_directory = '../raw/translations/'
-    translations_data = {}
-    failed_files = []
+    """Kannada stop-name translations, embedded directly in each Namma BMTC 2.0
+    stop object's localeMap -- no separate translation fetch needed."""
+    routes_json = _load_routes_json()
+    seen = set()
+    added = 0
 
-    # Process Kannada files
-    for filename in os.listdir(translations_directory):
-        if filename.endswith('_kn.json'):
-            try:
-                file_path = os.path.join(translations_directory, filename)
-                if os.path.getsize(file_path) > 0:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        if data.get("data"):
-                            for stop in data["data"]:
-                                stop_id = stop.get("stopid")
-                                if stop_id:
-                                    translations_data[stop_id] = {}
-                                    translations_data[stop_id]["kn"] = stop.get("geofencename", "")
-            except Exception as err:
-                logging.error(f"Failed to process Kannada translation file {file_path}: {str(err)}")
-                failed_files.append(filename)
-
-    # Add translations to GTFS
-    added_translations = 0
-    for stop_id, translations in translations_data.items():
-        if stop_id in gtfs.stops:  # Only add translations for stops that exist in our GTFS
-            if translations.get("kn"):  # Add Kannada translation if available
+    for entry in routes_json:
+        for stop in entry.get('stopSequenceWithDetails') or []:
+            stop_id = stop.get('stop_id')
+            if not stop_id or stop_id in seen:
+                continue
+            seen.add(stop_id)
+            kn_name = ((stop.get('localeMap') or {}).get('kn') or {}).get('stop_name')
+            if kn_name:
                 gtfs.add_translation(
                     table_name="stops",
                     record_id=stop_id,
                     field_name="stop_name",
                     language="kn",
-                    translation=translations["kn"]
+                    translation=kn_name,
                 )
-                added_translations += 1
+                added += 1
 
-    logging.info(f"Added {added_translations} translations ({len(failed_files)} failed files)")
-    return translations_data
+    logging.info(f"Added {added} translations")
+    return added
 
 def add_fares():
     """Populate GTFS Fares v1 using stage-based, route-independent fares.
 
-    BMTC fares depend only on the fare-stage codes of the origin and
-    destination, so each stop is assigned a ``zone_id`` equal to its stage code
-    and fares are expressed as zone-to-zone rules with no ``route_id``. This
-    collapses what used to be O(routes x stop_pairs) fare rules into one rule
-    per priced stage-code pair (per direction).
+    Not called from the default pipeline -- see scripts/scrape.py's
+    get_fares()/get_premium_fares().
     """
     fares_directory = '../raw/fares/'
     ORDINARY_SERVICES = ('Bengaluru Sarige', 'Electric')
@@ -935,6 +902,9 @@ def _maybe_int(value):
 def add_platforms():
     """Add parent stations and platform child stops for major bus stations.
 
+    Not called from the default pipeline -- see scripts/scrape.py's
+    get_platforms().
+
     Combines hand-drawn platform locations (raw/platforms/geojson) with scraped
     route->platform assignments (raw/platforms/platforms-<station>.json) to:
       1. create a parent station (location_type=1) per configured station,
@@ -1106,7 +1076,7 @@ def save_missing_files():
             files_to_copy = [
                 'translations.txt',
             ]
-            
+
             # Copy each file
             for filename in files_to_copy:
                 if filename in intermediate_zip.namelist():
@@ -1119,7 +1089,7 @@ def save_missing_files():
                         for row in reader:
                             if row['record_id'] in existing_stops:
                                 filtered_translations.append(row)
-                        
+
                         # Write filtered translations
                         if filtered_translations:
                             output = StringIO()
@@ -1138,10 +1108,9 @@ add_stops()
 add_routes()
 add_shapes()
 add_trips()
-add_stop_desc()
 add_translations()
-add_platforms()
-add_fares()
+
+# add_platforms()/add_fares() above are not called -- see scripts/scrape.py.
 
 # Final cleanup to ensure no single-stop trips
 cleanup_trips()

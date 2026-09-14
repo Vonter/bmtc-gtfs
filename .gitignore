@@ -8,11 +8,12 @@ scripts/gtfs_temp
 
 raw/debug.log
 raw/fares
-raw/routeids
-raw/routelines
 raw/stops
-raw/timetables
-raw/translations
+raw/routes.json
+raw/stop_schedules
+raw/route_end_times
+
+cache.db
 
 gtfs/debug.log
 gtfs/missingShapes.txt

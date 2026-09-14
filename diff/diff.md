@@ -1,9 +1,9 @@
 # GTFS changes
 
-Generated: 2026-09-07T07:01:48+00:00
+Generated: 2026-09-14T10:51:33+00:00
 
-**Comparison:** `9b10e7bacbd5:gtfs/bmtc.zip` → `gtfs/bmtc.zip`.
-**Feed version:** 20260712 → 20260907. **Validity:** 2026-07-12–2027-07-12 → 2026-09-07–2027-09-07.
+**Comparison:** `ee945dc0c21b:gtfs/bmtc.zip` → `gtfs/bmtc.zip`.
+**Feed version:** 20260907 → 20260914. **Validity:** 2026-09-07–2027-09-07 → 2026-09-14–2027-09-14.
 
 ## File changes
 
@@ -11,45 +11,43 @@ Generated: 2026-09-07T07:01:48+00:00
 |---|---:|---:|---:|---:|---:|---:|
 | `agency.txt` (unchanged) | 1 | 1 | 0 | 0 | 0 | 0 |
 | `attributions.txt` (unchanged) | 2 | 2 | 0 | 0 | 0 | 0 |
-| `calendar.txt` | 1 | 1 | 0 | 0 | 0 | 1 |
-| `fare_attributes.txt` | 120 | 110 | -10 | 0 | 10 | 0 |
-| `fare_rules.txt` | 261,613 | 170,161 | -91,452 | 151,900 | 243,352 | 0 |
+| `calendar.txt` | 1 | 49 | +48 | 49 | 1 | 0 |
+| `fare_attributes.txt` (deleted) | 110 | 0 | -110 | — | — | — |
+| `fare_rules.txt` (deleted) | 170,161 | 0 | -170,161 | — | — | — |
 | `feed_info.txt` | 1 | 1 | 0 | 0 | 0 | 1 |
-| `routes.txt` | 4,381 | 4,434 | +53 | 241 | 188 | 14 |
-| `shapes.txt` | 2,447,719 | 2,492,304 | +44,585 | 150,431 | 105,846 | 463,894 |
-| `stop_times.txt` | 1,519,120 | 1,540,686 | +21,566 | 467,529 | 445,963 | 1,069,356 |
-| `stops.txt` | 9,887 | 9,960 | +73 | 205 | 132 | 5,270 |
-| `translations.txt` | 9,437 | 9,503 | +66 | 172 | 106 | 38 |
-| `trips.txt` | 56,855 | 57,836 | +981 | 981 | 0 | 53,403 |
+| `routes.txt` | 4,434 | 4,638 | +204 | 4,638 | 4,434 | 0 |
+| `shapes.txt` | 2,492,304 | 2,579,006 | +86,702 | 2,579,006 | 2,492,304 | 0 |
+| `stop_times.txt` | 1,540,686 | 2,716,638 | +1,175,952 | 2,716,638 | 1,540,686 | 0 |
+| `stops.txt` | 9,960 | 9,575 | -385 | 9,575 | 9,960 | 0 |
+| `translations.txt` | 9,503 | 9,554 | +51 | 9,554 | 9,503 | 0 |
+| `trips.txt` | 57,836 | 84,858 | +27,022 | 84,858 | 57,836 | 0 |
 
-**Total:** 3,159,033 row/column/file changes; 0 files added, 0 deleted, 10 modified, 0 not compared.
-
-**Trip-ID caveat:** 53,235/56,855 shared trip IDs now refer to a different route/direction. Trip and stop-time modifications are literal ID-based changes, not counts of changed or cancelled services. Shape-point changes also include geometry resampling and sequence shifts.
+**Total:** 9,519,050 row/column/file changes; 0 files added, 2 deleted, 8 modified, 0 not compared.
 
 ## Route service changes
 
-- **Added route names (238):** 112 SBS-HIRT, 12 KBS-BSK-KDHC, 13 WG10TH-MYH, 143 NRG-SNBS, 15-E KBS-KML, 180-A MRBS-HIRT, 2, 201 D6-BSK, 201-G  BSK-HAL ARDC, 201-G HAL ARDC-BSK-KGR, 210-N KBS-UTH-GPTA, 211-C; +226 more.
-- **Removed route names (185):** 13 MDP-BSK, 13 SJHS-SBS, 139-MRS-SBS, 144-E SNBS-SPHS, 161-D SBS-BTMS, 176-C STP-IIHS, 201-G BSK-BNM, 211-AD, 215-S SJBS-JSD, 223-A HAL-DBT, 225-K KBS-BHELLO, 226-Y; +173 more.
-- **ID reassignment:** 12 retained route names have different route IDs.
+- **Added route names (735):** 107-C D14G-CMS, 108-B, 111-C KBS-VCH-KVB, 114-C STP-SBS-BCGHS, 13 MDP-BSK, 13 SJHS-SBS, 13-B SGH-PNNR, 13-C SGH-ISROL, 13-D, 132, 139-MRS-SBS, 140-E KMT-EJP-KRM; +723 more.
+- **Removed route names (531):** 223-L, 226-E KBS-CGD, 234-E SBS-KMT-UST, 234-EC, 238-V KBS-DPN, 240-J DML-CML-KMT, 25-BA, 253-E, 255-B NLM-BELT, 258 SNBS-NMG, 258-C JTMK-GGPFLY-SNBS, 258-MK; +519 more.
+- **ID reassignment:** 3,903 retained route names have different route IDs.
 
 Largest changes in scheduled trip records, grouped by route name; directions and duplicate names combined. Renames are not inferred.
 
 | Route | Before | After | Net |
 |---|---:|---:|---:|
-| 502-HC | 0 | 173 | +173 |
-| D40-D40G | 9 | 137 | +128 |
-| D40-DSP | 127 | 4 | -123 |
-| D20-BSK | 166 | 81 | -85 |
-| VV-EXP 298MN | 0 | 85 | +85 |
-| O EXP V-317CH | 0 | 81 | +81 |
-| O EXP-317CH | 81 | 0 | -81 |
-| 258-C D40G-NMG | 4 | 78 | +74 |
+| 500-D | 261 | 843 | +582 |
+| KBS-3A | 269 | 667 | +398 |
+| 600-F | 295 | 686 | +391 |
+| 226-N | 310 | 693 | +383 |
+| V-500D | 196 | 537 | +341 |
+| 410-FA | 316 | 639 | +323 |
+| 375-D | 398 | 712 | +314 |
+| 290-E | 270 | 575 | +305 |
 
 ## Notable field changes
 
-- **stops.txt:** zone_id 5,164; stop_lon 202; stop_lat 201; stop_desc 30 modified rows.
-- **routes.txt:** route_short_name 9; route_long_name 5 modified rows.
-- **translations.txt:** translation 38 modified rows.
+No field changes in stops, routes, fare attributes, or translations.
+- **stop_times.txt:** columns deleted: stop_headsign.
+- **stops.txt:** columns deleted: parent_station, stop_desc, location_type, platform_code.
 
 ## Reproduce and interpret
 
@@ -61,5 +59,5 @@ python3 diff/diff.py
 
 Snapshots are copied before comparison; downloaded_at records local snapshot capture time, not an upstream download time.
 
-- Base SHA-256: `2308f8248ea954b75b3660cda7b6d85ecf80831179968baec8ae3db5b41b0b4e`
-- New SHA-256: `b5fe4a8e05495f719e4c8f16452dc6c4820f342b5414c3fb51e19687b5ea3333`
+- Base SHA-256: `b5fe4a8e05495f719e4c8f16452dc6c4820f342b5414c3fb51e19687b5ea3333`
+- New SHA-256: `e34b09cc411977793c457bb9cfc69352869220b81e73b92f24ab4aee6e3b6fe3`

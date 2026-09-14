@@ -3,25 +3,30 @@ import aiohttp
 import json
 import logging
 import math
+import ssl
 import sys
 import time
 import traceback
 import asyncio
+import threading
+import urllib.error
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from pathlib import Path
-from string import ascii_lowercase
 from typing import Dict, List, Optional, Any, Tuple
 
 class Config:
     """Configuration constants for the BMTC scraper."""
-    
-    # API Configuration
+
+    # API Configuration Namma BMTC
     BASE_URL = "https://bmtcmobileapi.karnataka.gov.in/WebAPI"
     MAX_RETRIES = 3
     RETRY_DELAY = 5
     REQUEST_TIMEOUT = 30
     RATE_LIMIT_DELAY = 0.01
-    
+
     # Headers
     HEADERS = {
         'Accept': 'application/json, text/plain, */*',
@@ -33,52 +38,426 @@ class Config:
         'Origin': 'https://bmtcwebportal.amnex.com',
         'Referer': 'https://bmtcwebportal.amnex.com/'
     }
-    
+
     # Directories
     DIRECTORIES = {
         'routes': Path('../raw/routes.json'),
-        'routelines': Path('../raw/routelines'),
-        'timetables': Path('../raw/timetables'),
+        'stop_schedule': Path('../raw/stop_schedules'),
+        'route_end_times': Path('../raw/route_end_times'),
+        # Below are not used in Namma BMTC 2.0
         'stops': Path('../raw/stops'),
-        'translations': Path('../raw/translations'),
-        'routeids': Path('../raw/routeids'),
         'fares': Path('../raw/fares'),
         'platforms': Path('../raw/platforms'),
     }
-    
-    # Languages and other constants
-    LANGUAGES = ['en', 'kn']
-    ALPHABETS = list(ascii_lowercase)
+
+
+# --------------------------------------------------------------------------
+# Namma BMTC 2.0 API -- source for routes, stops, shapes, trips, and
+# translations (see get_routes() and crawl_stop_schedules() below).
+# --------------------------------------------------------------------------
+
+CITY = "bengaluru"
+ROUTES_URL = "https://production.zophop.com/scheduler_v4/v4/{city}/routes/id?mode=bus"
+STOP_SCHEDULE_URL = "https://production.zophop.com/scheduler_v4/v4/{city}/stopdetails"
+ROUTE_DETAILS_URL = "https://chalo.com/app/api/scheduler_v4/v4/{city}/routedetails"
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+# Crawl pacing/reliability
+STOPDETAILS_CONCURRENCY = 4
+STOPDETAILS_MIN_INTERVAL_S = 0.2
+STOPDETAILS_TIMEOUT_S = 60.0
+STOP_SCHEDULE_MAX_RETRIES = 8
+STOP_SCHEDULE_TTL_HOURS = 7 * 24.0
+
+# Some local environments' python3 install has a broken/missing CA bundle for
+# this host even though curl/browsers verify it fine; this is a public,
+# non-sensitive endpoint, so skipping verification is an acceptable tradeoff
+# here specifically.
+INSECURE_SSL_CONTEXT = ssl.create_default_context()
+INSECURE_SSL_CONTEXT.check_hostname = False
+INSECURE_SSL_CONTEXT.verify_mode = ssl.CERT_NONE
+
+
+def http_get_json(url: str, timeout: float = 30.0) -> object:
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout, context=INSECURE_SSL_CONTEXT) as resp:
+        return json.loads(resp.read())
+
+
+def fetch_routes(city: str = CITY) -> list:
+    """Fetch every BMTC route+direction entry from Namma BMTC 2.0's route catalog.
+
+    Each entry already carries its ordered stop sequence
+    (stopSequenceWithDetails, each stop with lat/lon and a localeMap.kn
+    Kannada name) and an encoded polyline -- this one response is the full
+    source for stops.txt, routes.txt, shapes.txt, and translations.txt.
+    """
+    url = ROUTES_URL.format(city=urllib.parse.quote(city, safe=""))
+    data = http_get_json(url)
+    if not isinstance(data, list):
+        raise ValueError(f"unexpected route catalog response shape: {type(data).__name__}")
+    return [e for e in data if isinstance(e, dict) and e.get("agency_name") == "BMTC" and e.get("route_id")]
+
+
+class RateLimited(Exception):
+    """The request was blocked (403/429/5xx) or timed out -- back off, don't cache this as empty."""
+
+    def __init__(self, status: int, retry_after: float | None) -> None:
+        super().__init__("timed out" if status == 0 else f"HTTP {status}")
+        self.status = status
+        self.retry_after = retry_after
+
+
+class RateLimiter:
+    """Shared pacing + exponential backoff for every stopdetails worker thread."""
+
+    def __init__(self, min_interval_s: float, max_backoff_s: float = 120.0) -> None:
+        self.min_interval_s = min_interval_s
+        self.max_backoff_s = max_backoff_s
+        self._lock = threading.Lock()
+        self._next_allowed = 0.0
+        self._backoff_until = 0.0
+        self._consecutive_blocks = 0
+
+    def wait_for_turn(self) -> None:
+        while True:
+            with self._lock:
+                now = time.monotonic()
+                wait_until = max(self._next_allowed, self._backoff_until)
+                if now >= wait_until:
+                    self._next_allowed = now + self.min_interval_s
+                    return
+                sleep_for = wait_until - now
+            time.sleep(sleep_for)
+
+    def report_blocked(self, retry_after: float | None) -> float:
+        with self._lock:
+            self._consecutive_blocks += 1
+            delay = retry_after if retry_after else 5.0 * (2 ** (self._consecutive_blocks - 1))
+            delay = min(self.max_backoff_s, delay)
+            self._backoff_until = time.monotonic() + delay
+            return delay
+
+    def report_success(self) -> None:
+        with self._lock:
+            if self._consecutive_blocks:
+                self._consecutive_blocks -= 1
+
+
+def fetch_stop_schedule(city: str, stop_id: str, day: str, timeout: float = 60.0) -> list:
+    """Return [(trip_id, route_id, arrival_time), ...] for every scheduled trip at this stop.
+
+    Raises RateLimited on 403/429/5xx *and* on a timeout/connection
+    failure, so the caller retries instead of caching a false "no scheduled
+    trips" result for a request that was actually just blocked or too slow.
+    """
+    url = (
+        STOP_SCHEDULE_URL.format(city=urllib.parse.quote(city, safe=""))
+        + f"?stop_id={urllib.parse.quote(stop_id, safe='')}&day={urllib.parse.quote(day, safe='')}"
+    )
+    try:
+        data = http_get_json(url, timeout=timeout)
+    except urllib.error.HTTPError as exc:
+        if exc.code in (403, 429) or exc.code >= 500:
+            retry_after = None
+            header = exc.headers.get("Retry-After") if exc.headers else None
+            if header:
+                try:
+                    retry_after = float(header)
+                except ValueError:
+                    retry_after = None
+            raise RateLimited(exc.code, retry_after) from exc
+        logging.warning("stopdetails %s: HTTP %s", stop_id, exc.code)
+        return []
+    except (TimeoutError, urllib.error.URLError) as exc:
+        raise RateLimited(0, None) from exc
+    if not isinstance(data, list):
+        return []
+    out = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        trip = entry.get("trip") or {}
+        route_id = trip.get("route_id")
+        arrival_time = entry.get("arrival_time")
+        trip_id = trip.get("trip_id")
+        if isinstance(route_id, str) and isinstance(trip_id, str) and isinstance(arrival_time, int):
+            out.append((trip_id, route_id, arrival_time))
+    return out
+
+
+def fetch_route_end_times(city: str, route_id: str, day: str, timeout: float = 30.0) -> dict:
+    """trip_id -> end_time (arrival at the route's own final stop, seconds
+    since midnight) for one route on one day.
+
+    fetch_stop_schedule()/STOP_SCHEDULE_URL above never reports a route's own
+    arrival at its own final stop -- confirmed empirically: that endpoint
+    appears to report departures *from* a stop, and a trip terminating at a
+    stop has none to report there. This separate endpoint's per-trip
+    end_time is the only source found for that one missing value; see
+    scripts/gtfs.py's add_trips(), which appends it as each trip's final
+    stop_time only when the trip doesn't already reach the route's last stop.
+    """
+    url = (
+        ROUTE_DETAILS_URL.format(city=urllib.parse.quote(city, safe=""))
+        + f"?route_id={urllib.parse.quote(route_id, safe='')}&day={urllib.parse.quote(day, safe='')}"
+    )
+    try:
+        data = http_get_json(url, timeout=timeout)
+    except urllib.error.HTTPError as exc:
+        if exc.code in (403, 429) or exc.code >= 500:
+            retry_after = None
+            header = exc.headers.get("Retry-After") if exc.headers else None
+            if header:
+                try:
+                    retry_after = float(header)
+                except ValueError:
+                    retry_after = None
+            raise RateLimited(exc.code, retry_after) from exc
+        logging.warning("routedetails %s: HTTP %s", route_id, exc.code)
+        return {}
+    except (TimeoutError, urllib.error.URLError) as exc:
+        raise RateLimited(0, None) from exc
+    trips = data.get("trips") if isinstance(data, dict) else None
+    if not isinstance(trips, list):
+        return {}
+    out = {}
+    for t in trips:
+        if not isinstance(t, dict):
+            continue
+        trip_id = t.get("trip_id")
+        end_time = t.get("end_time")
+        if isinstance(trip_id, str) and isinstance(end_time, int):
+            out[trip_id] = end_time
+    return out
+
+
+def _stop_schedule_path(stop_id: str, day: str) -> Path:
+    return Config.DIRECTORIES['stop_schedule'] / day / f"{stop_id}.json"
+
+
+def _is_stop_schedule_fresh(stop_id: str, day: str, max_age_s: float) -> bool:
+    """max_age_s=0 always reports stale (used by force_rebuild=True below)."""
+    path = _stop_schedule_path(stop_id, day)
+    if not path.exists():
+        return False
+    return (time.time() - path.stat().st_mtime) <= max_age_s
+
+
+def _save_stop_schedule(stop_id: str, day: str, entries: list) -> None:
+    """Persist one stop's fetched schedule immediately -- called from the crawl
+    worker thread the instant its own request completes, so a killed/
+    interrupted process never loses a completed fetch that just hadn't been
+    picked up by the main thread yet.
+    """
+    path = _stop_schedule_path(stop_id, day)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(entries, f)
+    tmp.replace(path)
+
+
+def _load_stop_schedule(stop_id: str, day: str) -> list:
+    path = _stop_schedule_path(stop_id, day)
+    if not path.exists():
+        return []
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return []
+
+
+def _trip_ids_for_route(stop_id: str, day: str, route_id: str) -> frozenset:
+    """Which trip_ids of one route were seen at one stop on one day."""
+    return frozenset(t for t, r, _a in _load_stop_schedule(stop_id, day) if r == route_id)
+
+
+def _route_end_times_path(route_id: str, day: str) -> Path:
+    return Config.DIRECTORIES['route_end_times'] / day / f"{route_id}.json"
+
+
+def _is_route_end_times_fresh(route_id: str, day: str, max_age_s: float) -> bool:
+    path = _route_end_times_path(route_id, day)
+    if not path.exists():
+        return False
+    return (time.time() - path.stat().st_mtime) <= max_age_s
+
+
+def _save_route_end_times(route_id: str, day: str, end_times: dict) -> None:
+    path = _route_end_times_path(route_id, day)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(end_times, f)
+    tmp.replace(path)
+
+
+def _load_route_end_times(route_id: str, day: str) -> dict:
+    path = _route_end_times_path(route_id, day)
+    if not path.exists():
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {}
+
+
+def crawl_route_end_times(pairs: list, max_age_s: float, label: str,
+                           concurrency: int = STOPDETAILS_CONCURRENCY,
+                           min_interval_s: float = STOPDETAILS_MIN_INTERVAL_S,
+                           timeout_s: float = STOPDETAILS_TIMEOUT_S,
+                           max_retries: int = STOP_SCHEDULE_MAX_RETRIES) -> None:
+    """Crawl an arbitrary set of (route_id, day) pairs, saving each to
+    raw/route_end_times/<day>/<route_id>.json as soon as it completes.
+
+    One request per detected route+pattern (not per stop), so this is a much
+    smaller crawl than crawl_stop_days() above.
+    """
+    todo = [pair for pair in pairs if not _is_route_end_times_fresh(pair[0], pair[1], max_age_s)]
+    total = len(pairs)
+    already = total - len(todo)
+    logging.info(f"{label}: {already}/{total} (route, day) pairs already cached, {len(todo)} to fetch")
+    if not todo:
+        return
+
+    done = already
+    skipped = 0
+    lock = threading.Lock()
+    limiter = RateLimiter(min_interval_s)
+
+    def _fetch(pair: Tuple[str, str]) -> bool:
+        route_id, day = pair
+        for attempt in range(1, max_retries + 1):
+            limiter.wait_for_turn()
+            try:
+                end_times = fetch_route_end_times(CITY, route_id, day, timeout=timeout_s)
+                limiter.report_success()
+                _save_route_end_times(route_id, day, end_times)
+                return True
+            except RateLimited as exc:
+                delay = limiter.report_blocked(exc.retry_after)
+                logging.warning(
+                    "routedetails %s/%s: %s (attempt %d/%d), backing off %.0fs",
+                    route_id, day, exc, attempt, max_retries, delay,
+                )
+        logging.error("routedetails %s/%s: still rate-limited after %d attempts, skipping for now",
+                      route_id, day, max_retries)
+        return False
+
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        futures = {pool.submit(_fetch, pair): pair for pair in todo}
+        for future in as_completed(futures):
+            route_id, day = futures[future]
+            try:
+                success = future.result()
+            except Exception:
+                logging.exception("routedetails %s/%s: failed", route_id, day)
+                success = False
+            if not success:
+                with lock:
+                    skipped += 1
+                continue
+            with lock:
+                done += 1
+                if done % 500 == 0 or done == total:
+                    print(f"  {label}: {done}/{total} pairs ({skipped} skipped, rate-limited)",
+                          file=sys.stderr, flush=True)
+
+
+def crawl_stop_days(pairs: list, max_age_s: float, label: str,
+                     concurrency: int = STOPDETAILS_CONCURRENCY,
+                     min_interval_s: float = STOPDETAILS_MIN_INTERVAL_S,
+                     timeout_s: float = STOPDETAILS_TIMEOUT_S,
+                     max_retries: int = STOP_SCHEDULE_MAX_RETRIES) -> None:
+    """Crawl an arbitrary set of (stop_id, day) pairs, saving each to
+    raw/stop_schedules/<day>/<stop_id>.json as soon as it completes.
+    """
+    todo = [pair for pair in pairs if not _is_stop_schedule_fresh(pair[0], pair[1], max_age_s)]
+    total = len(pairs)
+    already = total - len(todo)
+    logging.info(f"{label}: {already}/{total} (stop, day) pairs already cached, {len(todo)} to fetch")
+    if not todo:
+        return
+
+    done = already
+    skipped = 0
+    lock = threading.Lock()
+    limiter = RateLimiter(min_interval_s)
+
+    def _fetch(pair: Tuple[str, str]) -> bool:
+        stop_id, day = pair
+        for attempt in range(1, max_retries + 1):
+            limiter.wait_for_turn()
+            try:
+                entries = fetch_stop_schedule(CITY, stop_id, day, timeout=timeout_s)
+                limiter.report_success()
+                _save_stop_schedule(stop_id, day, entries)
+                return True
+            except RateLimited as exc:
+                delay = limiter.report_blocked(exc.retry_after)
+                logging.warning(
+                    "stopdetails %s/%s: %s (attempt %d/%d), backing off %.0fs",
+                    stop_id, day, exc, attempt, max_retries, delay,
+                )
+        logging.error("stopdetails %s/%s: still rate-limited after %d attempts, skipping for now",
+                      stop_id, day, max_retries)
+        return False
+
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        futures = {pool.submit(_fetch, pair): pair for pair in todo}
+        for future in as_completed(futures):
+            stop_id, day = futures[future]
+            try:
+                success = future.result()
+            except Exception:
+                logging.exception("stopdetails %s/%s: failed", stop_id, day)
+                success = False
+            if not success:
+                with lock:
+                    skipped += 1
+                continue
+            with lock:
+                done += 1
+                if done % 25 == 0 or done == total:
+                    print(f"  {label}: {done}/{total} pairs ({skipped} skipped, rate-limited)",
+                          file=sys.stderr, flush=True)
 
 
 class BMTCApiClient:
-    """Handles all API communications with the BMTC service."""
-    
+    """Handles all API communications with BMTC service (legacy, only fares and platforms)."""
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.semaphore = asyncio.Semaphore(10)  # Limit concurrent requests to 10
         self.session = None
-    
+
     async def __aenter__(self):
         """Async context manager entry."""
         self.session = aiohttp.ClientSession(headers=Config.HEADERS)
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self.session:
             await self.session.close()
-    
-    async def make_request(self, endpoint: str, data: Optional[Dict] = None, 
+
+    async def make_request(self, endpoint: str, data: Optional[Dict] = None,
                     method: str = 'POST', retry_count: int = 0,
                     headers: Optional[Dict[str, str]] = None) -> Optional[Dict]:
         """Make HTTP request with retry functionality."""
         if retry_count > Config.MAX_RETRIES:
             self.logger.error(f"Maximum retries exceeded for endpoint: {endpoint}")
             return None
-        
+
         url = f"{Config.BASE_URL}/{endpoint}"
-        
+
         try:
             async with self.semaphore:  # Limit concurrent requests
                 async with (
@@ -114,14 +493,14 @@ class BMTCApiClient:
 
 class FileManager:
     """Handles file operations and directory management."""
-    
+
     @staticmethod
     def ensure_directories():
         """Create necessary directories if they don't exist."""
         for directory in Config.DIRECTORIES.values():
             if isinstance(directory, Path) and directory.suffix == '':
                 directory.mkdir(exist_ok=True)
-    
+
     @staticmethod
     def save_json(filepath: Path, data: Any):
         """Save data as JSON to specified filepath."""
@@ -131,7 +510,7 @@ class FileManager:
                 f.write(data)
             else:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-    
+
     @staticmethod
     def load_json(filepath: Path) -> Optional[Dict]:
         """Load JSON data from filepath."""
@@ -143,7 +522,7 @@ class FileManager:
         except json.JSONDecodeError as e:
             logging.warning(f"Could not decode {filepath}: {e}")
             return None
-    
+
     @staticmethod
     def list_files(directory: Path, extension: str = '.json') -> List[str]:
         """List files in directory with given extension."""
@@ -154,13 +533,13 @@ class FileManager:
 
 class BMTCScraper:
     """Main scraper class that orchestrates data collection."""
-    
+
     def __init__(self):
         self.client = BMTCApiClient()
         self.file_manager = FileManager()
         self.logger = logging.getLogger(__name__)
         self.routes_data = None
-        
+
         # Setup logging
         logging.basicConfig(
             level=logging.INFO,
@@ -170,250 +549,120 @@ class BMTCScraper:
                 logging.StreamHandler()
             ]
         )
-        
+
         # Ensure directories exist
         self.file_manager.ensure_directories()
-    
-    async def get_routes(self) -> Dict:
-        """Fetch all routes from BMTC API."""
-        self.logger.info("Fetching routes...")
-        
-        response = await self.client.make_request('GetAllRouteList')
-        if not response:
-            self.logger.error("Failed to get routes after multiple retries")
+
+    async def get_routes(self) -> list:
+        """Fetch every BMTC route+direction entry from Namma BMTC 2.0's route catalog."""
+        self.logger.info("Fetching Namma BMTC 2.0 route catalog...")
+
+        routes = await asyncio.to_thread(fetch_routes, CITY)
+        if not routes:
+            self.logger.error("Failed to get routes from Namma BMTC 2.0")
             sys.exit(1)
-        
-        self.routes_data = response
-        self.file_manager.save_json(Config.DIRECTORIES['routes'], response)
-        
-        self.logger.info(f"Fetched {len(response.get('data', []))} routes")
-        return response
-    
-    async def get_translations(self):
-        """Fetch station name translations for all alphabets and languages."""
-        self.logger.info("Fetching translations...")
-        
-        trans_dir = Config.DIRECTORIES['translations']
-        existing_files = set(self.file_manager.list_files(trans_dir))
-        
-        async def fetch_translation(language: str, alphabet: str):
-            filename = f'{alphabet}_{language}.json'
-            if filename in existing_files:
-                return None
-            
-            response = await self.client.make_request(
-                'SearchStation', {'stationName': alphabet},
-                headers={'lan': language, 'deviceType': 'android'}
-            )
-            
-            if response:
-                self.file_manager.save_json(trans_dir / filename, response)
-                self.logger.info(f"Fetched stations for {alphabet} in {language}")
-                return True
-            return None
-        
-        tasks = []
-        for language in Config.LANGUAGES:
-            for alphabet in Config.ALPHABETS:
-                tasks.append(fetch_translation(language, alphabet))
-        
-        results = await asyncio.gather(*tasks)
-        total_fetched = sum(1 for r in results if r)
-        
-        self.logger.info(f"Finished fetching translations ({total_fetched} new files)")
-    
-    async def get_routelines(self):
-        """Fetch route points for all routes."""
-        self.logger.info("Fetching routelines...")
-        
-        if not self.routes_data:
-            self.logger.error("Routes data not available")
-            return
-        
-        routelines_dir = Config.DIRECTORIES['routelines']
-        existing_files = set(self.file_manager.list_files(routelines_dir))
-        
-        async def fetch_routeline(route: Dict):
-            route_no = route['routeno'].strip()
-            filename = f'{route_no}.json'
-            
-            if filename in existing_files:
-                return None
-            
-            response = await self.client.make_request(
-                'RoutePoints',
-                {'routeid': route['routeid']}
-            )
-            
-            if response:
-                self.file_manager.save_json(routelines_dir / filename, response)
-                self.logger.info(f"Fetched routeline for {route_no}")
-                return True
-            return None
-        
-        tasks = [fetch_routeline(route) for route in self.routes_data['data']]
-        results = await asyncio.gather(*tasks)
-        total_fetched = sum(1 for r in results if r)
-        
-        self.logger.info(f"Finished fetching routelines ({total_fetched} new files)")
-    
-    async def get_timetables(self):
-        """Fetch timetables for Monday (can be extended for other days)."""
-        self.logger.info("Fetching timetables...")
-        
-        if not self.routes_data:
-            self.logger.error("Routes data not available")
-            return
-        
-        next_monday = self._get_next_monday()
-        dow = "Monday"
-        
-        timetables_dir = Config.DIRECTORIES['timetables'] / dow
-        timetables_dir.mkdir(parents=True, exist_ok=True)
-        existing_files = set(self.file_manager.list_files(timetables_dir))
-        
-        async def fetch_timetable(route: Dict):
-            route_no = route['routeno'].strip()
-            filename = f'{route_no}.json'
-            
-            if filename in existing_files:
-                return None
-            
-            timetable_data = {
-                'routeid': route['routeid'],
-                'fromStationId': route['fromstationid'],
-                'toStationId': route['tostationid'],
-                'current_date': f"{next_monday.strftime('%Y-%m-%d')}T00:00:00.000Z",
-                'endtime': f"{next_monday.strftime('%Y-%m-%d')} 23:59",
-                'starttime': f"{next_monday.strftime('%Y-%m-%d')} 00:00"
-            }
-            
-            response = await self.client.make_request('GetTimetableByRouteid_v3', timetable_data)
-            
-            if response:
-                self.file_manager.save_json(timetables_dir / filename, response)
-                self.logger.info(f"Fetched timetable for {route_no}")
-                return True
-            return None
-        
-        tasks = [fetch_timetable(route) for route in self.routes_data['data']]
-        results = await asyncio.gather(*tasks)
-        total_fetched = sum(1 for r in results if r)
-        
-        self.logger.info(f"Finished fetching timetables ({total_fetched} new files)")
-    
-    async def get_route_parents(self) -> Dict[str, int]:
-        """Get route parent IDs for all route prefixes."""
-        self.logger.info("Fetching route parent IDs...")
-        
+
+        self.routes_data = routes
+        self.file_manager.save_json(Config.DIRECTORIES['routes'], routes)
+
+        self.logger.info(f"Fetched {len(routes)} BMTC route+direction entries")
+        return routes
+
+    async def crawl_stop_schedules(self, force_rebuild: bool = False) -> Dict[str, list]:
+        """Terminus-scan + full-stretch crawl of Namma BMTC 2.0's per-stop schedule.
+
+        Two phases: first, query only each route's terminus stop across all 7
+        weekdays to detect whether (and how) its schedule varies by day; then
+        query every stop on each route's full sequence, but only for the
+        representative day(s) of each distinct detected pattern. Every
+        (stop_id, day) result lands immediately in
+        raw/stop_schedules/<day>/<stop_id>.json.
+
+        Returns route_id -> [(trip_id set, [weekday names with that set]), ...],
+        which scripts/gtfs.py's trip-building step needs to know which
+        representative day to read back per route.
+        """
         if not self.routes_data:
             self.logger.error("Routes data not available")
             return {}
-        
-        routeids_dir = Config.DIRECTORIES['routeids']
-        existing_files = set(self.file_manager.list_files(routeids_dir))
-        
-        # Get unique route prefixes
-        route_prefixes = set(
-            route['routeno'][:3] for route in self.routes_data['data']
+
+        max_age_s = 0.0 if force_rebuild else STOP_SCHEDULE_TTL_HOURS * 3600
+
+        termini = sorted({
+            (r.get("first_stop") or {}).get("stop_id")
+            for r in self.routes_data if (r.get("first_stop") or {}).get("stop_id")
+        })
+        terminus_pairs = [(stop_id, day) for stop_id in termini for day in WEEKDAYS]
+        self.logger.info(
+            f"{len(termini)} unique route termini x {len(WEEKDAYS)} weekdays "
+            f"= {len(terminus_pairs)} schedule-pattern lookups"
         )
-        
-        async def fetch_route_prefix(prefix: str):
-            filename = f'{prefix}.json'
-            if filename in existing_files:
-                return None
-            
-            response = await self.client.make_request('SearchRoute_v2', {'routetext': prefix})
-            
-            if response:
-                self.file_manager.save_json(routeids_dir / filename, response)
-                self.logger.info(f"Fetched route prefix data for {prefix}")
-                return True
-            return None
-        
-        tasks = [fetch_route_prefix(prefix) for prefix in route_prefixes]
-        await asyncio.gather(*tasks)
-        
-        # Build route parents mapping
-        route_parents = {}
-        for filepath in routeids_dir.glob('*.json'):
-            data = self.file_manager.load_json(filepath)
-            if data and 'data' in data:
-                for route in data['data']:
-                    route_parents[route['routeno']] = route['routeparentid']
-        
-        self.logger.info(f"Built route parents mapping with {len(route_parents)} entries")
-        return route_parents
-    
-    async def get_stoplists(self, route_parents: Dict[str, int]):
-        """Fetch stop lists for all routes."""
-        self.logger.info("Fetching stoplists...")
-        
-        if not self.routes_data:
-            self.logger.error("Routes data not available")
-            return
-        
-        stops_dir = Config.DIRECTORIES['stops']
-        existing_files = set(self.file_manager.list_files(stops_dir))
-        
-        async def fetch_stoplist(route_no: str):
-            try:
-                route_parent_name = route_no.replace(" UP", "").replace(" DOWN", "")
-                
-                if route_parent_name not in route_parents:
-                    self.logger.warning(f"No parent ID found for route {route_parent_name}")
-                    return None
-                
-                response = await self.client.make_request(
-                    'SearchByRouteDetails_v4',
-                    {
-                        'routeid': route_parents[route_parent_name],
-                        'servicetypeid': 0
-                    }
-                )
-                
-                if not response:
-                    return None
-                
-                data = response
-                if data.get("message") == "Data not found":
-                    return None
-                
-                total_fetched = 0
-                # Save UP and DOWN routes separately if they have data
-                if data.get("up", {}).get("data"):
-                    up_filename = f'{route_parent_name} UP.json'
-                    if up_filename not in existing_files:
-                        self.file_manager.save_json(stops_dir / up_filename, response)
-                        total_fetched += 1
-                
-                if data.get("down", {}).get("data"):
-                    down_filename = f'{route_parent_name} DOWN.json'
-                    if down_filename not in existing_files:
-                        self.file_manager.save_json(stops_dir / down_filename, response)
-                        total_fetched += 1
-                
-                if total_fetched > 0:
-                    self.logger.info(f"Fetched stoplist for {route_parent_name}")
-                return total_fetched
-                
-            except Exception as e:
-                self.logger.error(f"Failed to fetch stoplist for {route_no}: {str(e)}")
-                return None
-        
-        # Get pending routes
-        pending_routes = []
-        for route in self.routes_data['data']:
-            route_no = route['routeno']
-            if f'{route_no}.json' not in existing_files:
-                pending_routes.append(route_no)
-        
-        tasks = [fetch_stoplist(route_no) for route_no in pending_routes]
-        results = await asyncio.gather(*tasks)
-        total_fetched = sum(r for r in results if r)
-        
-        self.logger.info(f"Finished fetching stoplists ({total_fetched} new files)")
-    
+        await asyncio.to_thread(crawl_stop_days, terminus_pairs, max_age_s, "terminus scan")
+
+        patterns = self._compute_route_patterns()
+        total_patterns = sum(len(v) for v in patterns.values())
+        self.logger.info(
+            f"{len(patterns)}/{len(self.routes_data)} routes have a detected schedule "
+            f"({total_patterns} distinct route x day-pattern combinations)"
+        )
+
+        full_pairs = self._build_full_stretch_pairs(patterns)
+        self.logger.info(f"{len(full_pairs)} (stop, day) pairs needed to fill in stop_times")
+        await asyncio.to_thread(crawl_stop_days, full_pairs, max_age_s, "full-stretch crawl")
+
+        # fetch_stop_schedule() above never reports a route's own arrival at
+        # its own final stop (see fetch_route_end_times()); one request per
+        # detected route+pattern fills in just that value.
+        route_day_pairs = sorted({
+            (route_id, days[0])
+            for route_id, groups in patterns.items()
+            for _trip_ids, days in groups
+        })
+        self.logger.info(f"{len(route_day_pairs)} (route, day) pairs needed for final-stop arrival times")
+        await asyncio.to_thread(crawl_route_end_times, route_day_pairs, max_age_s, "route end-time crawl")
+
+        return patterns
+
+    def _compute_route_patterns(self) -> Dict[str, list]:
+        """route_id -> [(trip_id set, [weekday names with that exact set]), ...].
+
+        Built from each route's own terminus (first_stop) alone, queried
+        across all 7 weekdays -- the set of trip_ids starting there is that
+        route's schedule fingerprint for the day. Days with an identical
+        fingerprint are grouped.
+        """
+        patterns: Dict[str, list] = {}
+        for route in self.routes_data:
+            route_id = route["route_id"]
+            terminus = (route.get("first_stop") or {}).get("stop_id")
+            if not terminus:
+                continue
+            groups: Dict[frozenset, list] = {}
+            for day in WEEKDAYS:
+                trip_ids = _trip_ids_for_route(terminus, day, route_id)
+                if trip_ids:
+                    groups.setdefault(trip_ids, []).append(day)
+            if groups:
+                patterns[route_id] = list(groups.items())
+        return patterns
+
+    def _build_full_stretch_pairs(self, patterns: Dict[str, list]) -> list:
+        """(stop_id, day) pairs needed to fill in stop_times for every route/pattern."""
+        pairs = set()
+        for route in self.routes_data:
+            groups = patterns.get(route["route_id"])
+            if not groups:
+                continue
+            sequence = route.get("stopSequenceWithDetails") or []
+            representative_days = {days[0] for _, days in groups}
+            for stop in sequence:
+                stop_id = stop.get("stop_id")
+                if not stop_id:
+                    continue
+                for day in representative_days:
+                    pairs.add((stop_id, day))
+        return sorted(pairs)
+
     def _build_next_stops_graph(self) -> Dict[str, List[str]]:
         """Build a stop -> immediate-next-stops adjacency map from raw stoplists.
 
@@ -949,14 +1198,6 @@ class BMTCScraper:
 
         self.logger.info(f"Finished premium fares ({len(premium)} priced pairs)")
 
-    def _get_next_monday(self) -> datetime:
-        """Get the date of the next Monday."""
-        today = datetime.now()
-        days_ahead = 0 - today.weekday()  # Monday is 0
-        if days_ahead <= 0:  # Target day already happened this week
-            days_ahead += 7
-        return today + timedelta(days=days_ahead)
-
     def _get_route_info(self, route_name: str) -> Optional[Dict]:
         """Get route information from routes data."""
         if not self.routes_data:
@@ -975,32 +1216,17 @@ class BMTCScraper:
     async def run_full_scrape(self):
         """Run the complete scraping process."""
         self.logger.info("Starting BMTC data scraping...")
-        
+
         try:
             async with self.client:
-                # 1. Get routes (foundation for all other operations)
-                routes = await self.get_routes()
-                
-                # 2. Get route lines and timetables
-                await self.get_routelines()
-                await self.get_timetables()
-                
-                # 3. Get route parent IDs and stop lists
-                route_parents = await self.get_route_parents()
-                await self.get_stoplists(route_parents)
-                
-                # 4. Get translations
-                await self.get_translations()
+                # 1. Get routes (foundation for stops/routes/shapes/translations)
+                await self.get_routes()
 
-                # 5. Get platform-level route assignments for major stations
-                await self.get_platforms()
+                # 2. Crawl each stop's real per-trip schedule (stop_times)
+                await self.crawl_stop_schedules()
 
-                # 6. Get fare information (ordinary, then premium/AC classes)
-                await self.get_fares()
-                await self.get_premium_fares()
-                
                 self.logger.info("BMTC data scraping completed successfully!")
-            
+
         except Exception as e:
             self.logger.error(f"Error during scraping: {str(e)}")
             self.logger.error(traceback.format_exc())
