@@ -1,1157 +1,1083 @@
+#!/usr/bin/env python3
+"""Build the BMTC GTFS feed from the snapshot saved by scrape.py."""
+
+from __future__ import annotations
+
+import argparse
+import bisect
 import csv
-import datetime
+import hashlib
+import io
+import itertools
 import json
 import logging
-import os
-import subprocess
-import traceback
-import zipfile
 import math
-from collections import defaultdict
-from io import StringIO
+import os
+import re
+import sqlite3
+import zipfile
+from collections import Counter, defaultdict
+from contextlib import closing
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Any, Iterable, Iterator
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("../gtfs/debug.log"),
-        logging.StreamHandler()
+from common import DAYS, ROOT, SNAPSHOT_DIR, clean_text, index_rows, is_bmtc_bus
+
+
+DEFAULT_OUTPUT = ROOT / "gtfs" / "bmtc.zip"
+PLATFORM_GEOMETRY = ROOT / "raw" / "platforms"
+EARTH_RADIUS_M = 6_371_000
+STATION_RADIUS_M = 750
+DAY_FIELDS = tuple(day.lower() for day in DAYS)
+FEED_VALIDITY = timedelta(days=365)
+AGENCY_URL = "https://mybmtc.karnataka.gov.in/english"
+REPOSITORY_URL = "https://github.com/Vonter/bmtc-gtfs"
+NO_PLATFORM_LABELS = {"N/A", "NA", "NONE", "NULL", "0"}
+STOP_PAIR_FARES = """
+    FROM od_plan p JOIN od_fare_quotes q
+    ON q.origin_stop_id=p.origin_stop_id AND q.destination_stop_id=p.destination_stop_id
+    WHERE q.price IS NOT NULL AND q.plan_fingerprint=p.fingerprint
+"""
+
+HEADERS = {
+    "agency.txt": ["agency_id", "agency_name", "agency_url", "agency_timezone", "agency_lang"],
+    "attributions.txt": [
+        "attribution_id", "organization_name", "is_producer", "is_operator",
+        "is_authority", "attribution_url",
+    ],
+    "calendar.txt": [
+        "service_id", "monday", "tuesday", "wednesday", "thursday", "friday",
+        "saturday", "sunday", "start_date", "end_date",
+    ],
+    "feed_info.txt": [
+        "feed_publisher_name", "feed_publisher_url", "feed_lang", "feed_start_date",
+        "feed_end_date", "feed_version", "feed_contact_email", "feed_contact_url",
+    ],
+    "stops.txt": [
+        "stop_id", "stop_code", "stop_name", "stop_desc", "stop_lat", "stop_lon",
+        "zone_id", "stop_url", "location_type", "parent_station", "platform_code",
+        "wheelchair_boarding",
+    ],
+    "routes.txt": [
+        "route_id", "agency_id", "route_short_name", "route_long_name", "route_desc",
+        "route_type", "route_url",
+    ],
+    "shapes.txt": [
+        "shape_id", "shape_pt_lat", "shape_pt_lon", "shape_pt_sequence",
+        "shape_dist_traveled",
+    ],
+    "trips.txt": [
+        "route_id", "service_id", "trip_id", "trip_headsign", "trip_short_name",
+        "direction_id", "shape_id", "wheelchair_accessible", "bikes_allowed",
+    ],
+    "stop_times.txt": [
+        "trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence",
+        "shape_dist_traveled", "timepoint",
+    ],
+    "frequencies.txt": ["trip_id", "start_time", "end_time", "headway_secs", "exact_times"],
+    "translations.txt": ["table_name", "field_name", "record_id", "language", "translation"],
+    "fare_attributes.txt": [
+        "fare_id", "price", "currency_type", "payment_method", "transfers",
+        "transfer_duration", "agency_id",
+    ],
+    "fare_rules.txt": ["fare_id", "route_id", "origin_id", "destination_id", "contains_id"],
+}
+
+
+def normalized_name(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]", "", clean_text(value).lower())
+
+
+def stable_id(prefix: str, value: str) -> str:
+    digest = hashlib.sha1(value.encode("utf-8")).hexdigest()[:12]
+    return f"{prefix}:{digest}"
+
+
+def haversine(a_lat: float, a_lon: float, b_lat: float, b_lon: float) -> float:
+    lat1, lat2 = math.radians(a_lat), math.radians(b_lat)
+    dlat = lat2 - lat1
+    dlon = math.radians(b_lon - a_lon)
+    value = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 2 * EARTH_RADIUS_M * math.asin(math.sqrt(value))
+
+
+def format_gtfs_time(seconds: float) -> str:
+    value = max(0, int(round(seconds)))
+    return f"{value // 3600:02d}:{value % 3600 // 60:02d}:{value % 60:02d}"
+
+
+def decode_polyline(encoded: str) -> list[tuple[float, float]]:
+    """Decode a Google encoded polyline without requiring a third-party module."""
+    points: list[tuple[float, float]] = []
+    latitude = longitude = index = 0
+    while index < len(encoded):
+        deltas: list[int] = []
+        for _ in range(2):
+            result = shift = 0
+            while True:
+                if index >= len(encoded):
+                    raise ValueError("truncated encoded polyline")
+                byte = ord(encoded[index]) - 63
+                index += 1
+                result |= (byte & 0x1F) << shift
+                shift += 5
+                if byte < 0x20:
+                    break
+            deltas.append(~(result >> 1) if result & 1 else result >> 1)
+        latitude += deltas[0]
+        longitude += deltas[1]
+        points.append((latitude / 100_000, longitude / 100_000))
+    return points
+
+
+def cumulative_distances(points: Iterable[tuple[float, float]]) -> list[float]:
+    result = [0.0]
+    points = list(points)
+    for previous, current in zip(points, points[1:]):
+        result.append(result[-1] + haversine(*previous, *current))
+    return result
+
+
+def project_stops_onto_shape(
+    stops: list[tuple[float, float]], shape: list[tuple[float, float]]
+) -> list[float]:
+    """Return monotonic distances along a shape for an ordered stop sequence."""
+    if len(shape) < 2:
+        return cumulative_distances(stops)
+    shape_distances = cumulative_distances(shape)
+    result: list[float] = []
+    minimum_distance = 0.0
+    for stop_lat, stop_lon in stops:
+        start_segment = max(0, bisect.bisect_right(shape_distances, minimum_distance) - 1)
+        best_error = math.inf
+        best_distance = minimum_distance
+        for segment in range(start_segment, len(shape) - 1):
+            a_lat, a_lon = shape[segment]
+            b_lat, b_lon = shape[segment + 1]
+            mean_latitude = math.radians((a_lat + b_lat + stop_lat) / 3)
+            lon_scale = max(0.01, math.cos(mean_latitude))
+            dx = (b_lon - a_lon) * lon_scale
+            dy = b_lat - a_lat
+            denominator = dx * dx + dy * dy
+            if denominator:
+                t = (
+                    (stop_lon - a_lon) * lon_scale * dx
+                    + (stop_lat - a_lat) * dy
+                ) / denominator
+            else:
+                t = 0.0
+            segment_start = shape_distances[segment]
+            segment_length = shape_distances[segment + 1] - segment_start
+            minimum_t = (
+                (minimum_distance - segment_start) / segment_length
+                if segment_length > 0 and minimum_distance > segment_start else 0.0
+            )
+            t = min(1.0, max(minimum_t, t))
+            projected_lat = a_lat + (b_lat - a_lat) * t
+            projected_lon = a_lon + (b_lon - a_lon) * t
+            error = haversine(stop_lat, stop_lon, projected_lat, projected_lon)
+            if error < best_error:
+                best_error = error
+                best_distance = segment_start + segment_length * t
+        minimum_distance = max(minimum_distance, best_distance)
+        result.append(minimum_distance)
+    if len(result) > 1 and shape_distances[-1] > 0:
+        spacing = min(0.01, shape_distances[-1] / (len(result) * 2))
+        for index in range(1, len(result)):
+            result[index] = max(result[index], result[index - 1] + spacing)
+        if result[-1] > shape_distances[-1]:
+            result[-1] = shape_distances[-1]
+            for index in range(len(result) - 2, -1, -1):
+                result[index] = min(result[index], result[index + 1] - spacing)
+    return result
+
+
+def stop_points(static: dict[str, Any]) -> list[tuple[float, float]]:
+    return [
+        (float(stop["stop_lat"]), float(stop["stop_lon"]))
+        for stop in static["stopSequenceWithDetails"]
     ]
-)
 
-class GTFSWriter:
-    def __init__(self, output_path="../gtfs/intermediate/bmtc.zip"):
-        self.output_path = output_path
-        self.stops = {}
-        self.routes = {}
-        self.shapes = defaultdict(list)
-        self.trips = []
-        self.stop_times = []
-        self.translations = []
-        # Add fare-related attributes
-        self.fare_attributes = {}
-        self.fare_rules = []
-        
-    def write_agency(self):
+
+def shape_points(pattern: dict[str, Any]) -> list[tuple[float, float]]:
+    """Decode a pattern's shape, falling back to its stop coordinates."""
+    static = pattern["staticData"]
+    try:
+        points = decode_polyline(static.get("polyline") or "")
+    except ValueError:
+        logging.warning("Invalid polyline for %s; using stop coordinates", pattern["routeId"])
+        points = []
+    return points if len(points) >= 2 else stop_points(static)
+
+
+def station_row(stop_id: str, name: str, lat: Any, lon: Any) -> dict[str, Any]:
+    return {
+        "stop_id": stop_id, "stop_code": "", "stop_name": name, "stop_desc": "",
+        "stop_lat": lat, "stop_lon": lon, "zone_id": "", "stop_url": "",
+        "location_type": "1", "parent_station": "", "platform_code": "",
+        "wheelchair_boarding": "",
+    }
+
+
+def platform_row(
+    parent_id: str, parent_name: str, label: str, lat: Any, lon: Any, zone_id: str
+) -> dict[str, Any]:
+    return {
+        **station_row(
+            f"{parent_id}:platform:{normalized_name(label)}",
+            f"{parent_name} - Platform {label}", lat, lon,
+        ),
+        "zone_id": zone_id, "location_type": "0", "parent_station": parent_id,
+        "platform_code": label,
+    }
+
+
+def read_station(path: Path) -> dict[str, Any]:
+    """Index a station's platform points by every name and alias."""
+    points: dict[str, tuple[float, float, str]] = {}
+    canonical_points: dict[str, tuple[float, float]] = {}
+    for feature in json.loads(path.read_text(encoding="utf-8")).get("features") or []:
+        props = feature.get("properties") or {}
+        label = clean_text(props.get("Platform"))
+        if (feature.get("geometry") or {}).get("type") != "Point" or not label:
+            continue
+        lon, lat = feature["geometry"]["coordinates"][:2]
+        canonical_points[label] = (lat, lon)
+        for name in [label, *(props.get("Alias") or [])]:
+            points[clean_text(name).upper()] = (lat, lon, label)
+    centroid = None
+    if points:
+        unique_points = list({(lat, lon) for lat, lon, _label in points.values()})
+        centroid = (
+            sum(point[0] for point in unique_points) / len(unique_points),
+            sum(point[1] for point in unique_points) / len(unique_points),
+        )
+    return {"points": points, "canonical_points": canonical_points, "centroid": centroid}
+
+
+def load_stations() -> dict[str, dict[str, Any]]:
+    path = PLATFORM_GEOMETRY / "stations.json"
+    stations = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    geojson = {
+        name: PLATFORM_GEOMETRY / "geojson" / config.get("geojson", "")
+        for name, config in stations.items()
+    }
+    return {name: read_station(file) for name, file in geojson.items() if file.exists()}
+
+
+def fare_id(price: float) -> str:
+    return f"F{float(price):g}"
+
+
+def fare_rule(
+    price: float, route_id: str = "", origin: str = "", destination: str = ""
+) -> dict[str, str]:
+    return {
+        "fare_id": fare_id(price), "route_id": route_id, "origin_id": str(origin),
+        "destination_id": str(destination), "contains_id": "",
+    }
+
+
+def pattern_fares(
+    connection: sqlite3.Connection, source_route_id: str
+) -> dict[tuple[str, str], float]:
+    return {
+        (origin, destination): price
+        for origin, destination, price in connection.execute(
+            "SELECT origin_stop_id, destination_stop_id, price FROM fare_quotes "
+            "WHERE route_id = ? AND price IS NOT NULL",
+            (source_route_id,),
+        )
+    }
+
+
+class FeedBuilder:
+    def __init__(self, input_dir: Path, output: Path) -> None:
+        self.input_dir = input_dir
+        self.output = output
+        self.catalogue = index_rows(self._load("routes.json"), "route_id")
+        self.stop_catalogue = {row["stop_id"]: row for row in self._load("stops.json") if row.get("stop_id")}
+        stop_details = (
+            self._load("stop_details.json")
+            if (input_dir / "stop_details.json").exists() else {}
+        )
+        self.stop_details = index_rows(stop_details.get("stops"), "stopId")
+        details = self._load("route_details.json")
+        daily_details = self._load("route_timetables.json")
+        self._load_fares()
+        self._check_stop_timetables()
+        self.daily_timetables = index_rows(daily_details.get("routes"), "routeId")
+        self.patterns = [
+            row for row in details.get("routes", [])
+            if is_bmtc_bus(row) and row["staticData"].get("stopSequenceWithDetails")
+        ]
+        if not self.patterns:
+            raise RuntimeError("No BMTC bus route patterns found in route_details.json")
+        self._check_timetable_coverage()
+        self.stops: dict[str, dict[str, Any]] = {}
+        self.translations: dict[str, str] = {}
+        self.route_ids: dict[str, str] = {}
+        self.source_route_ids: dict[str, str] = {}
+        self.route_rows: list[dict[str, str]] = []
+        self.free_route_ids: set[str] = set()
+        self.services: set[str] = set()
+        self.source_day_trips = 0
+        self.duplicate_day_trips = 0
+        self.pattern_direction: dict[str, str] = {}
+        self.pattern_platform: dict[str, str] = {}
+        self.platform_stops: dict[str, dict[str, Any]] = {}
+        self._prepare()
+
+    def _load(self, filename: str) -> Any:
+        path = self.input_dir / filename
+        if not path.exists():
+            raise FileNotFoundError(f"Missing {path}; run scripts/scrape.py first")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def _load_fares(self) -> None:
+        fares = self._load("fares.json")
+        self.fare_coverage = str(fares.get("coverage") or "terminal")
+        self.fare_database = self.input_dir / str(fares.get("database") or "fares.sqlite3")
+        self.api_fares = index_rows(fares.get("routes"), "routeId")
+        if self.fare_coverage in {"full", "stop-pairs"}:
+            if not self.fare_database.exists():
+                raise FileNotFoundError(
+                    f"Missing {self.fare_database}; resume scripts/scrape.py --fare-coverage full"
+                )
+            if not fares.get("complete"):
+                raise RuntimeError(
+                    "The full fare cache is incomplete; resume scripts/scrape.py "
+                    "--fare-coverage full before building"
+                )
+
+    def _check_stop_timetables(self) -> None:
+        self.stop_timetable_database = self.input_dir / "stop_timetables.sqlite3"
+        if not self.stop_timetable_database.exists():
+            raise FileNotFoundError(
+                f"Missing {self.stop_timetable_database}; run scripts/scrape.py first"
+            )
+        with closing(sqlite3.connect(self.stop_timetable_database)) as connection:
+            tables = {
+                row[0] for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                )
+            }
+        if "arrivals" not in tables:
+            raise RuntimeError(f"Malformed stop timetable cache at {self.stop_timetable_database}")
+
+    def _check_timetable_coverage(self) -> None:
+        route_ids = [str(pattern["routeId"]) for pattern in self.patterns]
+        missing = set(route_ids) - self.daily_timetables.keys()
+        if missing:
+            sample = ", ".join(sorted(missing)[:5])
+            raise RuntimeError(
+                f"route_timetables.json is missing {len(missing)} route patterns "
+                f"(for example {sample}); run scripts/scrape.py again"
+            )
+        incomplete = [
+            route_id for route_id in route_ids
+            if any(day not in (self.daily_timetables[route_id].get("days") or {}) for day in DAYS)
+        ]
+        if incomplete:
+            sample = ", ".join(sorted(incomplete)[:5])
+            raise RuntimeError(
+                f"route_timetables.json lacks one or more weekdays for "
+                f"{len(incomplete)} route patterns (for example {sample})"
+            )
+
+    def _prepare(self) -> None:
+        groups = self._group_patterns()
+        self._apply_stop_details()
+        for group_key, patterns in groups.items():
+            self._add_route(group_key, patterns)
+        self._prepare_directions()
+        self._prepare_platforms()
+
+    def _group_patterns(self) -> dict[str, list[dict[str, Any]]]:
+        """Group patterns by public route number and collect the stops they serve."""
+        groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for pattern in self.patterns:
+            if self.fare_coverage == "full" and self.weekly_trip_count(pattern) == 0:
+                continue
+            static = pattern["staticData"]
+            route_name = clean_text(static.get("route_name"))
+            if not route_name:
+                continue
+            groups[route_name].append(pattern)
+            for api_stop in static.get("stopSequenceWithDetails") or []:
+                stop_id = api_stop.get("stop_id")
+                if stop_id:
+                    self.stops[stop_id] = {**self.stop_catalogue.get(stop_id, {}), **api_stop}
+        return self.fare_compatible_groups(groups) if self.fare_coverage == "full" else groups
+
+    def _apply_stop_details(self) -> None:
+        for stop_id, stop in self.stops.items():
+            stop["zone_id"] = stop_id
+            detail = self.stop_details.get(stop_id) or {}
+            if clean_text(detail.get("stopName")):
+                stop["stop_name"] = clean_text(detail["stopName"])
+            if clean_text(detail.get("description")):
+                stop["stop_desc"] = clean_text(detail["description"])
+            location = detail.get("location") or {}
+            if location.get("lat") is not None and location.get("lon") is not None:
+                stop["stop_lat"] = location["lat"]
+                stop["stop_lon"] = location["lon"]
+            locale = ((stop.get("localeMap") or {}).get("kn") or {}).get("stop_name", "")
+            if locale and "?" not in locale:
+                self.translations[stop_id] = locale
+
+    def _add_route(self, group_key: str, patterns: list[dict[str, Any]]) -> None:
+        route_name = clean_text(patterns[0]["staticData"].get("route_name"))
+        route_id = stable_id("BMTC", group_key)
+        self.route_ids[group_key] = route_id
+        terminals: Counter[tuple[str, str]] = Counter()
+        features: set[str] = set()
+        flags: set[str] = set()
+        for pattern in patterns:
+            source_route_id = str(pattern["routeId"])
+            self.source_route_ids[source_route_id] = route_id
+            static = pattern["staticData"]
+            catalogue_route = self.catalogue.get(source_route_id) or {}
+            daily_route = self.daily_timetables.get(source_route_id, {}).get("route") or {}
+            sequence = static["stopSequenceWithDetails"]
+            terminals[
+                (clean_text(sequence[0].get("stop_name")), clean_text(sequence[-1].get("stop_name")))
+            ] += 1
+            features.update(
+                clean_text(value) for value in static.get("specialFeatures") or [] if value
+            )
+            features.update(
+                clean_text(value)
+                for source in (catalogue_route, daily_route)
+                for key in ("special_features", "specialFeatures", "spf")
+                for value in (source.get(key) or [])
+                if value
+            )
+            via = clean_text(
+                static.get("via") or daily_route.get("via") or catalogue_route.get("via")
+            )
+            if via:
+                flags.add(f"Via {via}")
+            sources = (catalogue_route, pattern.get("liveData") or {}, static, daily_route)
+            for key, flag in (
+                ("isAirportRoute", "Airport"),
+                ("isFreeRide", "Free ride"),
+                ("isPremiumBusRoute", "Premium"),
+                ("mTicketEnabled", "Mobile ticketing"),
+                ("routePassEnabled", "Route pass accepted"),
+            ):
+                if any(source.get(key) for source in sources):
+                    flags.add(flag)
+        self.route_rows.append({
+            "route_id": route_id,
+            "agency_id": "BMTC",
+            "route_short_name": route_name,
+            "route_long_name": " ⇔ ".join(
+                sorted(max(terminals, key=terminals.get), key=normalized_name)
+            ),
+            "route_desc": "; ".join(sorted(features | flags)),
+            "route_type": "3",
+            "route_url": "",
+        })
+        if "Free ride" in flags:
+            self.free_route_ids.add(route_id)
+
+    def fare_compatible_groups(
+        self, groups: dict[str, list[dict[str, Any]]]
+    ) -> dict[str, list[dict[str, Any]]]:
+        """Split a public route number only where its patterns price a stop pair differently.
+
+        Fares v1 can scope a fare to a route but not to a trip. The busiest
+        pattern keeps the route number's ID; a pattern joins the first group
+        whose fares agree with its own on every shared stop pair.
+        """
+        result: dict[str, list[dict[str, Any]]] = {}
+        with closing(sqlite3.connect(self.fare_database)) as connection:
+            for route_name, patterns in groups.items():
+                subgroups: list[tuple[list[dict[str, Any]], dict[tuple[str, str], float]]] = []
+                for pattern in sorted(
+                    patterns,
+                    key=lambda item: (-self.weekly_trip_count(item), str(item["routeId"])),
+                ):
+                    fares = pattern_fares(connection, str(pattern["routeId"]))
+                    for members, merged in subgroups:
+                        if all(merged.get(pair, price) == price for pair, price in fares.items()):
+                            members.append(pattern)
+                            merged.update(fares)
+                            break
+                    else:
+                        subgroups.append(([pattern], dict(fares)))
+                for index, (members, _merged) in enumerate(subgroups):
+                    key = route_name if index == 0 else f"{route_name}\0{members[0]['routeId']}"
+                    result[key] = members
+        return result
+
+    def api_platform(self, route_id: str) -> str:
+        labels: Counter[str] = Counter()
+        days = (self.daily_timetables.get(str(route_id)) or {}).get("days") or {}
+        for day in DAYS:
+            for trip in (days.get(day) or {}).get("trips") or []:
+                label = clean_text(trip.get("platform")).upper()
+                if label and label not in NO_PLATFORM_LABELS:
+                    labels[label] += 1
+        return labels.most_common(1)[0][0] if labels else ""
+
+    def _add_station_platforms(self, name: str, station: dict[str, Any]) -> None:
+        """Emit every platform of a station near the stops, assigned to a route or not."""
+        centroid = station["centroid"]
+        if not centroid or not self.stops:
+            return
+        distance, _nearest_id, nearest = min(
+            (haversine(float(stop["stop_lat"]), float(stop["stop_lon"]), *centroid), stop_id, stop)
+            for stop_id, stop in self.stops.items()
+        )
+        if distance > STATION_RADIUS_M:
+            return
+        parent_id = f"station:{name}"
+        parent_name = clean_text(nearest.get("stop_name")) or name.title()
+        self.platform_stops[parent_id] = station_row(parent_id, parent_name, *centroid)
+        for label, (lat, lon) in station["canonical_points"].items():
+            row = platform_row(parent_id, parent_name, label, lat, lon, nearest.get("zone_id", ""))
+            self.platform_stops[row["stop_id"]] = row
+
+    @staticmethod
+    def nearest_station(
+        origin: dict[str, Any], label: str, stations: dict[str, dict[str, Any]]
+    ) -> str | None:
+        """Return the closest station in range that knows a platform label."""
+        nearby = []
+        for name, station in stations.items():
+            if station["centroid"] and label in station["points"]:
+                distance = haversine(
+                    float(origin["stop_lat"]), float(origin["stop_lon"]), *station["centroid"]
+                )
+                if distance <= STATION_RADIUS_M:
+                    nearby.append((distance, name))
+        return min(nearby, key=lambda item: item[0])[1] if nearby else None
+
+    def _assign_platform(
+        self, pattern: dict[str, Any], label: str, stations: dict[str, dict[str, Any]]
+    ) -> None:
+        """Place a pattern's first stop on its platform, at the stop if none is mapped."""
+        first = pattern["staticData"]["stopSequenceWithDetails"][0]
+        first_id = first.get("stop_id")
+        stop_name = clean_text(first.get("stop_name"))
+        station_name = self.nearest_station(first, label, stations)
+        if station_name:
+            station = stations[station_name]
+            parent_id = f"station:{station_name}"
+            parent_name = stop_name or station_name.title()
+            parent_lat, parent_lon = station["centroid"]
+            lat, lon, label = station["points"][label]
+        else:
+            parent_id = f"station:api:{first_id}"
+            parent_name = stop_name or str(first_id)
+            parent_lat, parent_lon = lat, lon = first["stop_lat"], first["stop_lon"]
+        self.platform_stops[parent_id] = station_row(parent_id, parent_name, parent_lat, parent_lon)
+        platform = platform_row(
+            parent_id, parent_name, label, lat, lon, self.stops[first_id].get("zone_id", "")
+        )
+        self.platform_stops[platform["stop_id"]] = platform
+        self.pattern_platform[pattern["routeId"]] = platform["stop_id"]
+
+    def _prepare_platforms(self) -> None:
+        stations = load_stations()
+        for name, station in stations.items():
+            self._add_station_platforms(name, station)
+        for pattern in self.patterns:
+            label = self.api_platform(str(pattern["routeId"]))
+            if label:
+                self._assign_platform(pattern, label, stations)
+
+    def stop_rows(self) -> Iterator[dict[str, Any]]:
+        for stop_id, stop in sorted(self.stops.items()):
+            yield {
+                "stop_id": stop_id,
+                "stop_code": stop.get("short_id", ""),
+                "stop_name": clean_text(stop.get("stop_name")),
+                "stop_desc": clean_text(stop.get("stop_desc") or stop.get("stop_address")),
+                "stop_lat": stop.get("stop_lat", ""),
+                "stop_lon": stop.get("stop_lon", ""),
+                "zone_id": stop.get("zone_id", ""),
+                "stop_url": "",
+                "location_type": "",
+                "parent_station": "",
+                "platform_code": "",
+                "wheelchair_boarding": "",
+            }
+        yield from (self.platform_stops[key] for key in sorted(self.platform_stops))
+
+    def shape_rows(self, shape_ids: set[str]) -> Iterator[dict[str, Any]]:
+        for pattern in self.patterns:
+            if pattern["routeId"] not in shape_ids:
+                continue
+            points = shape_points(pattern)
+            points = [point for index, point in enumerate(points) if index == 0 or point != points[index - 1]]
+            for sequence, ((lat, lon), distance) in enumerate(zip(points, cumulative_distances(points))):
+                yield {
+                    "shape_id": pattern["routeId"], "shape_pt_lat": lat, "shape_pt_lon": lon,
+                    "shape_pt_sequence": sequence, "shape_dist_traveled": round(distance, 3),
+                }
+
+    @staticmethod
+    def pattern_geometry(pattern: dict[str, Any]) -> tuple[list[float], list[float]]:
+        points = stop_points(pattern["staticData"])
+        stop_distances = cumulative_distances(points)
+        for index in range(1, len(stop_distances)):
+            if stop_distances[index] <= stop_distances[index - 1]:
+                stop_distances[index] = stop_distances[index - 1] + 0.001
+        return stop_distances, project_stops_onto_shape(points, shape_points(pattern))
+
+    def weekly_trip_count(self, pattern: dict[str, Any]) -> int:
+        days = (self.daily_timetables[str(pattern["routeId"])].get("days") or {})
+        return sum(len((days.get(day) or {}).get("trips") or []) for day in DAYS)
+
+    @staticmethod
+    def pattern_heading(static: dict[str, Any]) -> tuple[float, float]:
+        """Return a local east/north vector from the first stop to the pattern's far end."""
+        stops = stop_points(static)
+        origin = stops[0]
+        far_end = stops[-1]
+        if haversine(*origin, *far_end) < 500:
+            far_end = max(stops, key=lambda point: haversine(*origin, *point))
+        lon_scale = math.cos(math.radians(origin[0]))
+        return (far_end[1] - origin[1]) * lon_scale, far_end[0] - origin[0]
+
+    def _prepare_directions(self) -> None:
+        """Orient every pattern of a route number against its busiest pattern."""
+        by_name: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for pattern in self.patterns:
+            if str(pattern["routeId"]) in self.source_route_ids:
+                by_name[clean_text(pattern["staticData"].get("route_name"))].append(pattern)
+        for patterns in by_name.values():
+            reference = min(
+                patterns,
+                key=lambda pattern: (-self.weekly_trip_count(pattern), str(pattern["routeId"])),
+            )
+            reference_east, reference_north = self.pattern_heading(reference["staticData"])
+            for pattern in patterns:
+                east, north = self.pattern_heading(pattern["staticData"])
+                alignment = east * reference_east + north * reference_north
+                self.pattern_direction[str(pattern["routeId"])] = "0" if alignment >= 0 else "1"
+
+    def pattern_schedules(
+        self, pattern: dict[str, Any]
+    ) -> Iterator[tuple[str, int, int, list[dict[str, Any]], str]]:
+        route_id = str(pattern["routeId"])
+        days = (self.daily_timetables[route_id].get("days") or {})
+        for day in DAYS:
+            for trip in (days.get(day) or {}).get("trips") or []:
+                start = int(trip["start_time"])
+                end = int(trip["end_time"])
+                duration = int(trip["trip_duration"])
+                if end - start != duration or duration <= 0:
+                    raise RuntimeError(f"Invalid trip end time for {route_id} on {day}")
+                frequencies = trip.get("frequency_data_array") or []
+                yield day, start, end, frequencies, clean_text(trip.get("trip_id"))
+
+    @staticmethod
+    def headways(frequencies: list[dict[str, Any]]) -> tuple[tuple[int, int, int], ...]:
+        result = []
+        for frequency in frequencies:
+            start = int(frequency.get("start_time") or 0)
+            end = int(frequency.get("end_time") or start)
+            headway = int(frequency.get("frequency") or 0) * 60
+            if headway > 0 and end > start:
+                result.append((start, end, headway))
+        return tuple(result)
+
+    @staticmethod
+    def trip_times(
+        stops: list[dict[str, Any]],
+        stop_distances: list[float],
+        repeated_stop_ids: set[str],
+        exact_times: dict[str, int],
+        start: int,
+        end: int,
+    ) -> tuple[tuple[int, bool], ...]:
+        """Use exact intermediate arrivals and interpolate the gaps by stop distance."""
+        last = len(stops) - 1
+        previous_time = start
+        previous_distance = 0.0
+        result = []
+
+        def usable_time(index: int) -> int | None:
+            stop_id = str(stops[index]["stop_id"])
+            time = exact_times.get(stop_id)
+            if stop_id in repeated_stop_ids or time is None:
+                return None
+            return time if previous_time <= time <= end else None
+
+        for index, distance in enumerate(stop_distances):
+            exact_time = None if index in (0, last) else usable_time(index)
+            if index == 0:
+                stop_time, is_timepoint = start, True
+            elif index == last:
+                stop_time, is_timepoint = end, True
+            elif exact_time is not None:
+                stop_time, is_timepoint = exact_time, True
+            else:
+                next_index = next(
+                    (i for i in range(index + 1, last) if usable_time(i) is not None), last
+                )
+                next_time = end if next_index == last else usable_time(next_index)
+                next_distance = stop_distances[next_index]
+                span = next_distance - previous_distance
+                ratio = (distance - previous_distance) / span if span > 0 else 0
+                stop_time = round(previous_time + (next_time - previous_time) * ratio)
+                is_timepoint = False
+            if not start <= stop_time <= end or stop_time < previous_time:
+                raise RuntimeError(f"Non-monotonic stop time at {stops[index]['stop_id']}")
+            previous_time = stop_time
+            previous_distance = distance
+            result.append((stop_time, is_timepoint))
+        return tuple(result)
+
+    def pattern_families(self) -> dict[tuple[str, tuple[str, ...]], list[dict[str, Any]]]:
+        """Group patterns running the same stop sequence on the same GTFS route."""
+        families: dict[tuple[str, tuple[str, ...]], list[dict[str, Any]]] = defaultdict(list)
+        for pattern in self.patterns:
+            source_route_id = str(pattern["routeId"])
+            route_id = self.source_route_ids.get(source_route_id)
+            if route_id:
+                stops = pattern["staticData"]["stopSequenceWithDetails"]
+                stop_ids = (
+                    self.pattern_platform.get(source_route_id, str(stops[0]["stop_id"])),
+                    *(str(stop["stop_id"]) for stop in stops[1:]),
+                )
+                families[(route_id, stop_ids)].append(pattern)
+        return families
+
+    def merge_schedules(
+        self, connection: sqlite3.Connection, patterns: list[dict[str, Any]]
+    ) -> tuple[dict[tuple[Any, ...], dict[str, Any]], dict[str, tuple[list[float], list[float]]]]:
+        """Merge a family's weekday trips by their stop-time and headway signature."""
+        groups: dict[tuple[Any, ...], dict[str, Any]] = {}
+        geometry: dict[str, tuple[list[float], list[float]]] = {}
+        for pattern in patterns:
+            source_route_id = str(pattern["routeId"])
+            arrivals: dict[tuple[str, str], dict[str, int]] = defaultdict(dict)
+            for day, trip_id, stop_id, arrival_time in connection.execute(
+                "SELECT day, trip_id, stop_id, arrival_time FROM arrivals WHERE route_id = ?",
+                (source_route_id,),
+            ):
+                arrivals[(day, trip_id)][stop_id] = int(arrival_time)
+            stops = pattern["staticData"]["stopSequenceWithDetails"]
+            stop_counts = Counter(str(stop["stop_id"]) for stop in stops)
+            repeated_stop_ids = {stop_id for stop_id, count in stop_counts.items() if count > 1}
+            geometry[source_route_id] = self.pattern_geometry(pattern)
+            stop_distances = geometry[source_route_id][0]
+            for day, start, end, frequencies, backend_id in self.pattern_schedules(pattern):
+                try:
+                    times = self.trip_times(
+                        stops, stop_distances, repeated_stop_ids,
+                        arrivals.get((day, backend_id), {}), start, end,
+                    )
+                except RuntimeError as error:
+                    raise RuntimeError(
+                        f"{error} for trip {backend_id} of {source_route_id} on {day}"
+                    ) from error
+                headways = self.headways(frequencies)
+                stop_times = tuple(stop_time for stop_time, _exact in times)
+                group = groups.setdefault((stop_times, headways), {
+                    "pattern": pattern, "days": set(), "backend_ids": set(),
+                    "headways": headways, "stop_times": stop_times,
+                    "timepoints": [False] * len(times),
+                    "order": (DAYS.index(day), start),
+                })
+                if day in group["days"]:
+                    self.duplicate_day_trips += 1
+                group["days"].add(day)
+                group["backend_ids"].add(backend_id or str(start))
+                group["timepoints"] = [
+                    merged or exact for merged, (_time, exact) in zip(group["timepoints"], times)
+                ]
+                self.source_day_trips += 1
+        return groups, geometry
+
+    def group_rows(
+        self,
+        route_id: str,
+        stop_ids: tuple[str, ...],
+        group: dict[str, Any],
+        shape_distances: list[float],
+        trip_id: str,
+        bits: str,
+    ) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+        pattern = group["pattern"]
+        source_route_id = str(pattern["routeId"])
+        terminal = pattern["staticData"]["stopSequenceWithDetails"][-1]
+        trip = {
+            "route_id": route_id, "service_id": f"days:{bits}", "trip_id": trip_id,
+            "trip_headsign": clean_text(terminal.get("stop_name")),
+            "trip_short_name": min(group["backend_ids"]),
+            "direction_id": self.pattern_direction.get(source_route_id, "0"),
+            "shape_id": source_route_id,
+            "wheelchair_accessible": "0", "bikes_allowed": "0",
+        }
+        stop_times = [
+            {
+                "trip_id": trip_id,
+                "arrival_time": format_gtfs_time(stop_time),
+                "departure_time": format_gtfs_time(stop_time),
+                "stop_id": stop_id,
+                "stop_sequence": index,
+                "shape_dist_traveled": round(shape_distances[index - 1], 3),
+                "timepoint": "1" if is_timepoint else "0",
+            }
+            for index, (stop_id, stop_time, is_timepoint) in enumerate(
+                zip(stop_ids, group["stop_times"], group["timepoints"]), 1
+            )
+        ]
+        frequencies = [
+            {
+                "trip_id": trip_id, "start_time": format_gtfs_time(start),
+                "end_time": format_gtfs_time(end), "headway_secs": headway,
+                "exact_times": "0",
+            }
+            for start, end, headway in group["headways"]
+        ]
+        return trip, stop_times, frequencies
+
+    def scheduled_trips(
+        self,
+    ) -> Iterator[tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]]:
+        """Yield one GTFS trip per distinct schedule with its weekday service.
+
+        Grouping by the complete stop-time and headway signature merges weekday
+        copies and drops same-day duplicates without changing any time. A stop
+        is a timepoint if any merged copy had its exact arrival.
+        """
+        # One family at a time keeps memory bounded on the large arrival cache.
+        with closing(sqlite3.connect(self.stop_timetable_database)) as connection:
+            for (route_id, stop_ids), patterns in self.pattern_families().items():
+                groups, geometry = self.merge_schedules(connection, patterns)
+                used_trip_ids: set[str] = set()
+                for group in sorted(
+                    groups.values(),
+                    key=lambda item: (item["order"], min(item["backend_ids"])),
+                ):
+                    source_route_id = str(group["pattern"]["routeId"])
+                    bits = "".join("1" if day in group["days"] else "0" for day in DAYS)
+                    trip_id = f"{source_route_id}:{min(group['backend_ids'])}"
+                    if trip_id in used_trip_ids:
+                        trip_id = f"{trip_id}:{bits}"
+                    used_trip_ids.add(trip_id)
+                    self.services.add(bits)
+                    yield self.group_rows(
+                        route_id, stop_ids, group, geometry[source_route_id][1], trip_id, bits
+                    )
+
+    @staticmethod
+    def write_csv(archive: zipfile.ZipFile, filename: str, rows: Iterable[dict[str, Any]]) -> int:
+        info = zipfile.ZipInfo(filename, date_time=(1980, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        count = 0
+        with archive.open(info, "w", force_zip64=True) as raw, io.TextIOWrapper(
+            raw, encoding="utf-8", newline=""
+        ) as handle:
+            writer = csv.DictWriter(handle, fieldnames=HEADERS[filename], extrasaction="ignore", lineterminator="\n")
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({key: "" if value is None else value for key, value in row.items()})
+                count += 1
+        return count
+
+    def fare_prices(self) -> set[float]:
+        query = {
+            "stop-pairs": f"SELECT DISTINCT q.price {STOP_PAIR_FARES}",
+            "full": "SELECT DISTINCT price FROM fare_quotes WHERE price IS NOT NULL",
+        }.get(self.fare_coverage)
+        if query:
+            with closing(sqlite3.connect(self.fare_database)) as connection:
+                return {float(row[0]) for row in connection.execute(query)}
+        return {
+            float(row["price"])
+            for row in self.api_fares.values()
+            if isinstance(row.get("price"), (int, float))
+        }
+
+    def stop_pair_fare_rules(self) -> Iterator[dict[str, str]]:
+        with closing(sqlite3.connect(self.fare_database)) as connection:
+            for origin, destination, price in connection.execute(
+                f"SELECT p.origin_stop_id, p.destination_stop_id, q.price {STOP_PAIR_FARES} "
+                "ORDER BY p.origin_stop_id, p.destination_stop_id"
+            ):
+                yield fare_rule(price, "", origin, destination)
+
+    def full_fare_rules(self) -> Iterator[dict[str, str]]:
+        patterns_by_route: dict[str, list[str]] = defaultdict(list)
+        for source_route_id, route_id in self.source_route_ids.items():
+            patterns_by_route[route_id].append(source_route_id)
+        with closing(sqlite3.connect(self.fare_database)) as connection:
+            for route_id, source_route_ids in sorted(patterns_by_route.items()):
+                if route_id in self.free_route_ids:
+                    continue
+                fares: dict[tuple[str, str], float] = {}
+                for source_route_id in source_route_ids:
+                    fares.update(pattern_fares(connection, source_route_id))
+                for (origin, destination), price in sorted(fares.items()):
+                    yield fare_rule(price, route_id, origin, destination)
+
+    def terminal_fare_rules(self) -> Iterator[dict[str, str]]:
+        candidates: dict[tuple[str, str, str], set[float]] = defaultdict(set)
+        for source_route_id, fare in sorted(self.api_fares.items()):
+            route_id = self.source_route_ids.get(source_route_id)
+            price = fare.get("price")
+            origin = str(fare.get("originStopId") or "")
+            destination = str(fare.get("destinationStopId") or "")
+            if (
+                route_id is not None
+                and isinstance(price, (int, float))
+                and origin
+                and destination
+                and route_id not in self.free_route_ids
+            ):
+                candidates[(route_id, origin, destination)].add(float(price))
+        conflicts = 0
+        for (route_id, origin, destination), prices in sorted(candidates.items()):
+            if len(prices) == 1:
+                yield fare_rule(next(iter(prices)), route_id, origin, destination)
+            else:
+                conflicts += 1
+        if conflicts:
+            logging.warning(
+                "Omitted %d ambiguous terminal fare rules shared by grouped patterns", conflicts,
+            )
+
+    def fare_rule_rows(self) -> Iterator[dict[str, str]]:
+        yield from {
+            "stop-pairs": self.stop_pair_fare_rules,
+            "full": self.full_fare_rules,
+        }.get(self.fare_coverage, self.terminal_fare_rules)()
+        yield from (fare_rule(0, route_id) for route_id in sorted(self.free_route_ids))
+
+    def fare_attribute_rows(self) -> list[dict[str, str]]:
+        prices = self.fare_prices()
+        if self.free_route_ids:
+            prices.add(0.0)
         return [
             {
-                'agency_id': '1',
-                'agency_name': 'BMTC',
-                'agency_url': 'https://mybmtc.karnataka.gov.in/english',
-                'agency_timezone': 'Asia/Kolkata',
-                'agency_lang': 'en',
+                "fare_id": fare_id(price), "price": f"{price:.2f}", "currency_type": "INR",
+                "payment_method": "0", "transfers": "0", "transfer_duration": "0",
+                "agency_id": "BMTC",
             }
+            for price in sorted(prices)
         ]
 
-    def write_attributions(self):
-        return [
+    def write_feed(self, archive: zipfile.ZipFile) -> dict[str, int]:
+        start_date = date.today()
+        first_day = start_date.strftime("%Y%m%d")
+        last_day = (start_date + FEED_VALIDITY).strftime("%Y%m%d")
+        fare_attributes = self.fare_attribute_rows()
+        counts: dict[str, int] = {}
+
+        def write(filename: str, rows: Iterable[dict[str, Any]]) -> None:
+            counts[filename] = self.write_csv(archive, filename, rows)
+
+        write("agency.txt", [{
+            "agency_id": "BMTC", "agency_name": "BMTC", "agency_url": AGENCY_URL,
+            "agency_timezone": "Asia/Kolkata", "agency_lang": "en",
+        }])
+        write("attributions.txt", [
             {
-                'attribution_id': 'bmtc',
-                'organization_name': 'Bengaluru Metropolitan Transport Corporation',
-                'is_producer': '0',
-                'is_operator': '1',
-                'is_authority': '1',
-                'attribution_url': 'https://mybmtc.karnataka.gov.in/english'
+                "attribution_id": "bmtc",
+                "organization_name": "Bengaluru Metropolitan Transport Corporation",
+                "is_producer": "0", "is_operator": "1", "is_authority": "1",
+                "attribution_url": AGENCY_URL,
             },
             {
-                'attribution_id': 'vonter',
-                'organization_name': 'Vonter',
-                'is_producer': '1',
-                'is_operator': '0',
-                'is_authority': '0',
-                'attribution_url': 'https://www.github.com/Vonter/bmtc-gtfs'
+                "attribution_id": "vonter", "organization_name": "Vonter",
+                "is_producer": "1", "is_operator": "0", "is_authority": "0",
+                "attribution_url": REPOSITORY_URL,
+            },
+        ])
+        write("feed_info.txt", [{
+            "feed_publisher_name": "Vonter", "feed_publisher_url": REPOSITORY_URL,
+            "feed_lang": "en", "feed_start_date": first_day, "feed_end_date": last_day,
+            "feed_version": first_day, "feed_contact_email": "me@vonter.in",
+            "feed_contact_url": REPOSITORY_URL,
+        }])
+        write("stops.txt", self.stop_rows())
+        write("translations.txt", (
+            {
+                "table_name": "stops", "field_name": "stop_name", "record_id": stop_id,
+                "language": "kn", "translation": value,
             }
-        ]
+            for stop_id, value in sorted(self.translations.items()) if stop_id in self.stops
+        ))
 
-    def write_calendar(self):
-        return [{
-            'service_id': '1',
-            'monday': '1',
-            'tuesday': '1',
-            'wednesday': '1',
-            'thursday': '1',
-            'friday': '1',
-            'saturday': '1',
-            'sunday': '1',
-            'start_date': datetime.datetime.now().strftime('%Y%m%d'),
-            'end_date': (datetime.datetime.now() + datetime.timedelta(days=365)).strftime('%Y%m%d')
-        }]
+        trips: list[dict[str, Any]] = []
+        frequencies: list[dict[str, Any]] = []
 
-    def add_stop(self, stop_id, lat, lon, name, stop_code='', location_type='',
-                 parent_station='', platform_code=''):
-        self.stops[stop_id] = {
-            'stop_id': stop_id,
-            'stop_code': stop_code,
-            'stop_name': name,
-            'stop_desc': '',
-            'stop_lat': lat,
-            'stop_lon': lon,
-            'zone_id': stop_id,
-            'stop_url': '',
-            'location_type': location_type,
-            'parent_station': parent_station,
-            'platform_code': platform_code,
-            'wheelchair_boarding': ''
-        }
-        return stop_id
+        def stop_times() -> Iterator[dict[str, Any]]:
+            for trip, trip_stop_times, trip_frequencies in self.scheduled_trips():
+                trips.append(trip)
+                frequencies.extend(trip_frequencies)
+                yield from trip_stop_times
 
-    def add_route(self, route_id, short_name, long_name):
-        self.routes[route_id] = {
-            'route_id': route_id,
-            'agency_id': '1',
-            'route_short_name': short_name,
-            'route_long_name': long_name,
-            'route_desc': '',
-            'route_type': '3',  # Bus
-            'route_url': '',
-        }
-        return route_id
-
-    def add_shape_point(self, shape_id, lat, lon, sequence):
-        self.shapes[shape_id].append({
-            'shape_id': shape_id,
-            'shape_pt_lat': lat,
-            'shape_pt_lon': lon,
-            'shape_pt_sequence': sequence
-        })
-
-    def add_trip(self, route_id, service_id, trip_id, headsign, direction_id, shape_id):
-        trip = {
-            'route_id': route_id,
-            'service_id': service_id,
-            'trip_id': trip_id,
-            'trip_headsign': headsign,
-            'direction_id': direction_id,
-            'shape_id': shape_id,
-            'wheelchair_accessible': '0',
-            'bikes_allowed': '0'
-        }
-        self.trips.append(trip)
-        return trip_id
-
-    def add_stop_time(self, trip_id, stop_id, stop_sequence, arrival_time, departure_time):
-        stop_time = {
-            'trip_id': trip_id,
-            'arrival_time': arrival_time,
-            'departure_time': departure_time,
-            'stop_id': stop_id,
-            'stop_sequence': stop_sequence
-        }
-        self.stop_times.append(stop_time)
-
-    def add_translation(self, table_name, field_name, record_id, language, translation):
-        self.translations.append({
-            'table_name': table_name,
-            'field_name': field_name,
-            'record_id': record_id,
-            'language': language,
-            'translation': translation
-        })
-
-    def add_fare_attribute(self, fare_id, price, currency_type="INR", payment_method=0, transfers=None):
-        """
-        Add a fare attribute to the GTFS feed
-        payment_method: 0=Onboard, 1=Before boarding
-        transfers: None=unlimited, 0=No transfers, 1=One transfer, 2=Two transfers
-        """
-        self.fare_attributes[fare_id] = {
-            'fare_id': fare_id,
-            'price': f"{float(price):.2f}",
-            'currency_type': currency_type,
-            'payment_method': payment_method,
-            'transfers': '' if transfers is None else str(transfers),
-            'agency_id': '1'
-        }
-        return fare_id
-
-    def add_fare_rule(self, fare_id, route_id=None, origin_id=None, destination_id=None):
-        """Add a fare rule to the GTFS feed.
-
-        All rules carry the same columns so ordinary (route-independent, zone
-        only) and premium (route-scoped) rules can coexist in fare_rules.txt.
-        """
-        self.fare_rules.append({
-            'fare_id': fare_id,
-            'route_id': route_id or '',
-            'origin_id': origin_id or '',
-            'destination_id': destination_id or ''
-        })
-
-    def write_feed_info(self):
-        return [{
-            'feed_publisher_name': 'Vonter',
-            'feed_publisher_url': 'https://github.com/Vonter/bmtc-gtfs',
-            'feed_lang': 'en',
-            'feed_start_date': datetime.datetime.now().strftime('%Y%m%d'),
-            'feed_end_date': (datetime.datetime.now() + datetime.timedelta(days=365)).strftime('%Y%m%d'),
-            'feed_version': datetime.datetime.now().strftime('%Y%m%d'),
-            'feed_contact_email': 'me@vonter.in',
-            'feed_contact_url': 'https://github.com/Vonter/bmtc-gtfs'
-        }]
-
-    def write_gtfs(self):
-        # Create a temporary directory for CSV files
-        os.makedirs('gtfs_temp', exist_ok=True)
-        
-        try:
-            # Write each GTFS file
-            files_to_write = {
-                'agency.txt': self.write_agency(),
-                'calendar.txt': self.write_calendar(),
-                'stops.txt': list(self.stops.values()),
-                'routes.txt': list(self.routes.values()),
-                'shapes.txt': [point for points in self.shapes.values() for point in points],
-                'trips.txt': self.trips,
-                'stop_times.txt': self.stop_times,
-                'translations.txt': self.translations,
-                'feed_info.txt': self.write_feed_info(),
-                'attributions.txt': self.write_attributions(),
+        write("stop_times.txt", stop_times())
+        write("trips.txt", trips)
+        route_ids = {trip["route_id"] for trip in trips}
+        write("routes.txt", sorted(
+            (row for row in self.route_rows if row["route_id"] in route_ids),
+            key=lambda row: row["route_short_name"],
+        ))
+        write("shapes.txt", self.shape_rows({trip["shape_id"] for trip in trips}))
+        if frequencies:
+            write("frequencies.txt", frequencies)
+        write("calendar.txt", [
+            {
+                "service_id": f"days:{bits}", **dict(zip(DAY_FIELDS, bits)),
+                "start_date": first_day, "end_date": last_day,
             }
-            
-            # Only include legacy fare files if they have data
-            if self.fare_attributes:
-                files_to_write['fare_attributes.txt'] = list(self.fare_attributes.values())
-            if self.fare_rules:
-                files_to_write['fare_rules.txt'] = self.fare_rules
+            for bits in sorted(self.services, reverse=True)
+        ])
+        if fare_attributes:
+            write("fare_attributes.txt", fare_attributes)
+            fare_rules = (
+                rule for rule in self.fare_rule_rows()
+                if not rule["route_id"] or rule["route_id"] in route_ids
+            )
+            first_rule = next(fare_rules, None)
+            if first_rule is not None:
+                write("fare_rules.txt", itertools.chain([first_rule], fare_rules))
+        return counts
 
-            for filename, data in files_to_write.items():
-                if not data:
-                    continue
-                    
-                filepath = os.path.join('gtfs_temp', filename)
-                with open(filepath, 'w', newline='', encoding='utf-8') as f:
-                    if data:
-                        writer = csv.DictWriter(f, fieldnames=data[0].keys())
-                        writer.writeheader()
-                        writer.writerows(data)
-
-            # Create zip file
-            with zipfile.ZipFile(self.output_path, 'w', zipfile.ZIP_DEFLATED) as gtfs_zip:
-                for filename in os.listdir('gtfs_temp'):
-                    gtfs_zip.write(os.path.join('gtfs_temp', filename), filename)
-
-        finally:
-            # Clean up temporary files
-            for filename in os.listdir('gtfs_temp'):
-                os.remove(os.path.join('gtfs_temp', filename))
-            os.rmdir('gtfs_temp')
-
-    def add_fare_stage(self, stage_id, stage_name):
-        """Add a fare stage to the GTFS feed"""
-        self.fare_attributes[stage_id] = {
-            'fare_id': stage_id,
-            'price': f"{float(stage_name):.2f}",
-            'currency_type': 'INR',
-            'payment_method': 0,
-            'transfers': ''
-        }
-        return stage_id
-
-    def add_stop_to_stage(self, stop_id, stage_id):
-        """Add a stop to a fare stage"""
-        # Check if this stop_id already exists in any stage
-        for stop_area in self.fare_attributes.values():
-            if stop_area['fare_id'] == stop_id:
-                return  # Skip if stop already exists in any stage
-        
-        # Add the new stop_area entry
-        self.fare_attributes[stop_id] = {
-            'fare_id': stop_id,
-            'price': f"{float(stage_id):.2f}",
-            'currency_type': 'INR',
-            'payment_method': 0,
-            'transfers': ''
-        }
-
-# Initialize GTFS writer
-os.makedirs('../gtfs/intermediate', exist_ok=True)
-gtfs = GTFSWriter()
-
-def add_stops():
-    directory = '../raw/stops/'
-    addedRoutesStops = []
-    failedRoutesStops = []
-
-    for filename in os.listdir(directory):
-        if filename.endswith('.json'):
-            file_path = os.path.join(directory, filename)
-            if os.path.getsize(file_path) > 0:
-                try:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        for stop in (data["up"]["data"] + data["down"]["data"]):
-                            if stop["stationid"] not in gtfs.stops:
-                                gtfs.add_stop(
-                                    stop["stationid"],
-                                    stop["centerlat"],
-                                    stop["centerlong"],
-                                    stop["stationname"]
-                                )
-                    addedRoutesStops.append(file_path.replace(".json", ""))
-
-                except Exception as err:
-                    logging.info("Failed to process " + file_path)
-                    failedRoutesStops.append(file_path.replace(".json", ""))
-    
-    logging.info("Added {} stops ({} errors)".format(len(gtfs.stops), len(failedRoutesStops)))
-    return gtfs.stops
-
-def add_routes():
-    json_file = '../raw/routes.json'
-    routes_json = json.load(open(json_file))
-    addedRoutes = []
-    failedRoutes = []
-
-    # Build routeno -> routeparentid mapping from routeids files
-    routeids_directory = '../raw/routeids/'
-    route_parent_ids = {}
-    for filename in os.listdir(routeids_directory):
-        if filename.endswith('.json'):
-            file_path = os.path.join(routeids_directory, filename)
-            if os.path.getsize(file_path) > 0:
-                try:
-                    with open(file_path, 'r') as f:
-                        data = json.load(f)
-                        if data.get('data'):
-                            for entry in data['data']:
-                                routeno = entry.get('routeno', '')
-                                parent_id = entry.get('routeparentid', '')
-                                if routeno and parent_id:
-                                    route_parent_ids[routeno] = parent_id
-                except Exception as err:
-                    logging.warning(f"Failed to load routeids file {filename}: {str(err)}")
-
-    logging.info(f"Loaded {len(route_parent_ids)} route parent IDs")
-
-    for route in routes_json["data"]:
+    def build(self) -> dict[str, int]:
+        self.output.parent.mkdir(parents=True, exist_ok=True)
+        temporary_zip = self.output.with_suffix(self.output.suffix + ".tmp")
         try:
-            route_short_name = route["routeno"].replace(" UP", "").replace(" DOWN", "")
-            if route_short_name not in gtfs.routes:
-                route_id = route_parent_ids.get(route_short_name, '')
-                route_long_name = "{} ⇔ {}".format(route["fromstation"], route["tostation"])
-                gtfs.add_route(route_id, route_short_name, route_long_name)
-            addedRoutes.append(route_id)
-
-        except Exception as err:
-            logging.info("Failed to process " + route["routeno"])
-            failedRoutes.append(route["routeno"])
-
-    logging.info("Added {} routes ({} errors)".format(len(addedRoutes), len(failedRoutes)))
-    return gtfs.routes
-
-def add_shapes():
-    directory = '../raw/routelines/'
-    addedShapes = []
-    failedShapes = []
-
-    for filename in os.listdir(directory):
-        if filename.endswith('.json'):
-            file_path = os.path.join(directory, filename)
-            if os.path.getsize(file_path) > 0:
-                try:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        if len(data["data"]) > 0:
-                            shape_id = filename.replace(".json", "")
-                            shape_id = ''.join(c for c in shape_id if c.isprintable())
-                            for i, point in enumerate(data["data"]):
-                                gtfs.add_shape_point(
-                                    shape_id,
-                                    point["latitude"],
-                                    point["longitude"],
-                                    i + 1
-                                )
-                    addedShapes.append(filename.replace("json", ""))
-
-                except Exception as err:
-                    logging.info("Failed to process " + filename)
-                    failedShapes.append(filename.replace(".json", ""))
-    
-    logging.info("Added {} shapes ({} errors)".format(len(addedShapes), len(failedShapes)))
-    return gtfs.shapes
-
-def haversine_distance(lat1, lon1, lat2, lon2):
-    """
-    Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
-    Returns distance in kilometers
-    """
-    # Convert decimal degrees to radians
-    lat1, lon1, lat2, lon2 = map(math.radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
-    
-    # Haversine formula
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a))
-    r = 6371  # Radius of earth in kilometers
-    return c * r
-
-def add_trips():
-    stops_directory = '../raw/stops/'
-    timetables_directory = '../raw/timetables/Monday/'
-
-    addedTrips = []
-    failedTrips = []
-    noStops = []
-    noTimetables = []
-    noShapes = []
-    interpolated_routes = []
-    speed_adjustments = 0
-
-    trip_counter = 0
-    stops_files = os.listdir(stops_directory)
-
-    # Maximum allowed speed in km/h
-    MAX_SPEED_KMH = 75.0
-
-    for route_id, route_data in gtfs.routes.items():
-        route_short_name = route_data['route_short_name']
-        for direction in ["UP", "DOWN"]:
-            try:
-                filename = "{} {}.json".format(route_short_name, direction)
-                if filename not in stops_files:
-                    noStops.append(filename)
-                    continue
-
-                file_path = os.path.join(stops_directory, filename)
-                if os.stat(file_path).st_size == 0:
-                    noStops.append(filename)
-                    continue
-
-                shape_id = "{} {}".format(route_short_name, direction)
-                if shape_id not in gtfs.shapes:
-                    noShapes.append(filename)
-                    continue
-
-                # Load stops file
-                try:
-                    with open(file_path) as stops_file:
-                        stops = json.load(stops_file)
-                except Exception as e:
-                    logging.error(f"Failed to load stops file {file_path}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-
-                # Load and validate timetable
-                timetable_path = os.path.join(timetables_directory, filename)
-                if not os.path.exists(timetable_path):
-                    noTimetables.append(timetable_path)
-                    continue
-                
-                if os.stat(timetable_path).st_size == 0:
-                    noTimetables.append(timetable_path)
-                    continue
-
-                try:
-                    with open(timetable_path) as timetables_file:
-                        timetables = json.load(timetables_file)
-                except json.JSONDecodeError as e:
-                    logging.error(f"Invalid JSON in timetable {timetable_path}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-                except Exception as e:
-                    logging.error(f"Failed to load timetable {timetable_path}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-
-                if not timetables.get("data"):
-                    logging.info(f"No data in timetable for {filename}")
-                    noTimetables.append(timetable_path)
-                    continue
-
-                if timetables.get("Message") == "No Records Found.":
-                    noTimetables.append(timetable_path)
-                    continue
-
-                try:
-                    trip_details = timetables["data"][0]["tripdetails"]
-                except (KeyError, IndexError) as e:
-                    logging.error(f"Invalid timetable structure in {filename}: {str(e)}")
-                    failedTrips.append(filename)
-                    continue
-
-                # Process each trip
-                for trip in trip_details:
-                    try:
-                        trip_counter += 1
-                        direction_id = "1" if direction == "DOWN" else "0"
-
-                        # Validate required trip fields
-                        if "starttime" not in trip or "endtime" not in trip:
-                            logging.error(f"Missing time data in trip for {filename}")
-                            continue
-
-                        start_time = datetime.datetime.strptime(trip["starttime"], '%H:%M')
-                        end_time = datetime.datetime.strptime(trip["endtime"], '%H:%M')
-                        duration = (end_time - start_time).total_seconds()
-                        
-                        trip_id = str(trip_counter)
-                        gtfs.add_trip(
-                            route_id=route_id,
-                            service_id="1",
-                            trip_id=trip_id,
-                            headsign=timetables["data"][0].get("tostationname", ""),
-                            direction_id=direction_id,
-                            shape_id=shape_id
-                        )
-
-                        stops_data = stops[direction.lower()]["data"]
-                        if not stops_data:
-                            logging.error(f"No stops data for {filename}")
-                            continue
-
-                        # Initial distribution of time (will be adjusted for speed)
-                        stop_times = []
-                        current_time = start_time
-                        
-                        # First pass: Calculate distances and distribute time evenly
-                        total_distance = 0
-                        distances = []
-                        
-                        # Calculate distances between consecutive stops
-                        for i in range(len(stops_data) - 1):
-                            current_stop = stops_data[i]
-                            next_stop = stops_data[i + 1]
-                            
-                            try:
-                                distance = haversine_distance(
-                                    current_stop["centerlat"], 
-                                    current_stop["centerlong"],
-                                    next_stop["centerlat"], 
-                                    next_stop["centerlong"]
-                                )
-                                distances.append(distance)
-                                total_distance += distance
-                            except (KeyError, ValueError) as e:
-                                # If coordinates are missing, use a reasonable default distance
-                                distances.append(0.5)  # 500 meters default
-                                total_distance += 0.5
-                        
-                        # Add the first stop
-                        stop_times.append({
-                            'stop_id': stops_data[0]["stationid"],
-                            'stop_sequence': 1,
-                            'time': current_time
-                        })
-                        
-                        # Second pass: Adjust times based on distance while respecting speed limits
-                        remaining_time = duration
-                        time_used = 0
-                        
-                        for i in range(len(distances)):
-                            # Calculate minimum time needed for this segment based on maximum speed
-                            distance_km = distances[i]
-                            min_time_hours = distance_km / MAX_SPEED_KMH
-                            min_time_seconds = min_time_hours * 3600
-                            
-                            # Calculate proportional time based on distance
-                            if total_distance > 0:
-                                prop_time = duration * (distance_km / total_distance)
-                            else:
-                                prop_time = duration / len(distances)
-                            
-                            # Use the maximum of proportional time and minimum time needed
-                            segment_time = max(prop_time, min_time_seconds)
-                            
-                            # Update remaining time and time used
-                            time_used += segment_time
-                            
-                            # Calculate the next stop time
-                            current_time = current_time + datetime.timedelta(seconds=segment_time)
-                            
-                            stop_times.append({
-                                'stop_id': stops_data[i + 1]["stationid"],
-                                'stop_sequence': i + 2,
-                                'time': current_time
-                            })
-                            
-                            # Keep track if we had to adjust for speed
-                            if segment_time > prop_time:
-                                speed_adjustments += 1
-                        
-                        # If our adjusted times exceed the end time, we need to scale back
-                        if current_time > end_time:
-                            # Calculate scaling factor
-                            actual_duration = (current_time - start_time).total_seconds()
-                            scale_factor = duration / actual_duration
-                            
-                            # Reset the start time
-                            current_time = start_time
-                            
-                            # Rescale all times except the first
-                            for i in range(1, len(stop_times)):
-                                original_delta = (stop_times[i]['time'] - start_time).total_seconds()
-                                scaled_delta = original_delta * scale_factor
-                                stop_times[i]['time'] = start_time + datetime.timedelta(seconds=scaled_delta)
-                        
-                        # Add stop times to GTFS
-                        for stop_time_data in stop_times:
-                            formatted_time = stop_time_data['time'].strftime('%H:%M:%S')
-                            gtfs.add_stop_time(
-                                trip_id=trip_id,
-                                stop_id=stop_time_data['stop_id'],
-                                stop_sequence=stop_time_data['stop_sequence'],
-                                arrival_time=formatted_time,
-                                departure_time=formatted_time
-                            )
-
-                    except Exception as err:
-                        logging.error(f"Failed to process trip in {filename}: {str(err)}")
-                        logging.error(traceback.format_exc())
-                        continue
-
-                addedTrips.append(filename.replace(".json", ""))
-
-            except Exception as err:
-                logging.error(f"Failed to process timetable for route {filename}")
-                logging.error(traceback.format_exc())
-                failedTrips.append(filename)
-    
-    logging.info("Added {} trips ({} errors)".format(len(addedTrips), len(failedTrips)))
-    logging.info("Missing timetable for {} routes".format(len(noTimetables)))
-    logging.info("Missing stopslist for {} routes".format(len(noStops)))
-    logging.info("Missing shape for {} routes".format(len(noShapes)))
-    logging.info(f"Made {speed_adjustments} speed adjustments to stay under {MAX_SPEED_KMH} km/h")
-
-    # Write missing files
-    for filename, items in [
-        ('../gtfs/missingTimetables.txt', noTimetables),
-        ('../gtfs/missingStops.txt', noStops),
-        ('../gtfs/missingShapes.txt', noShapes),
-    ]:
-        with open(filename, 'w') as f:
-            for item in items:
-                f.write(f"{item}\n")
-    
-    # Remove trips with only one stop
-    cleanup_trips()
-
-def cleanup_trips():
-    """Drop trips that contain only a single stop or single row."""
-    single_stop_trips = []
-    stop_counts = defaultdict(int)
-    
-    # Count stops per trip
-    for stop_time in gtfs.stop_times:
-        stop_counts[str(stop_time['trip_id'])] += 1
-    
-    # Log current state
-    logging.info(f"Before cleanup: {len(gtfs.trips)} trips, {len(gtfs.stop_times)} stop times")
-    
-    # Identify trips with only one stop
-    for trip_id, count in stop_counts.items():
-        if count <= 1:
-            single_stop_trips.append(trip_id)
-    
-    if single_stop_trips:
-        # Make sure trip_id is compared as string for consistency
-        gtfs.trips = [trip for trip in gtfs.trips if str(trip['trip_id']) not in single_stop_trips]
-        gtfs.stop_times = [st for st in gtfs.stop_times if str(st['trip_id']) not in single_stop_trips]
-        
-        # Log results of cleanup
-        logging.info(f"Removed {len(single_stop_trips)} trips with only a single stop")
-        logging.info(f"After cleanup: {len(gtfs.trips)} trips, {len(gtfs.stop_times)} stop times")
-    else:
-        logging.info("No single-stop trips found to remove")
-
-def add_stop_desc():
-    translations_directory = '../raw/translations/'
-    failed_files = []
-
-    def is_english(s):
-        try:
-            s.encode('ascii')
-            return True
-        except UnicodeEncodeError:
-            return False
-
-    stop_geofences = {}
-    for filename in os.listdir(translations_directory):
-        if filename.endswith('_en.json'):
-            try:
-                file_path = os.path.join(translations_directory, filename)
-                if os.path.getsize(file_path) > 0:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        if data.get("data"):
-                            for stop in data["data"]:
-                                stop_id = stop.get("stopid")
-                                gname = stop.get("geofencename", "")
-                                if stop_id and gname and gname not in stop_geofences.get(stop_id, []):
-                                    stop_geofences.setdefault(stop_id, []).append(gname)
-            except Exception as err:
-                logging.error(f"Failed to process English translation file {filename}: {str(err)}")
-                failed_files.append(filename)
-
-    updated = 0
-    for stop_id, geofences in stop_geofences.items():
-        if stop_id in gtfs.stops:
-            english_ones = [g for g in geofences if is_english(g)]
-            gtfs.stops[stop_id]['stop_desc'] = english_ones[0] if english_ones else geofences[0]
-            updated += 1
-
-    logging.info(f"Added stop_desc for {updated} stops ({len(failed_files)} failed files)")
-
-def add_translations():
-    translations_directory = '../raw/translations/'
-    translations_data = {}
-    failed_files = []
-
-    # Process Kannada files
-    for filename in os.listdir(translations_directory):
-        if filename.endswith('_kn.json'):
-            try:
-                file_path = os.path.join(translations_directory, filename)
-                if os.path.getsize(file_path) > 0:
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        if data.get("data"):
-                            for stop in data["data"]:
-                                stop_id = stop.get("stopid")
-                                if stop_id:
-                                    translations_data[stop_id] = {}
-                                    translations_data[stop_id]["kn"] = stop.get("geofencename", "")
-            except Exception as err:
-                logging.error(f"Failed to process Kannada translation file {file_path}: {str(err)}")
-                failed_files.append(filename)
-
-    # Add translations to GTFS
-    added_translations = 0
-    for stop_id, translations in translations_data.items():
-        if stop_id in gtfs.stops:  # Only add translations for stops that exist in our GTFS
-            if translations.get("kn"):  # Add Kannada translation if available
-                gtfs.add_translation(
-                    table_name="stops",
-                    record_id=stop_id,
-                    field_name="stop_name",
-                    language="kn",
-                    translation=translations["kn"]
-                )
-                added_translations += 1
-
-    logging.info(f"Added {added_translations} translations ({len(failed_files)} failed files)")
-    return translations_data
-
-def add_fares():
-    """Populate GTFS Fares v1 using stage-based, route-independent fares.
-
-    BMTC fares depend only on the fare-stage codes of the origin and
-    destination, so each stop is assigned a ``zone_id`` equal to its stage code
-    and fares are expressed as zone-to-zone rules with no ``route_id``. This
-    collapses what used to be O(routes x stop_pairs) fare rules into one rule
-    per priced stage-code pair (per direction).
-    """
-    fares_directory = '../raw/fares/'
-    ORDINARY_SERVICES = ('Bengaluru Sarige', 'Electric')
-
-    # Load stage codes (station_id -> code) and the consolidated fare matrix
-    try:
-        with open(os.path.join(fares_directory, 'stop_codes.json')) as f:
-            stop_codes = json.load(f)
-    except Exception as e:
-        logging.error(f"Failed to load stop codes: {e}")
-        return {}
-    try:
-        with open(os.path.join(fares_directory, 'fares.json')) as f:
-            fare_matrix = json.load(f)
-    except Exception as e:
-        logging.error(f"Failed to load fare matrix: {e}")
-        return {}
-
-    logging.info(f"Loaded {len(stop_codes)} stage codes and {len(fare_matrix)} priced pairs")
-
-    # Assign zone_id = stage code to every stop that has one. Platform child
-    # stops carry their station's stage code (pre-set by add_platforms) so that
-    # boardings repointed onto them stay fare-covered. Only zones belonging to a
-    # stop that is actually used by a trip count as "used", so fare rules never
-    # reference a zone whose stops gtfstidy prunes as orphans.
-    code_set = set(stop_codes.values())
-    stops_in_use = set(str(st['stop_id']) for st in gtfs.stop_times)
-    used_zones = set()
-    for stop_id, stop in gtfs.stops.items():
-        code = stop_codes.get(str(stop_id))
-        if code:
-            stop['zone_id'] = code
-        elif stop.get('zone_id') not in code_set:
-            stop['zone_id'] = ''
-        if stop['zone_id'] and str(stop_id) in stops_in_use:
-            used_zones.add(stop['zone_id'])
-
-    # ---- Shared fare machinery (ordinary + premium) ----
-    # Every fare class maps to an ordered list of service types: the first
-    # service present in a stage pair's rows sets the price. 'Ordinary' is the
-    # route-independent baseline; the rest are premium (AC / express) classes.
-    FARE_PREFERENCE = {
-        'Ordinary': ORDINARY_SERVICES,
-        'Vajra': ('Vajra', 'Vajra Electric', 'Volvo Electric'),
-        'Vayu Vajra': ('Vayu Vajra', 'Vayu Vajra Electric', 'Vajra', 'Volvo Electric'),
-        'Express': ('Vajra', 'Vayu Vajra', 'Vayu Vajra Electric', 'Volvo Electric'),
-    }
-    ORDINARY_SERVICE_SET = set(ORDINARY_SERVICES)
-
-    def pick_price(rows, fare_class):
-        """Choose a price from a stage pair's service rows for a fare class.
-
-        The first service in the class's preference wins; otherwise fall back to
-        the cheapest ordinary fare (for the baseline) or the dearest premium
-        fare (for a premium class).
-        """
-        by_service = {r.get('servicetype'): r.get('fare') for r in rows}
-        for service in FARE_PREFERENCE[fare_class]:
-            if service in by_service:
-                try:
-                    return float(by_service[service])
-                except (TypeError, ValueError):
-                    pass
-        ordinary = fare_class == 'Ordinary'
-        values = []
-        for service, fare in by_service.items():
-            if not ordinary and service in ORDINARY_SERVICE_SET:
-                continue
-            try:
-                values.append(float(fare))
-            except (TypeError, ValueError):
-                pass
-        if not values:
-            return None
-        return min(values) if ordinary else max(values)
-
-    def fare_id_for(price):
-        fid = f"F{price:g}"
-        if fid not in gtfs.fare_attributes:
-            gtfs.add_fare_attribute(fare_id=fid, price=price, payment_method=0, transfers=0)
-        return fid
-
-    def emit_rule(price, origin, dest, route_id=None):
-        """Emit a zone-to-zone fare rule when both zones are used by a trip."""
-        if (price is None or not origin or not dest
-                or origin not in used_zones or dest not in used_zones):
-            return False
-        gtfs.add_fare_rule(fare_id=fare_id_for(price), route_id=route_id,
-                           origin_id=origin, destination_id=dest)
-        return True
-
-    # ---- Ordinary (route-independent) zone-to-zone rules ----
-    # Resolve one price per ordered zone pair (deduped). Fares are symmetric in
-    # the source data, so each canonical pair seeds both directions.
-    od_price = {}
-    min_price = None
-    for key, rows in fare_matrix.items():
-        if '_' not in key:
-            continue
-        code_a, code_b = key.split('_')
-        price = pick_price(rows, 'Ordinary')
-        if price is None:
-            continue
-        if min_price is None or price < min_price:
-            min_price = price
-        if code_a not in used_zones or code_b not in used_zones:
-            continue
-        for pair in ((code_a, code_b), (code_b, code_a)):
-            od_price.setdefault(pair, price)
-
-    # Intra-stage travel (same zone) falls back to the minimum fare unless the
-    # source data already priced it explicitly.
-    if min_price is not None:
-        for zone in used_zones:
-            od_price.setdefault((zone, zone), min_price)
-
-    for (origin, dest), price in od_price.items():
-        emit_rule(price, origin, dest)
-
-    # ---- Premium (AC / express) route-scoped rules ----
-    # Premium routes (V-*, KIA-*, EXP-*) charge their own fares, so they get
-    # route-scoped rules (with route_id) that take precedence over the ordinary
-    # zone rules for those routes.
-    def route_class(name):
-        n = (name or '').upper().strip()
-        if n.startswith('KIA') or n.startswith('VAYU'):
-            return 'Vayu Vajra'
-        if n.startswith('V-') or n.startswith('V '):
-            return 'Vajra'
-        if n.startswith('EXP'):
-            return 'Express'
-        return None
-
-    premium_fares = {}
-    premium_path = os.path.join(fares_directory, 'premium_fares.json')
-    if os.path.exists(premium_path):
-        with open(premium_path) as f:
-            premium_fares = json.load(f)
-
-    premium_rules = 0
-    premium_routes = 0
-    if premium_fares:
-        stops_directory = '../raw/stops/'
-        for route_id, route_data in gtfs.routes.items():
-            cls = route_class(route_data['route_short_name'])
-            if not cls:
-                continue
-            emitted_here = set()
-            had_rule = False
-            for direction in ('UP', 'DOWN'):
-                stops_path = os.path.join(
-                    stops_directory, f"{route_data['route_short_name']} {direction}.json")
-                if not os.path.exists(stops_path):
-                    continue
-                try:
-                    with open(stops_path) as f:
-                        seq = json.load(f).get(direction.lower(), {}).get('data') or []
-                except Exception:
-                    continue
-                station_ids = [str(s['stationid']) for s in seq if s.get('stationid')]
-                for i in range(len(station_ids)):
-                    for j in range(i + 1, len(station_ids)):
-                        rows = premium_fares.get(f"{station_ids[i]}_{station_ids[j]}")
-                        if not rows:
-                            continue
-                        origin = stop_codes.get(station_ids[i])
-                        dest = stop_codes.get(station_ids[j])
-                        if not origin or not dest or origin == dest:
-                            continue
-                        rule_key = (origin, dest)
-                        if rule_key in emitted_here:
-                            continue
-                        if emit_rule(pick_price(rows, cls), origin, dest, route_id):
-                            emitted_here.add(rule_key)
-                            premium_rules += 1
-                            had_rule = True
-            if had_rule:
-                premium_routes += 1
-
-    logging.info(f"Added {len(gtfs.fare_attributes)} fare attributes, {len(od_price)} ordinary "
-                 f"zone rules across {len(used_zones)} zones, and {premium_rules} premium "
-                 f"route-scoped rules across {premium_routes} routes")
-    return gtfs.fare_attributes
-
-def _maybe_int(value):
-    """Return int(value) when possible, else the original value (for dict keys)."""
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return value
-
-def add_platforms():
-    """Add parent stations and platform child stops for major bus stations.
-
-    Combines hand-drawn platform locations (raw/platforms/geojson) with scraped
-    route->platform assignments (raw/platforms/platforms-<station>.json) to:
-      1. create a parent station (location_type=1) per configured station,
-      2. create a platform child stop (location_type=0 + platform_code) per
-         platform point, and
-      3. repoint the boarding stop_time of each route known to depart from a
-         platform onto that platform child stop, so the platform survives
-         gtfstidy's orphan removal and is fare-covered.
-    """
-    platforms_dir = '../raw/platforms/'
-    stations_file = os.path.join(platforms_dir, 'stations.json')
-    if not os.path.exists(stations_file):
-        logging.info("No platform data found; skipping platforms")
-        return
-
-    with open(stations_file) as f:
-        stations = json.load(f)
-
-    stops_platforms = {}
-    sp_file = os.path.join(platforms_dir, 'stops-platforms.json')
-    if os.path.exists(sp_file):
-        with open(sp_file) as f:
-            stops_platforms = json.load(f)
-
-    # Stage codes let platform stops inherit their station's fare zone
-    stop_codes = {}
-    sc_file = '../raw/fares/stop_codes.json'
-    if os.path.exists(sc_file):
-        with open(sc_file) as f:
-            stop_codes = json.load(f)
-
-    route_short_by_id = {rid: r['route_short_name'] for rid, r in gtfs.routes.items()}
-    trip_meta = {
-        t['trip_id']: (route_short_by_id.get(t['route_id'], ''), t['direction_id'])
-        for t in gtfs.trips
-    }
-
-    seed_to_station = {}          # seed_id -> station_name
-    assignment = {}               # (station_name, route_short, direction_id) -> platform stop_id
-    route_platforms = defaultdict(set)  # (station_name, route_short) -> {platform stop_ids}
-    total_platform_stops = 0
-
-    for station_name, config in stations.items():
-        seed_ids = [str(s) for s in config.get('seed_ids', [])]
-        geojson_name = config.get('geojson')
-        geojson_path = os.path.join(platforms_dir, 'geojson', geojson_name) if geojson_name else None
-        if not geojson_path or not os.path.exists(geojson_path):
-            continue
-
-        with open(geojson_path) as f:
-            geo = json.load(f)
-
-        for sid in seed_ids:
-            seed_to_station[sid] = station_name
-
-        # The bus station's own ID is the first seed that exists as a GTFS stop;
-        # platform IDs are that station ID with a _PF<label> suffix.
-        station_id = None
-        parent_name = None
-        seed_code = None
-        for sid in seed_ids:
-            seed_stop = gtfs.stops.get(sid) or gtfs.stops.get(_maybe_int(sid))
-            if seed_stop:
-                if station_id is None:
-                    station_id = sid
-                    parent_name = seed_stop['stop_name']
-            if not seed_code:
-                seed_code = stop_codes.get(sid)
-        if station_id is None:
-            station_id = seed_ids[0] if seed_ids else station_name
-        if not parent_name:
-            parent_name = station_name.title()
-
-        parent_id = f"{station_id}_ST"
-        platform_label_to_stop = {}   # UPPER label/alias -> platform stop_id
-        platform_points = []
-        for feature in geo.get('features', []):
-            if feature.get('geometry', {}).get('type') != 'Point':
-                continue
-            props = feature.get('properties', {})
-            label = str(props.get('Platform', '')).strip()
-            if not label:
-                continue
-            lon, lat = feature['geometry']['coordinates'][:2]
-            pstop_id = f"{station_id}_PF{label}".replace(' ', '_')
-            platform_points.append((pstop_id, lat, lon, label))
-            platform_label_to_stop[label.upper()] = pstop_id
-            for alias in props.get('Alias', []) or []:
-                platform_label_to_stop[str(alias).strip().upper()] = pstop_id
-
-        if not platform_points:
-            continue
-
-        # Parent station at the centroid of its platforms
-        clat = sum(p[1] for p in platform_points) / len(platform_points)
-        clon = sum(p[2] for p in platform_points) / len(platform_points)
-        gtfs.add_stop(parent_id, clat, clon, parent_name, location_type='1')
-
-        for pstop_id, lat, lon, label in platform_points:
-            gtfs.add_stop(pstop_id, lat, lon, f"{parent_name} - Platform {label}",
-                          location_type='0', parent_station=parent_id, platform_code=label)
-            if seed_code:
-                gtfs.stops[pstop_id]['zone_id'] = seed_code
-            total_platform_stops += 1
-
-        # Scraped route -> platform assignments for this station. Keyed by
-        # (station, route, direction) so a route is matched at whichever of the
-        # station's seed stops its own stoplist happens to use.
-        raw_path = os.path.join(platforms_dir, f'platforms-{station_name}.json')
-        if not os.path.exists(raw_path):
-            continue
-        with open(raw_path) as f:
-            raw = json.load(f)
-
-        for entry in raw.get('Received', []):
-            from_id = str(entry.get('from-station-id'))
-            plat_value = (stops_platforms.get(from_id)
-                          or entry.get('platform-name')
-                          or entry.get('platform-number'))
-            if plat_value in (None, ''):
-                continue
-            pstop_id = platform_label_to_stop.get(str(plat_value).strip().upper())
-            if not pstop_id:
-                continue
-            route_no = (entry.get('route-number') or '').replace(' UP', '').replace(' DOWN', '').strip()
-            ext = (entry.get('extended-route-number') or '').strip()
-            direction_id = '1' if ext.endswith('DOWN') else '0'
-            assignment[(station_name, route_no, direction_id)] = pstop_id
-            route_platforms[(station_name, route_no)].add(pstop_id)
-
-    # Single pass: repoint boardings at any of a station's seed stops onto the
-    # platform assigned to that (station, route, direction). If the scraped
-    # departure direction does not match the trip's direction (the timetable may
-    # only cover one direction), fall back to the route's platform when it is
-    # unambiguous (the route uses a single platform at that station).
-    total_repointed = 0
-    if assignment:
-        for st in gtfs.stop_times:
-            seed = str(st['stop_id'])
-            station_name = seed_to_station.get(seed)
-            if not station_name:
-                continue
-            route_no, direction_id = trip_meta.get(st['trip_id'], ('', ''))
-            pstop_id = assignment.get((station_name, route_no, direction_id))
-            if not pstop_id:
-                platforms = route_platforms.get((station_name, route_no))
-                if platforms and len(platforms) == 1:
-                    pstop_id = next(iter(platforms))
-            if pstop_id:
-                st['stop_id'] = pstop_id
-                total_repointed += 1
-
-    logging.info(f"Added {total_platform_stops} platform stops across {len(stations)} "
-                 f"stations; repointed {total_repointed} boardings")
-
-def save_missing_files():
-    # Get list of stops that still exist in the final GTFS
-    existing_stops = set()
-    with zipfile.ZipFile('../gtfs/bmtc.zip', 'r') as zip_ref:
-        with zip_ref.open('stops.txt') as stops_file:
-            reader = csv.DictReader(stops_file.read().decode('utf-8').splitlines())
-            for row in reader:
-                existing_stops.add(row['stop_id'])
-
-    # Copy files from intermediate zip to final zip
-    with zipfile.ZipFile('../gtfs/bmtc.zip', 'a') as zip_ref:
-        with zipfile.ZipFile('../gtfs/intermediate/bmtc.zip', 'r') as intermediate_zip:
-            # List of files to copy from intermediate zip
-            files_to_copy = [
-                'translations.txt',
-            ]
-            
-            # Copy each file
-            for filename in files_to_copy:
-                if filename in intermediate_zip.namelist():
-                    # Special handling for translations.txt to filter by existing stops
-                    if filename == 'translations.txt':
-                        translations_data = intermediate_zip.read(filename).decode('utf-8')
-                        # Filter translations to only include those for existing stops
-                        filtered_translations = []
-                        reader = csv.DictReader(translations_data.splitlines())
-                        for row in reader:
-                            if row['record_id'] in existing_stops:
-                                filtered_translations.append(row)
-                        
-                        # Write filtered translations
-                        if filtered_translations:
-                            output = StringIO()
-                            writer = csv.DictWriter(output, fieldnames=filtered_translations[0].keys())
-                            writer.writeheader()
-                            writer.writerows(filtered_translations)
-                            zip_ref.writestr(filename, output.getvalue())
-                    else:
-                        # For other files, copy directly
-                        zip_ref.writestr(filename, intermediate_zip.read(filename))
-                        logging.info(f"Copied {filename} to final GTFS")
-
-
-# Generate GTFS
-add_stops()
-add_routes()
-add_shapes()
-add_trips()
-add_stop_desc()
-add_translations()
-add_platforms()
-add_fares()
-
-# Final cleanup to ensure no single-stop trips
-cleanup_trips()
-
-# Write GTFS files
-logging.info("Writing GTFS to disk...")
-gtfs.write_gtfs()
-
-# Run gtfstidy
-subprocess.run(["../tools/gtfstidy", "-SCRmcsOeD", "../gtfs/intermediate/bmtc.zip", "-o", "../gtfs/bmtc.zip"])
-
-# Save missing files
-save_missing_files()
+            with zipfile.ZipFile(temporary_zip, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                counts = self.write_feed(archive)
+            os.replace(temporary_zip, self.output)
+        except BaseException:
+            temporary_zip.unlink(missing_ok=True)
+            raise
+        logging.info(
+            "Merged %d source weekday trips into %d GTFS trips; dropped %d same-day duplicates",
+            self.source_day_trips, counts["trips.txt"], self.duplicate_day_trips,
+        )
+        logging.info("Wrote %s", self.output)
+        return counts
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--input", type=Path, default=SNAPSHOT_DIR)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    builder = FeedBuilder(args.input.resolve(), args.output.resolve())
+    counts = builder.build()
+    for filename, count in counts.items():
+        logging.info("%-22s %d rows", filename, count)
+
+
+if __name__ == "__main__":
+    main()

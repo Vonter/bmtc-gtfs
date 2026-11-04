@@ -7,15 +7,16 @@ Run the analysis with Python 3.10+ and pandas installed:
 python3 scripts/analysis.py
 # Use a different feed or write results outside the repository:
 python3 scripts/analysis.py /path/to/feed.zip --output-dir /tmp/bmtc-analysis
-python3 -m unittest discover -s tests -v
 ```
 
 Default input and output paths are relative to the repository, regardless of the
-working directory. The analysis includes all scheduled trips without filtering
-by service date. Route `trip_list` contains origin departure times; `stop_list`
-follows the first listed trip with stop times. Stop `trip_count` counts scheduled
-calls, including repeat visits, while stop `trip_list` contains known arrival
-times. Blank times are omitted, and times beyond 24:00:00 retain their GTFS hours.
+working directory. The analysis covers one service day: the weekday with the
+most scheduled trips in calendar.txt, or the day given by `--day`, so trip counts
+remain daily counts when trips run on different weekdays. Feeds without
+calendar.txt are summarized in full. Route `trip_list` contains origin departure
+times; `stop_list` follows the first listed trip with stop times. Stop `trip_count`
+counts scheduled calls, including repeat visits, while stop `trip_list` contains
+known arrival times. Blank times are omitted, and times beyond 24:00:00 retain their GTFS hours.
 
 IDs remain strings, preserving leading zeros and platform IDs. Routes are split
 by direction, with `null` for unspecified directions. Each distinct shape is
@@ -41,6 +42,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[1]
 STOP_FIELDS = ('name', 'trip_count', 'trip_list', 'route_count', 'route_list')
+WEEKDAYS = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
 ROUTE_FIELDS = (
     'name', 'full_name', 'trip_count', 'trip_list', 'stop_count', 'stop_list',
     'id', 'direction_id',
@@ -91,24 +93,29 @@ def read_table(archive: ZipFile, name: str, columns: dict, optional=()) -> pd.Da
 
 
 class TransitDataAnalysis:
-    """Summarize all scheduled trips, without filtering by service date.
+    """Summarize the scheduled trips of one service day.
 
     Stop trip counts represent scheduled calls, including repeat visits by a
     trip. Route stop lists use the first listed trip with stop times. Same-name
     stops are aggregated at the first stop's coordinates, as in earlier exports.
     """
 
-    def __init__(self, gtfs_file_path: Path, output_dir: Path = ROOT):
+    def __init__(self, gtfs_file_path: Path, output_dir: Path = ROOT, day: str | None = None):
         self.path = Path(gtfs_file_path)
         self.output_dir = Path(output_dir)
+        self.day = day
+        self.calendar_df = None
         self.stop_features = None
 
     def load_data(self) -> None:
         logger.info('Loading %s', self.path)
         with ZipFile(self.path) as archive:
             self.trips_df = read_table(archive, 'trips', dict.fromkeys(
-                ['trip_id', 'route_id', 'direction_id', 'shape_id'], str),
-                optional=('direction_id', 'shape_id'))
+                ['trip_id', 'route_id', 'service_id', 'direction_id', 'shape_id'], str),
+                optional=('service_id', 'direction_id', 'shape_id'))
+            if 'calendar.txt' in archive.namelist():
+                self.calendar_df = read_table(
+                    archive, 'calendar', dict.fromkeys(['service_id', *WEEKDAYS], str))
             self.routes_df = read_table(archive, 'routes', dict.fromkeys(
                 ['route_id', 'route_short_name', 'route_long_name'], str),
                 optional=('route_short_name', 'route_long_name'))
@@ -146,6 +153,7 @@ class TransitDataAnalysis:
                 raise ValueError(f'Unknown {key}: {unknown.iloc[0]}')
         if not self.trips_df.direction_id.isin(['', '0', '1']).all():
             raise ValueError('direction_id must be empty, 0 or 1')
+        self._select_service_day()
 
         # Sorting once makes each indexed trip follow numeric stop_sequence.
         self.stop_times_df = self.stop_times_df.sort_values('stop_sequence', kind='stable')
@@ -161,6 +169,21 @@ class TransitDataAnalysis:
         self.stop_features = None
         logger.info('Loaded %d stops, %d trips and %d stop times',
                     len(self.stops_df), len(self.trips_df), len(self.stop_times_df))
+
+    def _select_service_day(self) -> None:
+        if self.calendar_df is None or self.calendar_df.empty:
+            return
+        services = {
+            day: set(self.calendar_df.service_id[self.calendar_df[day].eq('1')])
+            for day in WEEKDAYS
+        }
+        trip_counts = {day: int(self.trips_df.service_id.isin(services[day]).sum())
+                       for day in WEEKDAYS}
+        day = self.day or max(WEEKDAYS, key=lambda d: (trip_counts[d], -WEEKDAYS.index(d)))
+        self.trips_df = self.trips_df[self.trips_df.service_id.isin(services[day])]
+        self.stop_times_df = self.stop_times_df[
+            self.stop_times_df.trip_id.isin(self.trips_df.trip_id)]
+        logger.info('Summarizing %d trips scheduled on %s', len(self.trips_df), day.title())
 
     def save_to_csv(self, geojson_data: dict, csv_path: str | Path, fields=None) -> None:
         rows = [item['properties'] for item in geojson_data['features']]
@@ -283,9 +306,11 @@ def main() -> None:
     parser.add_argument('gtfs', nargs='?', type=Path, default=ROOT / 'gtfs' / 'bmtc.zip')
     parser.add_argument('--output-dir', type=Path, default=ROOT,
                         help='Directory for geojson/ and csv/ (default: repository root)')
+    parser.add_argument('--day', choices=WEEKDAYS,
+                        help='Service day to summarize (default: day with the most trips)')
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    TransitDataAnalysis(args.gtfs, args.output_dir).run_analysis()
+    TransitDataAnalysis(args.gtfs, args.output_dir, args.day).run_analysis()
 
 
 if __name__ == '__main__':

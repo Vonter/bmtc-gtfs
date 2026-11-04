@@ -6,13 +6,9 @@ tools
 
 scripts/gtfs_temp
 
-raw/debug.log
-raw/fares
-raw/routeids
-raw/routelines
-raw/stops
-raw/timetables
-raw/translations
+raw/**
+!raw/platforms/
+!raw/platforms/**
 
 gtfs/debug.log
 gtfs/missingShapes.txt
