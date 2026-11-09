@@ -25,7 +25,7 @@ from common import (
 )
 
 
-FARE_API = "ticket-details-v2"
+FARE_API = "ticket-details-v3"
 FARE_VERIFICATION_SHARE = 0.02
 PERMANENT_FARE_STATUSES = {400, 404, 422, 500}
 REPRESENTATIVE_POLICY = "ordinary, then most weekly trips, then shortest stop span"

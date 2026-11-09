@@ -1,22 +1,22 @@
 {
   "metadata": {
     "schema_version": "2.0.0-rc1",
-    "generated_at": "2026-11-04T17:05:48+00:00",
+    "generated_at": "2026-11-09T11:52:37+00:00",
     "row_changes_cap_per_file": 50,
     "base_feed": {
       "source": "git:ee945dc0c21b29193f88e3e1e9af218dd24ea182:gtfs/bmtc.zip",
-      "downloaded_at": "2026-11-04T17:05:48+00:00",
+      "downloaded_at": "2026-11-09T11:52:37+00:00",
       "sha256": "b5fe4a8e05495f719e4c8f16452dc6c4820f342b5414c3fb51e19687b5ea3333"
     },
     "new_feed": {
       "source": "gtfs/bmtc.zip",
-      "downloaded_at": "2026-11-04T17:05:48+00:00",
-      "sha256": "e41e4d8a153f3ad3ef73a9f84ef3d59fd4fd0abf26d690837c5e8132098d83ba"
+      "downloaded_at": "2026-11-09T11:52:37+00:00",
+      "sha256": "812c7d472ff116024ca1e0a7ff6e28662f762ca09265da8d5c7e9f6241cf8a45"
     },
     "unsupported_files": []
   },
   "summary": {
-    "total_changes": 10860651,
+    "total_changes": 14932167,
     "files_added_count": 0,
     "files_deleted_count": 0,
     "files_modified_count": 12,
@@ -221,10 +221,10 @@
       "columns_deleted": [],
       "stats": {
         "total_rows_base": 1,
-        "total_rows_new": 52,
+        "total_rows_new": 61,
         "columns_added_count": 0,
         "columns_deleted_count": 0,
-        "rows_added_count": 52,
+        "rows_added_count": 61,
         "rows_deleted_count": 1,
         "rows_modified_count": 0,
         "column_stats": []
@@ -250,350 +250,350 @@
             "identifier": {
               "service_id": "days:1111111"
             },
-            "raw_value": "1,1,1,1,1,1,1,20261104,20271104,days:1111111",
+            "raw_value": "1,1,1,1,1,1,1,20261109,20271109,days:1111111",
             "new_line_number": 2
           },
           {
             "identifier": {
               "service_id": "days:1111110"
             },
-            "raw_value": "1,1,1,1,1,1,0,20261104,20271104,days:1111110",
+            "raw_value": "1,1,1,1,1,1,0,20261109,20271109,days:1111110",
             "new_line_number": 3
           },
           {
             "identifier": {
               "service_id": "days:1111101"
             },
-            "raw_value": "1,1,1,1,1,0,1,20261104,20271104,days:1111101",
+            "raw_value": "1,1,1,1,1,0,1,20261109,20271109,days:1111101",
             "new_line_number": 4
           },
           {
             "identifier": {
               "service_id": "days:1111100"
             },
-            "raw_value": "1,1,1,1,1,0,0,20261104,20271104,days:1111100",
+            "raw_value": "1,1,1,1,1,0,0,20261109,20271109,days:1111100",
             "new_line_number": 5
           },
           {
             "identifier": {
               "service_id": "days:1111011"
             },
-            "raw_value": "1,1,1,1,0,1,1,20261104,20271104,days:1111011",
+            "raw_value": "1,1,1,1,0,1,1,20261109,20271109,days:1111011",
             "new_line_number": 6
           },
           {
             "identifier": {
               "service_id": "days:1111000"
             },
-            "raw_value": "1,1,1,1,0,0,0,20261104,20271104,days:1111000",
+            "raw_value": "1,1,1,1,0,0,0,20261109,20271109,days:1111000",
             "new_line_number": 7
+          },
+          {
+            "identifier": {
+              "service_id": "days:1110111"
+            },
+            "raw_value": "1,1,1,0,1,1,1,20261109,20271109,days:1110111",
+            "new_line_number": 8
+          },
+          {
+            "identifier": {
+              "service_id": "days:1110100"
+            },
+            "raw_value": "1,1,1,0,1,0,0,20261109,20271109,days:1110100",
+            "new_line_number": 9
+          },
+          {
+            "identifier": {
+              "service_id": "days:1110011"
+            },
+            "raw_value": "1,1,1,0,0,1,1,20261109,20271109,days:1110011",
+            "new_line_number": 10
+          },
+          {
+            "identifier": {
+              "service_id": "days:1110001"
+            },
+            "raw_value": "1,1,1,0,0,0,1,20261109,20271109,days:1110001",
+            "new_line_number": 11
           },
           {
             "identifier": {
               "service_id": "days:1110000"
             },
-            "raw_value": "1,1,1,0,0,0,0,20261104,20271104,days:1110000",
-            "new_line_number": 8
+            "raw_value": "1,1,1,0,0,0,0,20261109,20271109,days:1110000",
+            "new_line_number": 12
           },
           {
             "identifier": {
               "service_id": "days:1101111"
             },
-            "raw_value": "1,1,0,1,1,1,1,20261104,20271104,days:1101111",
-            "new_line_number": 9
+            "raw_value": "1,1,0,1,1,1,1,20261109,20271109,days:1101111",
+            "new_line_number": 13
+          },
+          {
+            "identifier": {
+              "service_id": "days:1101110"
+            },
+            "raw_value": "1,1,0,1,1,1,0,20261109,20271109,days:1101110",
+            "new_line_number": 14
           },
           {
             "identifier": {
               "service_id": "days:1101101"
             },
-            "raw_value": "1,1,0,1,1,0,1,20261104,20271104,days:1101101",
-            "new_line_number": 10
+            "raw_value": "1,1,0,1,1,0,1,20261109,20271109,days:1101101",
+            "new_line_number": 15
           },
           {
             "identifier": {
               "service_id": "days:1101100"
             },
-            "raw_value": "1,1,0,1,1,0,0,20261104,20271104,days:1101100",
-            "new_line_number": 11
+            "raw_value": "1,1,0,1,1,0,0,20261109,20271109,days:1101100",
+            "new_line_number": 16
+          },
+          {
+            "identifier": {
+              "service_id": "days:1100111"
+            },
+            "raw_value": "1,1,0,0,1,1,1,20261109,20271109,days:1100111",
+            "new_line_number": 17
           },
           {
             "identifier": {
               "service_id": "days:1100110"
             },
-            "raw_value": "1,1,0,0,1,1,0,20261104,20271104,days:1100110",
-            "new_line_number": 12
+            "raw_value": "1,1,0,0,1,1,0,20261109,20271109,days:1100110",
+            "new_line_number": 18
+          },
+          {
+            "identifier": {
+              "service_id": "days:1100011"
+            },
+            "raw_value": "1,1,0,0,0,1,1,20261109,20271109,days:1100011",
+            "new_line_number": 19
+          },
+          {
+            "identifier": {
+              "service_id": "days:1100010"
+            },
+            "raw_value": "1,1,0,0,0,1,0,20261109,20271109,days:1100010",
+            "new_line_number": 20
           },
           {
             "identifier": {
               "service_id": "days:1100001"
             },
-            "raw_value": "1,1,0,0,0,0,1,20261104,20271104,days:1100001",
-            "new_line_number": 13
+            "raw_value": "1,1,0,0,0,0,1,20261109,20271109,days:1100001",
+            "new_line_number": 21
+          },
+          {
+            "identifier": {
+              "service_id": "days:1100000"
+            },
+            "raw_value": "1,1,0,0,0,0,0,20261109,20271109,days:1100000",
+            "new_line_number": 22
           },
           {
             "identifier": {
               "service_id": "days:1011111"
             },
-            "raw_value": "1,0,1,1,1,1,1,20261104,20271104,days:1011111",
-            "new_line_number": 14
+            "raw_value": "1,0,1,1,1,1,1,20261109,20271109,days:1011111",
+            "new_line_number": 23
+          },
+          {
+            "identifier": {
+              "service_id": "days:1011110"
+            },
+            "raw_value": "1,0,1,1,1,1,0,20261109,20271109,days:1011110",
+            "new_line_number": 24
           },
           {
             "identifier": {
               "service_id": "days:1011100"
             },
-            "raw_value": "1,0,1,1,1,0,0,20261104,20271104,days:1011100",
-            "new_line_number": 15
+            "raw_value": "1,0,1,1,1,0,0,20261109,20271109,days:1011100",
+            "new_line_number": 25
           },
           {
             "identifier": {
-              "service_id": "days:1011010"
+              "service_id": "days:1010110"
             },
-            "raw_value": "1,0,1,1,0,1,0,20261104,20271104,days:1011010",
-            "new_line_number": 16
-          },
-          {
-            "identifier": {
-              "service_id": "days:1011001"
-            },
-            "raw_value": "1,0,1,1,0,0,1,20261104,20271104,days:1011001",
-            "new_line_number": 17
-          },
-          {
-            "identifier": {
-              "service_id": "days:1011000"
-            },
-            "raw_value": "1,0,1,1,0,0,0,20261104,20271104,days:1011000",
-            "new_line_number": 18
-          },
-          {
-            "identifier": {
-              "service_id": "days:1010101"
-            },
-            "raw_value": "1,0,1,0,1,0,1,20261104,20271104,days:1010101",
-            "new_line_number": 19
+            "raw_value": "1,0,1,0,1,1,0,20261109,20271109,days:1010110",
+            "new_line_number": 26
           },
           {
             "identifier": {
               "service_id": "days:1010100"
             },
-            "raw_value": "1,0,1,0,1,0,0,20261104,20271104,days:1010100",
-            "new_line_number": 20
+            "raw_value": "1,0,1,0,1,0,0,20261109,20271109,days:1010100",
+            "new_line_number": 27
           },
           {
             "identifier": {
               "service_id": "days:1010000"
             },
-            "raw_value": "1,0,1,0,0,0,0,20261104,20271104,days:1010000",
-            "new_line_number": 21
+            "raw_value": "1,0,1,0,0,0,0,20261109,20271109,days:1010000",
+            "new_line_number": 28
           },
           {
             "identifier": {
               "service_id": "days:1001111"
             },
-            "raw_value": "1,0,0,1,1,1,1,20261104,20271104,days:1001111",
-            "new_line_number": 22
+            "raw_value": "1,0,0,1,1,1,1,20261109,20271109,days:1001111",
+            "new_line_number": 29
           },
           {
             "identifier": {
-              "service_id": "days:1001010"
+              "service_id": "days:1001101"
             },
-            "raw_value": "1,0,0,1,0,1,0,20261104,20271104,days:1001010",
-            "new_line_number": 23
+            "raw_value": "1,0,0,1,1,0,1,20261109,20271109,days:1001101",
+            "new_line_number": 30
+          },
+          {
+            "identifier": {
+              "service_id": "days:1000111"
+            },
+            "raw_value": "1,0,0,0,1,1,1,20261109,20271109,days:1000111",
+            "new_line_number": 31
+          },
+          {
+            "identifier": {
+              "service_id": "days:1000100"
+            },
+            "raw_value": "1,0,0,0,1,0,0,20261109,20271109,days:1000100",
+            "new_line_number": 32
           },
           {
             "identifier": {
               "service_id": "days:1000011"
             },
-            "raw_value": "1,0,0,0,0,1,1,20261104,20271104,days:1000011",
-            "new_line_number": 24
+            "raw_value": "1,0,0,0,0,1,1,20261109,20271109,days:1000011",
+            "new_line_number": 33
+          },
+          {
+            "identifier": {
+              "service_id": "days:1000010"
+            },
+            "raw_value": "1,0,0,0,0,1,0,20261109,20271109,days:1000010",
+            "new_line_number": 34
           },
           {
             "identifier": {
               "service_id": "days:1000001"
             },
-            "raw_value": "1,0,0,0,0,0,1,20261104,20271104,days:1000001",
-            "new_line_number": 25
+            "raw_value": "1,0,0,0,0,0,1,20261109,20271109,days:1000001",
+            "new_line_number": 35
           },
           {
             "identifier": {
               "service_id": "days:1000000"
             },
-            "raw_value": "1,0,0,0,0,0,0,20261104,20271104,days:1000000",
-            "new_line_number": 26
+            "raw_value": "1,0,0,0,0,0,0,20261109,20271109,days:1000000",
+            "new_line_number": 36
           },
           {
             "identifier": {
               "service_id": "days:0111111"
             },
-            "raw_value": "0,1,1,1,1,1,1,20261104,20271104,days:0111111",
-            "new_line_number": 27
+            "raw_value": "0,1,1,1,1,1,1,20261109,20271109,days:0111111",
+            "new_line_number": 37
           },
           {
             "identifier": {
               "service_id": "days:0111110"
             },
-            "raw_value": "0,1,1,1,1,1,0,20261104,20271104,days:0111110",
-            "new_line_number": 28
+            "raw_value": "0,1,1,1,1,1,0,20261109,20271109,days:0111110",
+            "new_line_number": 38
           },
           {
             "identifier": {
               "service_id": "days:0111100"
             },
-            "raw_value": "0,1,1,1,1,0,0,20261104,20271104,days:0111100",
-            "new_line_number": 29
+            "raw_value": "0,1,1,1,1,0,0,20261109,20271109,days:0111100",
+            "new_line_number": 39
+          },
+          {
+            "identifier": {
+              "service_id": "days:0111000"
+            },
+            "raw_value": "0,1,1,1,0,0,0,20261109,20271109,days:0111000",
+            "new_line_number": 40
           },
           {
             "identifier": {
               "service_id": "days:0101011"
             },
-            "raw_value": "0,1,0,1,0,1,1,20261104,20271104,days:0101011",
-            "new_line_number": 30
+            "raw_value": "0,1,0,1,0,1,1,20261109,20271109,days:0101011",
+            "new_line_number": 41
           },
           {
             "identifier": {
               "service_id": "days:0101000"
             },
-            "raw_value": "0,1,0,1,0,0,0,20261104,20271104,days:0101000",
-            "new_line_number": 31
+            "raw_value": "0,1,0,1,0,0,0,20261109,20271109,days:0101000",
+            "new_line_number": 42
           },
           {
             "identifier": {
               "service_id": "days:0100101"
             },
-            "raw_value": "0,1,0,0,1,0,1,20261104,20271104,days:0100101",
-            "new_line_number": 32
-          },
-          {
-            "identifier": {
-              "service_id": "days:0100100"
-            },
-            "raw_value": "0,1,0,0,1,0,0,20261104,20271104,days:0100100",
-            "new_line_number": 33
+            "raw_value": "0,1,0,0,1,0,1,20261109,20271109,days:0100101",
+            "new_line_number": 43
           },
           {
             "identifier": {
               "service_id": "days:0100011"
             },
-            "raw_value": "0,1,0,0,0,1,1,20261104,20271104,days:0100011",
-            "new_line_number": 34
+            "raw_value": "0,1,0,0,0,1,1,20261109,20271109,days:0100011",
+            "new_line_number": 44
           },
           {
             "identifier": {
               "service_id": "days:0100010"
             },
-            "raw_value": "0,1,0,0,0,1,0,20261104,20271104,days:0100010",
-            "new_line_number": 35
+            "raw_value": "0,1,0,0,0,1,0,20261109,20271109,days:0100010",
+            "new_line_number": 45
           },
           {
             "identifier": {
               "service_id": "days:0100001"
             },
-            "raw_value": "0,1,0,0,0,0,1,20261104,20271104,days:0100001",
-            "new_line_number": 36
+            "raw_value": "0,1,0,0,0,0,1,20261109,20271109,days:0100001",
+            "new_line_number": 46
           },
           {
             "identifier": {
               "service_id": "days:0100000"
             },
-            "raw_value": "0,1,0,0,0,0,0,20261104,20271104,days:0100000",
-            "new_line_number": 37
+            "raw_value": "0,1,0,0,0,0,0,20261109,20271109,days:0100000",
+            "new_line_number": 47
+          },
+          {
+            "identifier": {
+              "service_id": "days:0011111"
+            },
+            "raw_value": "0,0,1,1,1,1,1,20261109,20271109,days:0011111",
+            "new_line_number": 48
           },
           {
             "identifier": {
               "service_id": "days:0011110"
             },
-            "raw_value": "0,0,1,1,1,1,0,20261104,20271104,days:0011110",
-            "new_line_number": 38
-          },
-          {
-            "identifier": {
-              "service_id": "days:0011010"
-            },
-            "raw_value": "0,0,1,1,0,1,0,20261104,20271104,days:0011010",
-            "new_line_number": 39
-          },
-          {
-            "identifier": {
-              "service_id": "days:0011000"
-            },
-            "raw_value": "0,0,1,1,0,0,0,20261104,20271104,days:0011000",
-            "new_line_number": 40
-          },
-          {
-            "identifier": {
-              "service_id": "days:0010010"
-            },
-            "raw_value": "0,0,1,0,0,1,0,20261104,20271104,days:0010010",
-            "new_line_number": 41
-          },
-          {
-            "identifier": {
-              "service_id": "days:0010000"
-            },
-            "raw_value": "0,0,1,0,0,0,0,20261104,20271104,days:0010000",
-            "new_line_number": 42
-          },
-          {
-            "identifier": {
-              "service_id": "days:0001111"
-            },
-            "raw_value": "0,0,0,1,1,1,1,20261104,20271104,days:0001111",
-            "new_line_number": 43
-          },
-          {
-            "identifier": {
-              "service_id": "days:0001100"
-            },
-            "raw_value": "0,0,0,1,1,0,0,20261104,20271104,days:0001100",
-            "new_line_number": 44
-          },
-          {
-            "identifier": {
-              "service_id": "days:0001011"
-            },
-            "raw_value": "0,0,0,1,0,1,1,20261104,20271104,days:0001011",
-            "new_line_number": 45
-          },
-          {
-            "identifier": {
-              "service_id": "days:0001000"
-            },
-            "raw_value": "0,0,0,1,0,0,0,20261104,20271104,days:0001000",
-            "new_line_number": 46
-          },
-          {
-            "identifier": {
-              "service_id": "days:0000111"
-            },
-            "raw_value": "0,0,0,0,1,1,1,20261104,20271104,days:0000111",
-            "new_line_number": 47
-          },
-          {
-            "identifier": {
-              "service_id": "days:0000110"
-            },
-            "raw_value": "0,0,0,0,1,1,0,20261104,20271104,days:0000110",
-            "new_line_number": 48
-          },
-          {
-            "identifier": {
-              "service_id": "days:0000101"
-            },
-            "raw_value": "0,0,0,0,1,0,1,20261104,20271104,days:0000101",
+            "raw_value": "0,0,1,1,1,1,0,20261109,20271109,days:0011110",
             "new_line_number": 49
           },
           {
             "identifier": {
-              "service_id": "days:0000100"
+              "service_id": "days:0011101"
             },
-            "raw_value": "0,0,0,0,1,0,0,20261104,20271104,days:0000100",
+            "raw_value": "0,0,1,1,1,0,1,20261109,20271109,days:0011101",
             "new_line_number": 50
           },
           {
             "identifier": {
-              "service_id": "days:0000011"
+              "service_id": "days:0011100"
             },
-            "raw_value": "0,0,0,0,0,1,1,20261104,20271104,days:0000011",
+            "raw_value": "0,0,1,1,1,0,0,20261109,20271109,days:0011100",
             "new_line_number": 51
           }
         ],
@@ -602,7 +602,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 3
+        "omitted_count": 12
       }
     },
     {
@@ -612,16 +612,16 @@
       "columns_deleted": [],
       "stats": {
         "total_rows_base": 110,
-        "total_rows_new": 86,
+        "total_rows_new": 159,
         "columns_added_count": 0,
         "columns_deleted_count": 0,
-        "rows_added_count": 41,
-        "rows_deleted_count": 65,
-        "rows_modified_count": 45,
+        "rows_added_count": 88,
+        "rows_deleted_count": 39,
+        "rows_modified_count": 71,
         "column_stats": [
           {
             "column": "agency_id",
-            "modifications_count": 45,
+            "modifications_count": 71,
             "modifications_percentage": 100.0
           }
         ]
@@ -642,119 +642,150 @@
         "added": [
           {
             "identifier": {
+              "fare_id": "F9"
+            },
+            "raw_value": "F9,9.00,INR,0,0,0,BMTC",
+            "new_line_number": 3
+          },
+          {
+            "identifier": {
+              "fare_id": "F13"
+            },
+            "raw_value": "F13,13.00,INR,0,0,0,BMTC",
+            "new_line_number": 7
+          },
+          {
+            "identifier": {
+              "fare_id": "F14"
+            },
+            "raw_value": "F14,14.00,INR,0,0,0,BMTC",
+            "new_line_number": 8
+          },
+          {
+            "identifier": {
+              "fare_id": "F16"
+            },
+            "raw_value": "F16,16.00,INR,0,0,0,BMTC",
+            "new_line_number": 10
+          },
+          {
+            "identifier": {
+              "fare_id": "F21"
+            },
+            "raw_value": "F21,21.00,INR,0,0,0,BMTC",
+            "new_line_number": 14
+          },
+          {
+            "identifier": {
+              "fare_id": "F22"
+            },
+            "raw_value": "F22,22.00,INR,0,0,0,BMTC",
+            "new_line_number": 15
+          },
+          {
+            "identifier": {
               "fare_id": "F41"
             },
             "raw_value": "F41,41.00,INR,0,0,0,BMTC",
-            "new_line_number": 20
+            "new_line_number": 34
           },
           {
             "identifier": {
               "fare_id": "F46"
             },
             "raw_value": "F46,46.00,INR,0,0,0,BMTC",
-            "new_line_number": 25
+            "new_line_number": 39
           },
           {
             "identifier": {
               "fare_id": "F49"
             },
             "raw_value": "F49,49.00,INR,0,0,0,BMTC",
-            "new_line_number": 28
+            "new_line_number": 42
           },
           {
             "identifier": {
               "fare_id": "F51"
             },
             "raw_value": "F51,51.00,INR,0,0,0,BMTC",
-            "new_line_number": 30
+            "new_line_number": 44
           },
           {
             "identifier": {
               "fare_id": "F52"
             },
             "raw_value": "F52,52.00,INR,0,0,0,BMTC",
-            "new_line_number": 31
+            "new_line_number": 45
           },
           {
             "identifier": {
               "fare_id": "F54"
             },
             "raw_value": "F54,54.00,INR,0,0,0,BMTC",
-            "new_line_number": 33
+            "new_line_number": 47
           },
           {
             "identifier": {
               "fare_id": "F56"
             },
             "raw_value": "F56,56.00,INR,0,0,0,BMTC",
-            "new_line_number": 35
-          },
-          {
-            "identifier": {
-              "fare_id": "F61"
-            },
-            "raw_value": "F61,61.00,INR,0,0,0,BMTC",
-            "new_line_number": 39
-          },
-          {
-            "identifier": {
-              "fare_id": "F69"
-            },
-            "raw_value": "F69,69.00,INR,0,0,0,BMTC",
-            "new_line_number": 42
-          },
-          {
-            "identifier": {
-              "fare_id": "F72"
-            },
-            "raw_value": "F72,72.00,INR,0,0,0,BMTC",
-            "new_line_number": 44
-          },
-          {
-            "identifier": {
-              "fare_id": "F73"
-            },
-            "raw_value": "F73,73.00,INR,0,0,0,BMTC",
-            "new_line_number": 45
-          },
-          {
-            "identifier": {
-              "fare_id": "F74"
-            },
-            "raw_value": "F74,74.00,INR,0,0,0,BMTC",
-            "new_line_number": 46
-          },
-          {
-            "identifier": {
-              "fare_id": "F76"
-            },
-            "raw_value": "F76,76.00,INR,0,0,0,BMTC",
-            "new_line_number": 48
-          },
-          {
-            "identifier": {
-              "fare_id": "F77"
-            },
-            "raw_value": "F77,77.00,INR,0,0,0,BMTC",
             "new_line_number": 49
-          },
-          {
-            "identifier": {
-              "fare_id": "F78"
-            },
-            "raw_value": "F78,78.00,INR,0,0,0,BMTC",
-            "new_line_number": 50
           }
         ],
         "deleted": [],
         "modified": [
           {
             "identifier": {
+              "fare_id": "F6"
+            },
+            "raw_value": "F6,6.00,INR,0,0,0,1",
+            "new_line_number": 2,
+            "base_line_number": 98,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
               "fare_id": "F10"
             },
             "raw_value": "F10,10.00,INR,0,0,0,1",
-            "new_line_number": 2,
+            "new_line_number": 4,
             "base_line_number": 2,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F11"
+            },
+            "raw_value": "F11,11.00,INR,0,0,0,1",
+            "new_line_number": 5,
+            "base_line_number": 6,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F12"
+            },
+            "raw_value": "F12,12.00,INR,0,0,0,1",
+            "new_line_number": 6,
+            "base_line_number": 9,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -768,8 +799,23 @@
               "fare_id": "F15"
             },
             "raw_value": "F15,15.00,INR,0,0,0,1",
-            "new_line_number": 3,
+            "new_line_number": 9,
             "base_line_number": 17,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F17"
+            },
+            "raw_value": "F17,17.00,INR,0,0,0,1",
+            "new_line_number": 11,
+            "base_line_number": 25,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -783,7 +829,7 @@
               "fare_id": "F18"
             },
             "raw_value": "F18,18.00,INR,0,0,0,1",
-            "new_line_number": 4,
+            "new_line_number": 12,
             "base_line_number": 28,
             "field_changes": [
               {
@@ -798,7 +844,7 @@
               "fare_id": "F20"
             },
             "raw_value": "F20,20.00,INR,0,0,0,1",
-            "new_line_number": 5,
+            "new_line_number": 13,
             "base_line_number": 33,
             "field_changes": [
               {
@@ -813,7 +859,7 @@
               "fare_id": "F23"
             },
             "raw_value": "F23,23.00,INR,0,0,0,1",
-            "new_line_number": 6,
+            "new_line_number": 16,
             "base_line_number": 38,
             "field_changes": [
               {
@@ -828,7 +874,7 @@
               "fare_id": "F24"
             },
             "raw_value": "F24,24.00,INR,0,0,0,1",
-            "new_line_number": 7,
+            "new_line_number": 17,
             "base_line_number": 40,
             "field_changes": [
               {
@@ -843,7 +889,7 @@
               "fare_id": "F25"
             },
             "raw_value": "F25,25.00,INR,0,0,0,1",
-            "new_line_number": 8,
+            "new_line_number": 18,
             "base_line_number": 42,
             "field_changes": [
               {
@@ -858,7 +904,7 @@
               "fare_id": "F26"
             },
             "raw_value": "F26,26.00,INR,0,0,0,1",
-            "new_line_number": 9,
+            "new_line_number": 19,
             "base_line_number": 46,
             "field_changes": [
               {
@@ -873,7 +919,7 @@
               "fare_id": "F27"
             },
             "raw_value": "F27,27.00,INR,0,0,0,1",
-            "new_line_number": 10,
+            "new_line_number": 20,
             "base_line_number": 49,
             "field_changes": [
               {
@@ -888,7 +934,7 @@
               "fare_id": "F28"
             },
             "raw_value": "F28,28.00,INR,0,0,0,1",
-            "new_line_number": 11,
+            "new_line_number": 21,
             "base_line_number": 52,
             "field_changes": [
               {
@@ -903,7 +949,7 @@
               "fare_id": "F29"
             },
             "raw_value": "F29,29.00,INR,0,0,0,1",
-            "new_line_number": 12,
+            "new_line_number": 22,
             "base_line_number": 55,
             "field_changes": [
               {
@@ -918,8 +964,23 @@
               "fare_id": "F30"
             },
             "raw_value": "F30,30.00,INR,0,0,0,1",
-            "new_line_number": 13,
+            "new_line_number": 23,
             "base_line_number": 57,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F31"
+            },
+            "raw_value": "F31,31.00,INR,0,0,0,1",
+            "new_line_number": 24,
+            "base_line_number": 61,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -933,7 +994,7 @@
               "fare_id": "F32"
             },
             "raw_value": "F32,32.00,INR,0,0,0,1",
-            "new_line_number": 14,
+            "new_line_number": 25,
             "base_line_number": 64,
             "field_changes": [
               {
@@ -948,8 +1009,23 @@
               "fare_id": "F33"
             },
             "raw_value": "F33,33.00,INR,0,0,0,1",
-            "new_line_number": 15,
+            "new_line_number": 26,
             "base_line_number": 66,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F34"
+            },
+            "raw_value": "F34,34.00,INR,0,0,0,1",
+            "new_line_number": 27,
+            "base_line_number": 68,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -963,7 +1039,7 @@
               "fare_id": "F35"
             },
             "raw_value": "F35,35.00,INR,0,0,0,1",
-            "new_line_number": 16,
+            "new_line_number": 28,
             "base_line_number": 70,
             "field_changes": [
               {
@@ -978,8 +1054,23 @@
               "fare_id": "F36"
             },
             "raw_value": "F36,36.00,INR,0,0,0,1",
-            "new_line_number": 17,
+            "new_line_number": 29,
             "base_line_number": 72,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F37"
+            },
+            "raw_value": "F37,37.00,INR,0,0,0,1",
+            "new_line_number": 30,
+            "base_line_number": 74,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -993,8 +1084,23 @@
               "fare_id": "F38"
             },
             "raw_value": "F38,38.00,INR,0,0,0,1",
-            "new_line_number": 18,
+            "new_line_number": 31,
             "base_line_number": 78,
+            "field_changes": [
+              {
+                "field": "agency_id",
+                "base_value": "1",
+                "new_value": "BMTC"
+              }
+            ]
+          },
+          {
+            "identifier": {
+              "fare_id": "F39"
+            },
+            "raw_value": "F39,39.00,INR,0,0,0,1",
+            "new_line_number": 32,
+            "base_line_number": 79,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -1008,7 +1114,7 @@
               "fare_id": "F40"
             },
             "raw_value": "F40,40.00,INR,0,0,0,1",
-            "new_line_number": 19,
+            "new_line_number": 33,
             "base_line_number": 80,
             "field_changes": [
               {
@@ -1023,7 +1129,7 @@
               "fare_id": "F42"
             },
             "raw_value": "F42,42.00,INR,0,0,0,1",
-            "new_line_number": 21,
+            "new_line_number": 35,
             "base_line_number": 84,
             "field_changes": [
               {
@@ -1038,7 +1144,7 @@
               "fare_id": "F43"
             },
             "raw_value": "F43,43.00,INR,0,0,0,1",
-            "new_line_number": 22,
+            "new_line_number": 36,
             "base_line_number": 85,
             "field_changes": [
               {
@@ -1053,7 +1159,7 @@
               "fare_id": "F44"
             },
             "raw_value": "F44,44.00,INR,0,0,0,1",
-            "new_line_number": 23,
+            "new_line_number": 37,
             "base_line_number": 86,
             "field_changes": [
               {
@@ -1068,7 +1174,7 @@
               "fare_id": "F45"
             },
             "raw_value": "F45,45.00,INR,0,0,0,1",
-            "new_line_number": 24,
+            "new_line_number": 38,
             "base_line_number": 88,
             "field_changes": [
               {
@@ -1083,7 +1189,7 @@
               "fare_id": "F47"
             },
             "raw_value": "F47,47.00,INR,0,0,0,1",
-            "new_line_number": 26,
+            "new_line_number": 40,
             "base_line_number": 89,
             "field_changes": [
               {
@@ -1098,7 +1204,7 @@
               "fare_id": "F48"
             },
             "raw_value": "F48,48.00,INR,0,0,0,1",
-            "new_line_number": 27,
+            "new_line_number": 41,
             "base_line_number": 90,
             "field_changes": [
               {
@@ -1113,7 +1219,7 @@
               "fare_id": "F50"
             },
             "raw_value": "F50,50.00,INR,0,0,0,1",
-            "new_line_number": 29,
+            "new_line_number": 43,
             "base_line_number": 92,
             "field_changes": [
               {
@@ -1128,7 +1234,7 @@
               "fare_id": "F53"
             },
             "raw_value": "F53,53.00,INR,0,0,0,1",
-            "new_line_number": 32,
+            "new_line_number": 46,
             "base_line_number": 93,
             "field_changes": [
               {
@@ -1143,7 +1249,7 @@
               "fare_id": "F55"
             },
             "raw_value": "F55,55.00,INR,0,0,0,1",
-            "new_line_number": 34,
+            "new_line_number": 48,
             "base_line_number": 94,
             "field_changes": [
               {
@@ -1158,7 +1264,7 @@
               "fare_id": "F57"
             },
             "raw_value": "F57,57.00,INR,0,0,0,1",
-            "new_line_number": 36,
+            "new_line_number": 50,
             "base_line_number": 95,
             "field_changes": [
               {
@@ -1173,98 +1279,8 @@
               "fare_id": "F58"
             },
             "raw_value": "F58,58.00,INR,0,0,0,1",
-            "new_line_number": 37,
-            "base_line_number": 96,
-            "field_changes": [
-              {
-                "field": "agency_id",
-                "base_value": "1",
-                "new_value": "BMTC"
-              }
-            ]
-          },
-          {
-            "identifier": {
-              "fare_id": "F60"
-            },
-            "raw_value": "F60,60.00,INR,0,0,0,1",
-            "new_line_number": 38,
-            "base_line_number": 99,
-            "field_changes": [
-              {
-                "field": "agency_id",
-                "base_value": "1",
-                "new_value": "BMTC"
-              }
-            ]
-          },
-          {
-            "identifier": {
-              "fare_id": "F63"
-            },
-            "raw_value": "F63,63.00,INR,0,0,0,1",
-            "new_line_number": 40,
-            "base_line_number": 100,
-            "field_changes": [
-              {
-                "field": "agency_id",
-                "base_value": "1",
-                "new_value": "BMTC"
-              }
-            ]
-          },
-          {
-            "identifier": {
-              "fare_id": "F65"
-            },
-            "raw_value": "F65,65.00,INR,0,0,0,1",
-            "new_line_number": 41,
-            "base_line_number": 101,
-            "field_changes": [
-              {
-                "field": "agency_id",
-                "base_value": "1",
-                "new_value": "BMTC"
-              }
-            ]
-          },
-          {
-            "identifier": {
-              "fare_id": "F70"
-            },
-            "raw_value": "F70,70.00,INR,0,0,0,1",
-            "new_line_number": 43,
-            "base_line_number": 103,
-            "field_changes": [
-              {
-                "field": "agency_id",
-                "base_value": "1",
-                "new_value": "BMTC"
-              }
-            ]
-          },
-          {
-            "identifier": {
-              "fare_id": "F75"
-            },
-            "raw_value": "F75,75.00,INR,0,0,0,1",
-            "new_line_number": 47,
-            "base_line_number": 104,
-            "field_changes": [
-              {
-                "field": "agency_id",
-                "base_value": "1",
-                "new_value": "BMTC"
-              }
-            ]
-          },
-          {
-            "identifier": {
-              "fare_id": "F80"
-            },
-            "raw_value": "F80,80.00,INR,0,0,0,1",
             "new_line_number": 51,
-            "base_line_number": 106,
+            "base_line_number": 96,
             "field_changes": [
               {
                 "field": "agency_id",
@@ -1277,7 +1293,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 101
+        "omitted_count": 148
       }
     },
     {
@@ -1292,10 +1308,10 @@
       "columns_deleted": [],
       "stats": {
         "total_rows_base": 170161,
-        "total_rows_new": 6608,
+        "total_rows_new": 4076274,
         "columns_added_count": 1,
         "columns_deleted_count": 0,
-        "rows_added_count": 6608,
+        "rows_added_count": 4076274,
         "rows_deleted_count": 170161,
         "rows_modified_count": 0,
         "column_stats": []
@@ -1317,502 +1333,502 @@
         "added": [
           {
             "identifier": {
-              "fare_id": "F35",
+              "fare_id": "F18",
               "route_id": "BMTC:000eb374d7d7",
-              "origin_id": "say5n777",
-              "destination_id": "5zunAhWl"
+              "origin_id": "00heTtot",
+              "destination_id": "0ZwdomCy"
             },
-            "raw_value": "F35,BMTC:000eb374d7d7,say5n777,5zunAhWl,",
+            "raw_value": "F18,BMTC:000eb374d7d7,00heTtot,0ZwdomCy,",
             "new_line_number": 2
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:002a78cbb82e",
-              "origin_id": "6fsNmFMo",
-              "destination_id": "ds5J4OJj"
+              "fare_id": "F35",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "5zunAhWl"
             },
-            "raw_value": "F38,BMTC:002a78cbb82e,6fsNmFMo,ds5J4OJj,",
+            "raw_value": "F35,BMTC:000eb374d7d7,00heTtot,5zunAhWl,",
             "new_line_number": 3
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:002a78cbb82e",
-              "origin_id": "ddtEAqUH",
-              "destination_id": "UGBhYI8G"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "6p5r8WrC"
             },
-            "raw_value": "F38,BMTC:002a78cbb82e,ddtEAqUH,UGBhYI8G,",
+            "raw_value": "F25,BMTC:000eb374d7d7,00heTtot,6p5r8WrC,",
             "new_line_number": 4
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:0031ca406e11",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "jqhuyC0B"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "9P7XVGGP"
             },
-            "raw_value": "F38,BMTC:0031ca406e11,ZL5yEBlN,jqhuyC0B,",
+            "raw_value": "F18,BMTC:000eb374d7d7,00heTtot,9P7XVGGP,",
             "new_line_number": 5
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:0031ca406e11",
-              "origin_id": "jqhuyC0B",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "FSClx6EH"
             },
-            "raw_value": "F38,BMTC:0031ca406e11,jqhuyC0B,5zunAhWl,",
+            "raw_value": "F10,BMTC:000eb374d7d7,00heTtot,FSClx6EH,",
             "new_line_number": 6
           },
           {
             "identifier": {
-              "fare_id": "F42",
-              "route_id": "BMTC:0050d668e84c",
-              "origin_id": "62MDgBEq",
-              "destination_id": "Afqg410p"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "H1RDYKa7"
             },
-            "raw_value": "F42,BMTC:0050d668e84c,62MDgBEq,Afqg410p,",
+            "raw_value": "F25,BMTC:000eb374d7d7,00heTtot,H1RDYKa7,",
             "new_line_number": 7
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:0050d668e84c",
-              "origin_id": "Afqg410p",
-              "destination_id": "R1Dsuofc"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "IQASuuqa"
             },
-            "raw_value": "F40,BMTC:0050d668e84c,Afqg410p,R1Dsuofc,",
+            "raw_value": "F10,BMTC:000eb374d7d7,00heTtot,IQASuuqa,",
             "new_line_number": 8
           },
           {
             "identifier": {
-              "fare_id": "F18",
-              "route_id": "BMTC:0065f896e9f8",
-              "origin_id": "BQnMsHpM",
-              "destination_id": "IAKFCraS"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "Q4xgOf5z"
             },
-            "raw_value": "F18,BMTC:0065f896e9f8,BQnMsHpM,IAKFCraS,",
+            "raw_value": "F25,BMTC:000eb374d7d7,00heTtot,Q4xgOf5z,",
             "new_line_number": 9
           },
           {
             "identifier": {
-              "fare_id": "F18",
-              "route_id": "BMTC:0065f896e9f8",
-              "origin_id": "IAKFCraS",
-              "destination_id": "BQnMsHpM"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "ZIFpDV28"
             },
-            "raw_value": "F18,BMTC:0065f896e9f8,IAKFCraS,BQnMsHpM,",
+            "raw_value": "F25,BMTC:000eb374d7d7,00heTtot,ZIFpDV28,",
             "new_line_number": 10
           },
           {
             "identifier": {
-              "fare_id": "F42",
-              "route_id": "BMTC:007fdbd766ec",
-              "origin_id": "3GQJEct5",
-              "destination_id": "AutZN0eJ"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "bI0vLDtg"
             },
-            "raw_value": "F42,BMTC:007fdbd766ec,3GQJEct5,AutZN0eJ,",
+            "raw_value": "F25,BMTC:000eb374d7d7,00heTtot,bI0vLDtg,",
             "new_line_number": 11
           },
           {
             "identifier": {
-              "fare_id": "F42",
-              "route_id": "BMTC:007fdbd766ec",
-              "origin_id": "AutZN0eJ",
-              "destination_id": "L5OBP0f6"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "jAQnGkfM"
             },
-            "raw_value": "F42,BMTC:007fdbd766ec,AutZN0eJ,L5OBP0f6,",
+            "raw_value": "F10,BMTC:000eb374d7d7,00heTtot,jAQnGkfM,",
             "new_line_number": 12
           },
           {
             "identifier": {
               "fare_id": "F30",
-              "route_id": "BMTC:008451a05e1e",
-              "origin_id": "6fsNmFMo",
-              "destination_id": "u1sF2ijh"
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "kgiT8ksV"
             },
-            "raw_value": "F30,BMTC:008451a05e1e,6fsNmFMo,u1sF2ijh,",
+            "raw_value": "F30,BMTC:000eb374d7d7,00heTtot,kgiT8ksV,",
             "new_line_number": 13
           },
           {
             "identifier": {
-              "fare_id": "F30",
-              "route_id": "BMTC:008451a05e1e",
-              "origin_id": "teclHd89",
-              "destination_id": "UGBhYI8G"
+              "fare_id": "F35",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "00heTtot",
+              "destination_id": "vDrxvgQv"
             },
-            "raw_value": "F30,BMTC:008451a05e1e,teclHd89,UGBhYI8G,",
+            "raw_value": "F35,BMTC:000eb374d7d7,00heTtot,vDrxvgQv,",
             "new_line_number": 14
           },
           {
             "identifier": {
-              "fare_id": "F18",
-              "route_id": "BMTC:00a485b9220c",
-              "origin_id": "wW8jx7Mt",
-              "destination_id": "7xQ6lIb7"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "5zunAhWl"
             },
-            "raw_value": "F18,BMTC:00a485b9220c,wW8jx7Mt,7xQ6lIb7,",
+            "raw_value": "F25,BMTC:000eb374d7d7,0ZwdomCy,5zunAhWl,",
             "new_line_number": 15
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:00d333fd7ded",
-              "origin_id": "jsAqGvlC",
-              "destination_id": "zQJHBeyk"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "6p5r8WrC"
             },
-            "raw_value": "F35,BMTC:00d333fd7ded,jsAqGvlC,zQJHBeyk,",
+            "raw_value": "F10,BMTC:000eb374d7d7,0ZwdomCy,6p5r8WrC,",
             "new_line_number": 16
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:00d333fd7ded",
-              "origin_id": "zQJHBeyk",
-              "destination_id": "z7aHT2Zl"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "H1RDYKa7"
             },
-            "raw_value": "F35,BMTC:00d333fd7ded,zQJHBeyk,z7aHT2Zl,",
+            "raw_value": "F10,BMTC:000eb374d7d7,0ZwdomCy,H1RDYKa7,",
             "new_line_number": 17
           },
           {
             "identifier": {
-              "fare_id": "F18",
-              "route_id": "BMTC:00ea6358bd06",
-              "origin_id": "zkkEFSsa",
-              "destination_id": "8eKUv1Oy"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "Q4xgOf5z"
             },
-            "raw_value": "F18,BMTC:00ea6358bd06,zkkEFSsa,8eKUv1Oy,",
+            "raw_value": "F10,BMTC:000eb374d7d7,0ZwdomCy,Q4xgOf5z,",
             "new_line_number": 18
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:00ee53166b05",
-              "origin_id": "EZJ59SWN",
-              "destination_id": "6QNmy089"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "ZIFpDV28"
             },
-            "raw_value": "F35,BMTC:00ee53166b05,EZJ59SWN,6QNmy089,",
+            "raw_value": "F10,BMTC:000eb374d7d7,0ZwdomCy,ZIFpDV28,",
             "new_line_number": 19
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:0102c968ac30",
-              "origin_id": "KcVoVQsK",
-              "destination_id": "NwaaqDRQ"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "bI0vLDtg"
             },
-            "raw_value": "F35,BMTC:0102c968ac30,KcVoVQsK,NwaaqDRQ,",
+            "raw_value": "F10,BMTC:000eb374d7d7,0ZwdomCy,bI0vLDtg,",
             "new_line_number": 20
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:0102c968ac30",
-              "origin_id": "NwaaqDRQ",
-              "destination_id": "G2nnWeYY"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "kgiT8ksV"
             },
-            "raw_value": "F35,BMTC:0102c968ac30,NwaaqDRQ,G2nnWeYY,",
+            "raw_value": "F18,BMTC:000eb374d7d7,0ZwdomCy,kgiT8ksV,",
             "new_line_number": 21
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:011569f0836f",
-              "origin_id": "Afqg410p",
-              "destination_id": "yeNlOFc5"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "0ZwdomCy",
+              "destination_id": "vDrxvgQv"
             },
-            "raw_value": "F40,BMTC:011569f0836f,Afqg410p,yeNlOFc5,",
+            "raw_value": "F25,BMTC:000eb374d7d7,0ZwdomCy,vDrxvgQv,",
             "new_line_number": 22
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:011569f0836f",
-              "origin_id": "Y80hvdH5",
-              "destination_id": "Afqg410p"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "6p5r8WrC",
+              "destination_id": "5zunAhWl"
             },
-            "raw_value": "F40,BMTC:011569f0836f,Y80hvdH5,Afqg410p,",
+            "raw_value": "F25,BMTC:000eb374d7d7,6p5r8WrC,5zunAhWl,",
             "new_line_number": 23
           },
           {
             "identifier": {
-              "fare_id": "F42",
-              "route_id": "BMTC:0120efe6ba8c",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "5evz7ZQx"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "6p5r8WrC",
+              "destination_id": "bI0vLDtg"
             },
-            "raw_value": "F42,BMTC:0120efe6ba8c,ZL5yEBlN,5evz7ZQx,",
+            "raw_value": "F10,BMTC:000eb374d7d7,6p5r8WrC,bI0vLDtg,",
             "new_line_number": 24
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:012216f01a1e",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "lSfJgG1V"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "6p5r8WrC",
+              "destination_id": "kgiT8ksV"
             },
-            "raw_value": "F40,BMTC:012216f01a1e,ZL5yEBlN,lSfJgG1V,",
+            "raw_value": "F18,BMTC:000eb374d7d7,6p5r8WrC,kgiT8ksV,",
             "new_line_number": 25
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:012216f01a1e",
-              "origin_id": "lSfJgG1V",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "6p5r8WrC",
+              "destination_id": "vDrxvgQv"
             },
-            "raw_value": "F40,BMTC:012216f01a1e,lSfJgG1V,5zunAhWl,",
+            "raw_value": "F25,BMTC:000eb374d7d7,6p5r8WrC,vDrxvgQv,",
             "new_line_number": 26
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:012ca9d9e278",
-              "origin_id": "0dQrnLLi",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "0ZwdomCy"
             },
-            "raw_value": "F38,BMTC:012ca9d9e278,0dQrnLLi,5zunAhWl,",
+            "raw_value": "F10,BMTC:000eb374d7d7,9P7XVGGP,0ZwdomCy,",
             "new_line_number": 27
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:012ca9d9e278",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "0dQrnLLi"
+              "fare_id": "F30",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "5zunAhWl"
             },
-            "raw_value": "F38,BMTC:012ca9d9e278,ZL5yEBlN,0dQrnLLi,",
+            "raw_value": "F30,BMTC:000eb374d7d7,9P7XVGGP,5zunAhWl,",
             "new_line_number": 28
           },
           {
             "identifier": {
-              "fare_id": "F47",
-              "route_id": "BMTC:012e70c4e242",
-              "origin_id": "Afqg410p",
-              "destination_id": "eA0k5zd9"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "6p5r8WrC"
             },
-            "raw_value": "F47,BMTC:012e70c4e242,Afqg410p,eA0k5zd9,",
+            "raw_value": "F18,BMTC:000eb374d7d7,9P7XVGGP,6p5r8WrC,",
             "new_line_number": 29
           },
           {
             "identifier": {
-              "fare_id": "F47",
-              "route_id": "BMTC:012e70c4e242",
-              "origin_id": "eA0k5zd9",
-              "destination_id": "Afqg410p"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "H1RDYKa7"
             },
-            "raw_value": "F47,BMTC:012e70c4e242,eA0k5zd9,Afqg410p,",
+            "raw_value": "F18,BMTC:000eb374d7d7,9P7XVGGP,H1RDYKa7,",
             "new_line_number": 30
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:013231e18af1",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "ofBg1ikG"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "Q4xgOf5z"
             },
-            "raw_value": "F40,BMTC:013231e18af1,ZL5yEBlN,ofBg1ikG,",
+            "raw_value": "F18,BMTC:000eb374d7d7,9P7XVGGP,Q4xgOf5z,",
             "new_line_number": 31
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:01409e39d79f",
-              "origin_id": "CIsLdsFm",
-              "destination_id": "GFn4VA3l"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "ZIFpDV28"
             },
-            "raw_value": "F40,BMTC:01409e39d79f,CIsLdsFm,GFn4VA3l,",
+            "raw_value": "F18,BMTC:000eb374d7d7,9P7XVGGP,ZIFpDV28,",
             "new_line_number": 32
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:01409e39d79f",
-              "origin_id": "UAUQjY7I",
-              "destination_id": "5mXUmlwg"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "bI0vLDtg"
             },
-            "raw_value": "F40,BMTC:01409e39d79f,UAUQjY7I,5mXUmlwg,",
+            "raw_value": "F18,BMTC:000eb374d7d7,9P7XVGGP,bI0vLDtg,",
             "new_line_number": 33
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:014f0e95db5d",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "ayCTKVqo"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "kgiT8ksV"
             },
-            "raw_value": "F35,BMTC:014f0e95db5d,ZL5yEBlN,ayCTKVqo,",
+            "raw_value": "F25,BMTC:000eb374d7d7,9P7XVGGP,kgiT8ksV,",
             "new_line_number": 34
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:014f0e95db5d",
-              "origin_id": "p3bhmEeG",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F30",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "9P7XVGGP",
+              "destination_id": "vDrxvgQv"
             },
-            "raw_value": "F35,BMTC:014f0e95db5d,p3bhmEeG,5zunAhWl,",
+            "raw_value": "F30,BMTC:000eb374d7d7,9P7XVGGP,vDrxvgQv,",
             "new_line_number": 35
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:0151e7a409c4",
-              "origin_id": "MGOHEcRS",
-              "destination_id": "XwXsUxw5"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "00heTtot"
             },
-            "raw_value": "F35,BMTC:0151e7a409c4,MGOHEcRS,XwXsUxw5,",
+            "raw_value": "F10,BMTC:000eb374d7d7,Ds1Mp3As,00heTtot,",
             "new_line_number": 36
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:01644814a574",
-              "origin_id": "Afqg410p",
-              "destination_id": "YMruTgEh"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "0ZwdomCy"
             },
-            "raw_value": "F40,BMTC:01644814a574,Afqg410p,YMruTgEh,",
+            "raw_value": "F18,BMTC:000eb374d7d7,Ds1Mp3As,0ZwdomCy,",
             "new_line_number": 37
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:01644814a574",
-              "origin_id": "YMruTgEh",
-              "destination_id": "Afqg410p"
+              "fare_id": "F35",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "5zunAhWl"
             },
-            "raw_value": "F40,BMTC:01644814a574,YMruTgEh,Afqg410p,",
+            "raw_value": "F35,BMTC:000eb374d7d7,Ds1Mp3As,5zunAhWl,",
             "new_line_number": 38
           },
           {
             "identifier": {
               "fare_id": "F25",
-              "route_id": "BMTC:01784c1184ef",
-              "origin_id": "1FCpTV5h",
-              "destination_id": "AoxFj3ia"
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "6p5r8WrC"
             },
-            "raw_value": "F25,BMTC:01784c1184ef,1FCpTV5h,AoxFj3ia,",
+            "raw_value": "F25,BMTC:000eb374d7d7,Ds1Mp3As,6p5r8WrC,",
             "new_line_number": 39
           },
           {
             "identifier": {
               "fare_id": "F18",
-              "route_id": "BMTC:01784c1184ef",
-              "origin_id": "AoxFj3ia",
-              "destination_id": "1FCpTV5h"
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "9P7XVGGP"
             },
-            "raw_value": "F18,BMTC:01784c1184ef,AoxFj3ia,1FCpTV5h,",
+            "raw_value": "F18,BMTC:000eb374d7d7,Ds1Mp3As,9P7XVGGP,",
             "new_line_number": 40
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:0181e806c6a1",
-              "origin_id": "4zCg1w0Y",
-              "destination_id": "UGBhYI8G"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "FSClx6EH"
             },
-            "raw_value": "F35,BMTC:0181e806c6a1,4zCg1w0Y,UGBhYI8G,",
+            "raw_value": "F10,BMTC:000eb374d7d7,Ds1Mp3As,FSClx6EH,",
             "new_line_number": 41
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:0181e806c6a1",
-              "origin_id": "6fsNmFMo",
-              "destination_id": "777PSuYC"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "H1RDYKa7"
             },
-            "raw_value": "F35,BMTC:0181e806c6a1,6fsNmFMo,777PSuYC,",
+            "raw_value": "F25,BMTC:000eb374d7d7,Ds1Mp3As,H1RDYKa7,",
             "new_line_number": 42
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:0189dc4558e0",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "JTzTZIEJ"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "IQASuuqa"
             },
-            "raw_value": "F40,BMTC:0189dc4558e0,ZL5yEBlN,JTzTZIEJ,",
+            "raw_value": "F10,BMTC:000eb374d7d7,Ds1Mp3As,IQASuuqa,",
             "new_line_number": 43
           },
           {
             "identifier": {
-              "fare_id": "F40",
-              "route_id": "BMTC:0189dc4558e0",
-              "origin_id": "sieON0go",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "Q4xgOf5z"
             },
-            "raw_value": "F40,BMTC:0189dc4558e0,sieON0go,5zunAhWl,",
+            "raw_value": "F25,BMTC:000eb374d7d7,Ds1Mp3As,Q4xgOf5z,",
             "new_line_number": 44
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:019beb90f2e0",
-              "origin_id": "F9ol7EdP",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "ZIFpDV28"
             },
-            "raw_value": "F38,BMTC:019beb90f2e0,F9ol7EdP,5zunAhWl,",
+            "raw_value": "F25,BMTC:000eb374d7d7,Ds1Mp3As,ZIFpDV28,",
             "new_line_number": 45
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:019beb90f2e0",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "F9ol7EdP"
+              "fare_id": "F25",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "bI0vLDtg"
             },
-            "raw_value": "F38,BMTC:019beb90f2e0,ZL5yEBlN,F9ol7EdP,",
+            "raw_value": "F25,BMTC:000eb374d7d7,Ds1Mp3As,bI0vLDtg,",
             "new_line_number": 46
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:01c6a049952f",
-              "origin_id": "AAhnPipm",
-              "destination_id": "5zunAhWl"
+              "fare_id": "F10",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "jAQnGkfM"
             },
-            "raw_value": "F38,BMTC:01c6a049952f,AAhnPipm,5zunAhWl,",
+            "raw_value": "F10,BMTC:000eb374d7d7,Ds1Mp3As,jAQnGkfM,",
             "new_line_number": 47
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:01c6a049952f",
-              "origin_id": "ZL5yEBlN",
-              "destination_id": "AAhnPipm"
+              "fare_id": "F30",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "kgiT8ksV"
             },
-            "raw_value": "F38,BMTC:01c6a049952f,ZL5yEBlN,AAhnPipm,",
+            "raw_value": "F30,BMTC:000eb374d7d7,Ds1Mp3As,kgiT8ksV,",
             "new_line_number": 48
           },
           {
             "identifier": {
               "fare_id": "F35",
-              "route_id": "BMTC:01d11b9d9ffc",
-              "origin_id": "6fsNmFMo",
-              "destination_id": "SUn2UCM9"
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "Ds1Mp3As",
+              "destination_id": "vDrxvgQv"
             },
-            "raw_value": "F35,BMTC:01d11b9d9ffc,6fsNmFMo,SUn2UCM9,",
+            "raw_value": "F35,BMTC:000eb374d7d7,Ds1Mp3As,vDrxvgQv,",
             "new_line_number": 49
           },
           {
             "identifier": {
-              "fare_id": "F35",
-              "route_id": "BMTC:01d11b9d9ffc",
-              "origin_id": "7MKcGEcz",
-              "destination_id": "UGBhYI8G"
+              "fare_id": "F18",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "FSClx6EH",
+              "destination_id": "0ZwdomCy"
             },
-            "raw_value": "F35,BMTC:01d11b9d9ffc,7MKcGEcz,UGBhYI8G,",
+            "raw_value": "F18,BMTC:000eb374d7d7,FSClx6EH,0ZwdomCy,",
             "new_line_number": 50
           },
           {
             "identifier": {
-              "fare_id": "F38",
-              "route_id": "BMTC:01d7c227d763",
-              "origin_id": "Ua0ganRQ",
-              "destination_id": "YpQB1FFq"
+              "fare_id": "F35",
+              "route_id": "BMTC:000eb374d7d7",
+              "origin_id": "FSClx6EH",
+              "destination_id": "5zunAhWl"
             },
-            "raw_value": "F38,BMTC:01d7c227d763,Ua0ganRQ,YpQB1FFq,",
+            "raw_value": "F35,BMTC:000eb374d7d7,FSClx6EH,5zunAhWl,",
             "new_line_number": 51
           }
         ],
@@ -1821,7 +1837,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 176719
+        "omitted_count": 4246385
       }
     },
     {
@@ -1883,17 +1899,17 @@
               {
                 "field": "feed_start_date",
                 "base_value": "20260907",
-                "new_value": "20261104"
+                "new_value": "20261109"
               },
               {
                 "field": "feed_end_date",
                 "base_value": "20270907",
-                "new_value": "20271104"
+                "new_value": "20271109"
               },
               {
                 "field": "feed_version",
                 "base_value": "20260907",
-                "new_value": "20261104"
+                "new_value": "20261109"
               }
             ]
           }
@@ -1916,10 +1932,10 @@
       "columns_deleted": [],
       "stats": {
         "total_rows_base": 4434,
-        "total_rows_new": 5000,
+        "total_rows_new": 5063,
         "columns_added_count": 2,
         "columns_deleted_count": 0,
-        "rows_added_count": 5000,
+        "rows_added_count": 5063,
         "rows_deleted_count": 4434,
         "rows_modified_count": 0,
         "column_stats": []
@@ -1961,331 +1977,331 @@
           },
           {
             "identifier": {
+              "route_id": "BMTC:d211c32b1f24"
+            },
+            "raw_value": "Depot-14 RT Nagara ⇔ Shivajinagara Bus Station,107-C D14G-SBS,BMTC,3,BMTC:d211c32b1f24,Mobile ticketing; Ordinary,",
+            "new_line_number": 5
+          },
+          {
+            "identifier": {
               "route_id": "BMTC:000eb374d7d7"
             },
             "raw_value": "Ganga Nagara ⇔ Kempegowda Bus Station(Majestic/KBS),108-B,BMTC,3,BMTC:000eb374d7d7,Mobile ticketing; Ordinary,",
-            "new_line_number": 5
+            "new_line_number": 6
           },
           {
             "identifier": {
               "route_id": "BMTC:6216f8a75fd5"
             },
             "raw_value": "Kaval Byrasandra ⇔ KR Market,111,BMTC,3,BMTC:6216f8a75fd5,Mobile ticketing; Ordinary,",
-            "new_line_number": 6
+            "new_line_number": 7
           },
           {
             "identifier": {
               "route_id": "BMTC:090d75c7a3c6"
             },
             "raw_value": "Kaval Byrasandra ⇔ Kempegowda Bus Station(Majestic/KBS),111-C,BMTC,3,BMTC:090d75c7a3c6,Mobile ticketing; Ordinary,",
-            "new_line_number": 7
+            "new_line_number": 8
           },
           {
             "identifier": {
               "route_id": "BMTC:0d8863997312"
             },
             "raw_value": "Cubbon Park Metro Station ⇔ Kaval Byrasandra,111-C CMS-KBR,BMTC,3,BMTC:0d8863997312,Mobile ticketing; Ordinary,",
-            "new_line_number": 8
+            "new_line_number": 9
           },
           {
             "identifier": {
               "route_id": "BMTC:7ef48bd345bc"
             },
             "raw_value": "Kaval Byrasandra ⇔ Kempegowda Bus Station(Majestic/KBS),111-C KBS-VCH-KVB,BMTC,3,BMTC:7ef48bd345bc,Mobile ticketing; Ordinary,",
-            "new_line_number": 9
+            "new_line_number": 10
           },
           {
             "identifier": {
               "route_id": "BMTC:601ca99d55f0"
             },
             "raw_value": "Kaval Byrasandra ⇔ Shivajinagara Bus Station,112,BMTC,3,BMTC:601ca99d55f0,Mobile ticketing; Ordinary,",
-            "new_line_number": 10
+            "new_line_number": 11
           },
           {
             "identifier": {
               "route_id": "BMTC:6dacbd4fdb11"
             },
             "raw_value": "HIVE RT Nagara (Kaverinagara) ⇔ Shivajinagara Bus Station,112 SBS-HIRT,BMTC,3,BMTC:6dacbd4fdb11,Mobile ticketing; Ordinary,",
-            "new_line_number": 11
+            "new_line_number": 12
           },
           {
             "identifier": {
               "route_id": "BMTC:5e8c8d68374a"
             },
             "raw_value": "Kaval Byrasandra ⇔ Shivajinagara Bus Station,112 SBS-KVBS,BMTC,3,BMTC:5e8c8d68374a,Mobile ticketing; Ordinary,",
-            "new_line_number": 12
+            "new_line_number": 13
           },
           {
             "identifier": {
               "route_id": "BMTC:981d7a695803"
             },
             "raw_value": "Depot-14 RT Nagara ⇔ Shivajinagara Bus Station,112 SBS-YMCN-D14G,BMTC,3,BMTC:981d7a695803,Mobile ticketing; Ordinary,",
-            "new_line_number": 13
+            "new_line_number": 14
           },
           {
             "identifier": {
               "route_id": "BMTC:d4f7c5583a62"
             },
             "raw_value": "Kaval Byrasandra ⇔ Shivajinagara Bus Station,112-A,BMTC,3,BMTC:d4f7c5583a62,Mobile ticketing; Ordinary,",
-            "new_line_number": 14
+            "new_line_number": 15
           },
           {
             "identifier": {
               "route_id": "BMTC:57d7b427098c"
             },
             "raw_value": "Modi Garden ⇔ Shivajinagara Bus Station,112-A MDG-SBS,BMTC,3,BMTC:57d7b427098c,Mobile ticketing; Ordinary,",
-            "new_line_number": 15
+            "new_line_number": 16
           },
           {
             "identifier": {
               "route_id": "BMTC:a87d2dee4626"
             },
             "raw_value": "Modi Garden ⇔ Shivajinagara Bus Station,112-A SBS-MDG,BMTC,3,BMTC:a87d2dee4626,Mobile ticketing; Ordinary,",
-            "new_line_number": 16
+            "new_line_number": 17
           },
           {
             "identifier": {
               "route_id": "BMTC:ecb7937db58e"
             },
             "raw_value": "KR Market ⇔ Sultanpalya R T Nagara,114,BMTC,3,BMTC:ecb7937db58e,Mobile ticketing; Ordinary,",
-            "new_line_number": 17
+            "new_line_number": 18
           },
           {
             "identifier": {
               "route_id": "BMTC:5819d0e68b02"
             },
             "raw_value": "Depot-14 RT Nagara ⇔ KR Market,114 KMT-D14G,BMTC,3,BMTC:5819d0e68b02,Mobile ticketing; Ordinary,",
-            "new_line_number": 18
+            "new_line_number": 19
           },
           {
             "identifier": {
               "route_id": "BMTC:630400f46b91"
             },
             "raw_value": "Manorayanapalya ⇔ Shivajinagara Bus Station,114 SBS-MRP,BMTC,3,BMTC:630400f46b91,Mobile ticketing; Ordinary,",
-            "new_line_number": 19
+            "new_line_number": 20
           },
           {
             "identifier": {
               "route_id": "BMTC:a283fb206699"
             },
             "raw_value": "Shivajinagara Bus Station ⇔ Sultanpalya R T Nagara,114-A,BMTC,3,BMTC:a283fb206699,Mobile ticketing; Ordinary,",
-            "new_line_number": 20
+            "new_line_number": 21
           },
           {
             "identifier": {
               "route_id": "BMTC:5f11c8a2bcd7"
             },
             "raw_value": "Kempegowda Bus Station(Majestic/KBS) ⇔ Manorayanapalya,114-B,BMTC,3,BMTC:5f11c8a2bcd7,Mobile ticketing; Ordinary,",
-            "new_line_number": 21
+            "new_line_number": 22
           },
           {
             "identifier": {
               "route_id": "BMTC:440ea01ee107"
             },
             "raw_value": "Kempegowda Bus Station(Majestic/KBS) ⇔ Sultanpalya R T Nagara,114-C,BMTC,3,BMTC:440ea01ee107,Mobile ticketing; Ordinary,",
-            "new_line_number": 22
+            "new_line_number": 23
           },
           {
             "identifier": {
               "route_id": "BMTC:380a5f71ed94"
             },
             "raw_value": "Bishop Coton Girls High School ⇔ Sultanpalya R T Nagara,114-C STP-SBS-BCGHS,BMTC,3,BMTC:380a5f71ed94,Mobile ticketing; Ordinary,",
-            "new_line_number": 23
+            "new_line_number": 24
           },
           {
             "identifier": {
               "route_id": "BMTC:d18218824116"
             },
             "raw_value": "KR Market ⇔ Manorayanapalya,114-G,BMTC,3,BMTC:d18218824116,Mobile ticketing; Ordinary,",
-            "new_line_number": 24
+            "new_line_number": 25
           },
           {
             "identifier": {
               "route_id": "BMTC:a2e33d344f27"
             },
             "raw_value": "Marappa Garden ⇔ Shivajinagara Bus Station,119,BMTC,3,BMTC:a2e33d344f27,Mobile ticketing; Ordinary,",
-            "new_line_number": 25
+            "new_line_number": 26
           },
           {
             "identifier": {
               "route_id": "BMTC:d76598c3daf4"
             },
             "raw_value": "KR Market ⇔ Marappa Garden,119-B,BMTC,3,BMTC:d76598c3daf4,Mobile ticketing; Ordinary,",
-            "new_line_number": 26
+            "new_line_number": 27
           },
           {
             "identifier": {
               "route_id": "BMTC:7b52009b64fd"
             },
             "raw_value": "Banashankari Bus Station ⇔ Kempegowda Bus Station(Majestic/KBS),12,BMTC,3,BMTC:7b52009b64fd,Mobile ticketing; Ordinary,",
-            "new_line_number": 27
+            "new_line_number": 28
           },
           {
             "identifier": {
               "route_id": "BMTC:c299b56f422d"
             },
             "raw_value": "Kadirenahalli Cross ⇔ Kempegowda Bus Station(Majestic/KBS),12 KBS-BSK-KDHC,BMTC,3,BMTC:c299b56f422d,Mobile ticketing; Ordinary,",
-            "new_line_number": 28
+            "new_line_number": 29
           },
           {
             "identifier": {
               "route_id": "BMTC:1fcc2c4bb840"
             },
             "raw_value": "Kempegowda Bus Station(Majestic/KBS) ⇔ Padmanabha Nagara,12-B,BMTC,3,BMTC:1fcc2c4bb840,Mobile ticketing; Ordinary,",
-            "new_line_number": 29
+            "new_line_number": 30
           },
           {
             "identifier": {
               "route_id": "BMTC:fc48a46e3cd8"
             },
             "raw_value": "Shivajinagara Bus Station ⇔ Vijayanagara,121-BA,BMTC,3,BMTC:fc48a46e3cd8,Mobile ticketing; Ordinary,",
-            "new_line_number": 30
+            "new_line_number": 31
           },
           {
             "identifier": {
               "route_id": "BMTC:fb01ce242b8f"
             },
             "raw_value": "Chandra Layout ⇔ Shivajinagara Bus Station,121-BA SBS-KMTFLY-CLO,BMTC,3,BMTC:fb01ce242b8f,Mobile ticketing; Ordinary,",
-            "new_line_number": 31
+            "new_line_number": 32
           },
           {
             "identifier": {
               "route_id": "BMTC:1ec91ccc1b6a"
             },
             "raw_value": "Shivajinagara Bus Station ⇔ Vijayanagara Bus Station,121-BA SBS-KMTFLY-VJN,BMTC,3,BMTC:1ec91ccc1b6a,Mobile ticketing; Ordinary,",
-            "new_line_number": 32
+            "new_line_number": 33
           },
           {
             "identifier": {
               "route_id": "BMTC:57ef1149d68d"
             },
             "raw_value": "Shivajinagara Bus Station ⇔ Vijayanagara,121-BA SBS-KMTFLY-VSD-VJN,BMTC,3,BMTC:57ef1149d68d,Mobile ticketing; Ordinary,",
-            "new_line_number": 33
+            "new_line_number": 34
           },
           {
             "identifier": {
               "route_id": "BMTC:05a8ea5382b9"
             },
             "raw_value": "Kempegowda Bus Station(Majestic/KBS) ⇔ Old Bayyappanahalli,122,BMTC,3,BMTC:05a8ea5382b9,Mobile ticketing; Ordinary,",
-            "new_line_number": 34
+            "new_line_number": 35
           },
           {
             "identifier": {
               "route_id": "BMTC:40bd00156308"
             },
             "raw_value": "Old Bayyappanahalli ⇔ Shivajinagara Bus Station,123,BMTC,3,BMTC:40bd00156308,Mobile ticketing; Ordinary,",
-            "new_line_number": 35
+            "new_line_number": 36
           },
           {
             "identifier": {
               "route_id": "BMTC:114d4eefde1d"
             },
             "raw_value": "Jeevanahalli ⇔ Kempegowda Bus Station(Majestic/KBS),126,BMTC,3,BMTC:114d4eefde1d,Mobile ticketing; Ordinary,",
-            "new_line_number": 36
+            "new_line_number": 37
           },
           {
             "identifier": {
               "route_id": "BMTC:008451a05e1e"
             },
             "raw_value": "Jeevanahalli ⇔ Shivajinagara Bus Station,127,BMTC,3,BMTC:008451a05e1e,Mobile ticketing; Ordinary,",
-            "new_line_number": 37
+            "new_line_number": 38
           },
           {
             "identifier": {
               "route_id": "BMTC:8b7471f4ae0b"
             },
             "raw_value": "Kempegowda Bus Station(Majestic/KBS) ⇔ Shivajinagara Bus Station,129,BMTC,3,BMTC:8b7471f4ae0b,Mobile ticketing; Ordinary,",
-            "new_line_number": 38
+            "new_line_number": 39
           },
           {
             "identifier": {
               "route_id": "BMTC:e2379faa3b6a"
             },
             "raw_value": "Cubbon Park Metro Station ⇔ Kempegowda Bus Station(Majestic/KBS),129 KBS-CMS,BMTC,3,BMTC:e2379faa3b6a,Mobile ticketing; Ordinary,",
-            "new_line_number": 39
+            "new_line_number": 40
           },
           {
             "identifier": {
               "route_id": "BMTC:a5a913e91965"
             },
             "raw_value": "Kempegowda Bus Station(Majestic/KBS) ⇔ Museum,129 KBS-SBS-KBR,BMTC,3,BMTC:a5a913e91965,Mobile ticketing; Ordinary,",
-            "new_line_number": 40
+            "new_line_number": 41
           },
           {
             "identifier": {
               "route_id": "BMTC:327e670b74c9"
             },
             "raw_value": "Hosakote Old Bus Stand ⇔ Sarjapura,12F-5,BMTC,3,BMTC:327e670b74c9,Mobile ticketing; Ordinary,",
-            "new_line_number": 41
+            "new_line_number": 42
           },
           {
             "identifier": {
               "route_id": "BMTC:bd307a3ec329"
             },
             "raw_value": "Banashankari Bus Station ⇔ Shivajinagara Bus Station,13,BMTC,3,BMTC:bd307a3ec329,Mobile ticketing; Ordinary; Ordinary Express,",
-            "new_line_number": 42
+            "new_line_number": 43
           },
           {
             "identifier": {
               "route_id": "BMTC:e834de9ad0ea"
             },
             "raw_value": "Banashankari Bus Station ⇔ Madhavan Park,13 MDP-BSK,BMTC,3,BMTC:e834de9ad0ea,Mobile ticketing; Ordinary,",
-            "new_line_number": 43
+            "new_line_number": 44
           },
           {
             "identifier": {
               "route_id": "BMTC:fe189af389fd"
             },
             "raw_value": "Poornaprajna Layout ⇔ Shivajinagara Bus Station,13 PPLO-SBS,BMTC,3,BMTC:fe189af389fd,Mobile ticketing; Ordinary,",
-            "new_line_number": 44
+            "new_line_number": 45
           },
           {
             "identifier": {
               "route_id": "BMTC:4bce7afbb608"
             },
             "raw_value": "Bishop Coton Girls High School ⇔ Shivajinagara Bus Station,13 SBS-BCGHS,BMTC,3,BMTC:4bce7afbb608,Mobile ticketing; Ordinary,",
-            "new_line_number": 45
+            "new_line_number": 46
           },
           {
             "identifier": {
               "route_id": "BMTC:d921d88bd101"
             },
             "raw_value": "Shivajinagara Bus Station ⇔ St Joseph Boys High School Musuem Road,13 SBS-SJBHS,BMTC,3,BMTC:d921d88bd101,Mobile ticketing; Ordinary,",
-            "new_line_number": 46
+            "new_line_number": 47
           },
           {
             "identifier": {
               "route_id": "BMTC:6731e9fe586c"
             },
             "raw_value": "Banashankari Bus Station ⇔ Sanjay Gandhi Hospital,13 SGH-BSK,BMTC,3,BMTC:6731e9fe586c,Mobile ticketing; Ordinary,",
-            "new_line_number": 47
+            "new_line_number": 48
           },
           {
             "identifier": {
               "route_id": "BMTC:bd494e423351"
             },
             "raw_value": "Shivajinagara Bus Station ⇔ St Josephs Indian School/ Malya Hospital,13 SJHS-SBS,BMTC,3,BMTC:bd494e423351,Mobile ticketing; Ordinary,",
-            "new_line_number": 48
+            "new_line_number": 49
           },
           {
             "identifier": {
               "route_id": "BMTC:8993cb236234"
             },
             "raw_value": "Brigade Road ⇔ Shanthinagara Bus Stand,13 SNBS-BGRD,BMTC,3,BMTC:8993cb236234,Mobile ticketing; Ordinary,",
-            "new_line_number": 49
+            "new_line_number": 50
           },
           {
             "identifier": {
               "route_id": "BMTC:d1932b47b695"
             },
             "raw_value": "Mayohall ⇔ Wilson Garden 10th Cross,13 WG10TH-MYH,BMTC,3,BMTC:d1932b47b695,Mobile ticketing; Ordinary,",
-            "new_line_number": 50
-          },
-          {
-            "identifier": {
-              "route_id": "BMTC:72fd24895b4f"
-            },
-            "raw_value": "Kumaraswamy layout West cross ⇔ Shivajinagara Bus Station,13-A,BMTC,3,BMTC:72fd24895b4f,Mobile ticketing; Ordinary,",
             "new_line_number": 51
           }
         ],
@@ -2294,7 +2310,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 9384
+        "omitted_count": 9447
       }
     },
     {
@@ -2304,10 +2320,10 @@
       "columns_deleted": [],
       "stats": {
         "total_rows_base": 2492304,
-        "total_rows_new": 4236328,
+        "total_rows_new": 4237296,
         "columns_added_count": 0,
         "columns_deleted_count": 0,
-        "rows_added_count": 4236328,
+        "rows_added_count": 4237296,
         "rows_deleted_count": 2492304,
         "rows_modified_count": 0,
         "column_stats": []
@@ -2731,7 +2747,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 6728582
+        "omitted_count": 6729550
       }
     },
     {
@@ -2755,10 +2771,10 @@
       ],
       "stats": {
         "total_rows_base": 1540686,
-        "total_rows_new": 2237974,
+        "total_rows_new": 2238693,
         "columns_added_count": 2,
         "columns_deleted_count": 1,
-        "rows_added_count": 2237974,
+        "rows_added_count": 2238693,
         "rows_deleted_count": 1540686,
         "rows_modified_count": 0,
         "column_stats": []
@@ -3185,7 +3201,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 3778610
+        "omitted_count": 3779329
       }
     },
     {
@@ -4153,10 +4169,10 @@
       "columns_deleted": [],
       "stats": {
         "total_rows_base": 57836,
-        "total_rows_new": 69598,
+        "total_rows_new": 69642,
         "columns_added_count": 3,
         "columns_deleted_count": 0,
-        "rows_added_count": 69598,
+        "rows_added_count": 69642,
         "rows_deleted_count": 57836,
         "rows_modified_count": 0,
         "column_stats": []
@@ -4242,16 +4258,16 @@
           },
           {
             "identifier": {
-              "trip_id": "WM7ZOgpX:1L2BAQxv"
+              "trip_id": "WM7ZOgpX:voZpjW8M"
             },
-            "raw_value": "BMTC:f5098d4b9023,days:1111110,HSR Layout BDA Complex,0,WM7ZOgpX,WM7ZOgpX:1L2BAQxv,1L2BAQxv,0,0",
+            "raw_value": "BMTC:f5098d4b9023,days:1011110,HSR Layout BDA Complex,0,WM7ZOgpX,WM7ZOgpX:voZpjW8M,voZpjW8M,0,0",
             "new_line_number": 11
           },
           {
             "identifier": {
-              "trip_id": "WM7ZOgpX:7jmymJqG"
+              "trip_id": "WM7ZOgpX:DWqYl81l"
             },
-            "raw_value": "BMTC:f5098d4b9023,days:1111110,HSR Layout BDA Complex,0,WM7ZOgpX,WM7ZOgpX:7jmymJqG,7jmymJqG,0,0",
+            "raw_value": "BMTC:f5098d4b9023,days:1011110,HSR Layout BDA Complex,0,WM7ZOgpX,WM7ZOgpX:DWqYl81l,DWqYl81l,0,0",
             "new_line_number": 12
           },
           {
@@ -4284,9 +4300,9 @@
           },
           {
             "identifier": {
-              "trip_id": "Iqf7QUMF:l1YTulKs"
+              "trip_id": "Iqf7QUMF:AbZ7TF2d"
             },
-            "raw_value": "BMTC:f55bdafaa4d8,days:1111110,CS-BEML Factory,0,Iqf7QUMF,Iqf7QUMF:l1YTulKs,l1YTulKs,0,0",
+            "raw_value": "BMTC:f55bdafaa4d8,days:0111110,CS-BEML Factory,0,Iqf7QUMF,Iqf7QUMF:AbZ7TF2d,AbZ7TF2d,0,0",
             "new_line_number": 17
           },
           {
@@ -4396,16 +4412,16 @@
           },
           {
             "identifier": {
-              "trip_id": "82gmzSOo:lSX2bj67"
+              "trip_id": "82gmzSOo:OrxelQMQ"
             },
-            "raw_value": "BMTC:767dcc91226b,days:0000010,Kempegowda Bus Station(Majestic/KBS),0,82gmzSOo,82gmzSOo:lSX2bj67,lSX2bj67,0,0",
+            "raw_value": "BMTC:767dcc91226b,days:1111111,Kempegowda Bus Station(Majestic/KBS),0,82gmzSOo,82gmzSOo:OrxelQMQ,OrxelQMQ,0,0",
             "new_line_number": 33
           },
           {
             "identifier": {
-              "trip_id": "D0H8FYE8:K7X474bv"
+              "trip_id": "D0H8FYE8:5Tn8qgjZ"
             },
-            "raw_value": "BMTC:564eb6acf03e,days:1111110,Basaveshwaranagara New Bus Stand (Sharada Coliny),0,D0H8FYE8,D0H8FYE8:K7X474bv,K7X474bv,0,0",
+            "raw_value": "BMTC:564eb6acf03e,days:1011110,Basaveshwaranagara New Bus Stand (Sharada Coliny),0,D0H8FYE8,D0H8FYE8:5Tn8qgjZ,5Tn8qgjZ,0,0",
             "new_line_number": 34
           },
           {
@@ -4533,7 +4549,7 @@
       },
       "truncated": {
         "is_truncated": true,
-        "omitted_count": 127384
+        "omitted_count": 127428
       }
     }
   ]

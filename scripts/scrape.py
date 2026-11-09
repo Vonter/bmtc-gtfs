@@ -154,7 +154,11 @@ class NammaBmtcClient:
             "Content-Type": "application/json",
             "User-Agent": "bmtc-gtfs/2.0 (+https://github.com/Vonter/bmtc-gtfs)",
         }
-        self.session = aiohttp.ClientSession(headers=headers, timeout=REQUEST_TIMEOUT)
+        # The operating system resolver recovers from network changes during multi-day runs.
+        connector = aiohttp.TCPConnector(resolver=aiohttp.ThreadedResolver())
+        self.session = aiohttp.ClientSession(
+            connector=connector, headers=headers, timeout=REQUEST_TIMEOUT
+        )
         return self
 
     async def __aexit__(self, *_: object) -> None:
