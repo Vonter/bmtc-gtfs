@@ -1,7 +1,7 @@
 import subprocess
 
 # gtfs-validator
-subprocess.run(["java", "-jar", "../tools/gtfs-validator/gtfs-validator-7.0.0-cli.jar", "-i", "../gtfs/bmtc.zip", "-o", "../validation/gtfs-validator"])
+subprocess.run(["java", "-jar", "../tools/gtfs-validator/gtfs-validator-8.0.1-cli.jar", "-i", "../gtfs/bmtc.zip", "-o", "../validation/gtfs-validator"])
 
 # gtfsvtor
 subprocess.run(["../tools/gtfsvtor/bin/gtfsvtor", "../gtfs/bmtc.zip", "-o", "../validation/gtfsvtor/validation.html"])

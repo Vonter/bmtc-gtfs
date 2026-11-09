@@ -1,6 +1,6 @@
 # bmtc-gtfs
 
-Unofficial GTFS dataset for BMTC bus services operated in Bengaluru, covering routes, stops, timetables, fares and more. Sourced from the official [Namma BMTC](https://nammabmtcapp.karnataka.gov.in/) app.
+Unofficial GTFS dataset for BMTC bus services operated in Bengaluru, covering routes, stops, timetables, fares and more. Sourced from the Namma BMTC 2.0 app.
 
 ## Motivation
 
@@ -9,9 +9,9 @@ Unofficial GTFS dataset for BMTC bus services operated in Bengaluru, covering ro
 
 ## Caveat
 
-The source for the data and analysis in this repository is the information provided on the official Namma BMTC app. However, the Namma BMTC app has inaccurate data, and is known to have incorrect timetables and stop timings. Nonetheless, the data is representative of BMTC services and can be used to understand trends in the BMTC network.
+The source for the data and analysis in this repository is the information provided on the Namma BMTC 2.0 app. However, the Namma BMTC 2.0 app has inaccurate data, and is known to have incorrect timetables and stop timings. Nonetheless, the data is representative of BMTC services and can be used to understand trends in the BMTC network.
 
-Due to the design of the Namma BMTC app, only routes with functional live tracking are included in the GTFS. Missing routes may be due to unavailability of live tracking, and not necessarily due to the route not existing or being non-operational.
+Only arrival times are published, so GTFS arrival and departure times are equal at each stop. Arrival times missing from the source are interpolated by the distance between stops.
 
 ## GTFS
 
@@ -41,7 +41,7 @@ CSVs can be found below:
 
 - [gtfs-validator](validation/gtfs-validator)
 - [gtfsvtor](validation/gtfsvtor)
-- [transport-validator](validation/transport-validator) (Older versions of GTFS)
+- [transport-validator](validation/transport-validator)
 
 ## Diff
 
@@ -51,21 +51,11 @@ generated [Markdown](diff/diff.md) and [JSON](diff/diff.json) reports.
 ## Scripts
 
 - [scrape.py](scripts/scrape.py): Scrape raw data from Namma BMTC
+- [fares.py](scripts/fares.py): Scrape fares from Namma BMTC, used by scrape.py
 - [gtfs.py](scripts/gtfs.py): Parse raw data and save as GTFS
-- [valiate.py](scripts/validate.py): Pass the GTFS through multiple GTFS validation tools
-- [analysis.py](scripts/analysis.py): Export route, stop and aggregated-stop summaries as GeoJSON and CSV
-
-## Raw JSON
-
-Raw JSON data scraped from Namma BMTC can be found below:
-
-- [routeids.7z](https://raw.githubusercontent.com/Vonter/bmtc-gtfs/main/raw/routeids.7z): Route search responses used to resolve parent route IDs
-- [routelines.7z](https://raw.githubusercontent.com/Vonter/bmtc-gtfs/main/raw/routelines.7z): Pointwise co-ordinates of each route
-- [stops.7z](https://raw.githubusercontent.com/Vonter/bmtc-gtfs/main/raw/stops.7z): Stops through which each route passes
-- [timetables.7z](https://raw.githubusercontent.com/Vonter/bmtc-gtfs/main/raw/timetables.7z): Timetables for each route
-- [fares.7z](https://raw.githubusercontent.com/Vonter/bmtc-gtfs/main/raw/fares.7z): Fare matrix keyed by fare-stage code pairs
-- [translations.7z](https://raw.githubusercontent.com/Vonter/bmtc-gtfs/main/raw/translations.7z): Kannada names for each stop
-- [platforms/](raw/platforms): Platform locations and route-platform assignments for major bus stations
+- [validate.py](scripts/validate.py): Pass the GTFS through multiple GTFS validation tools
+- [analysis.py](scripts/analysis.py): Export route, stop and aggregated-stop summaries for the busiest service day as GeoJSON and CSV
+- [common.py](scripts/common.py): Helpers shared by the scripts
 
 ## TODO
 

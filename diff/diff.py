@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Diff HEAD's GTFS against the working feed, using only the standard library."""
 import argparse
+import shlex
 from collections import Counter
 from contextlib import closing
 import csv
@@ -281,7 +282,8 @@ def route_names(routes):
             for rid, row in routes.items()}
 
 
-def markdown(output, totals, base_path, new_path, refresh=None, json_name="diff.json"):
+def markdown(output, totals, base_path, new_path, refresh=None, json_name="diff.json",
+             command="python3 diff/diff.py"):
     meta, summary = output["metadata"], output["summary"]
     old_routes, new_routes = [small_table(p, "routes.txt", "route_id") for p in (base_path, new_path)]
     old_trips, new_trips = [small_table(p, "trips.txt", "trip_id") for p in (base_path, new_path)]
@@ -363,7 +365,7 @@ def markdown(output, totals, base_path, new_path, refresh=None, json_name="diff.
     if meta["unsupported_files"]:
         lines += ["", "**Outside schema scope:** " + ", ".join(
             f"{escape(f['file_name'])} ({f['present_in']})" for f in meta["unsupported_files"]) + "."]
-    lines += ["", "## Reproduce and interpret", "", chr(96)*3 + "sh", "python3 diff/diff.py", chr(96)*3, "",
+    lines += ["", "## Reproduce and interpret", "", chr(96)*3 + "sh", command, chr(96)*3, "",
               f"[GTFS Diff {VERSION}]({SPEC}) JSON: {code(json_name)}. Full counts; at most "
               f"{meta['row_changes_cap_per_file']} row examples per file across all actions. "
               "Rows match declared keys; keyless relations use complete rows. CSV row/column ordering and ZIP metadata are ignored. "
@@ -434,7 +436,13 @@ def main(argv=None):
                 if candidate.get("counts") and all(totals.get(f"{k}.txt", {}).get("total_rows_new") == v
                                                     for k, v in candidate["counts"].items()):
                     refresh = candidate
-            report = markdown(output, totals, base_path, new_path, refresh, args.json_path.name)
+            command = ["python3", "diff/diff.py"]
+            if args.base_feed:
+                command += ["--base-feed", str(args.base_feed), "--feed", str(args.feed)]
+            elif args.base_ref != "HEAD":
+                command += ["--base-ref", args.base_ref]
+            report = markdown(output, totals, base_path, new_path, refresh, args.json_path.name,
+                              shlex.join(command))
             write_atomic(args.json_path, json.dumps(output, ensure_ascii=False, indent=2) + "\n")
             write_atomic(args.markdown, report)
         print(f"Wrote {args.markdown} and {args.json_path}")
